@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { RoleSelector } from '../../components/ui/RoleSelector';
-import type { RoleType } from '../../components/ui/RoleSelector';
-import { IconButton } from '../../components/ui/IconButton';
+import { RoleSelector } from '../../components/ui/selectors/RoleSelector';
+import type { RoleType } from '../../components/ui/selectors/RoleSelector';
+import { IconButton } from '../../components/ui/buttons/IconButton';
 import { LoginForm } from '../../components/auth/LoginForm';
 
 // Data para el Carousel
