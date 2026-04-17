@@ -30,6 +30,9 @@ export const LoginForm: React.FC = () => {
     if (!email) {
       newErrors.email = 'Este campo es obligatorio';
       hasError = true;
+    } else if (!/\S+@\S+\.\S+/.test(email)) {
+      newErrors.email = 'El formato del correo electrónico es inválido';
+      hasError = true;
     }
     
     if (!password) {
