@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { Input, PasswordInput } from '../ui/Input';
-import { Checkbox } from '../ui/Checkbox';
-import { Button } from '../ui/Button';
-import { Alert } from '../ui/Alert';
+import { Input, PasswordInput } from '../ui/inputs/Input';
+import { Checkbox } from '../ui/inputs/Checkbox';
+import { Button } from '../ui/buttons/Button';
+import { Alert } from '../ui/feedback/Alert';
 
 export const LoginForm: React.FC = () => {
   const [email, setEmail] = useState('');
