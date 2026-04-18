@@ -8,22 +8,17 @@ export const LoginForm: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
-
   const [isLoading, setIsLoading] = useState(false);
   const [globalError, setGlobalError] = useState('');
   const [success, setSuccess] = useState('');
-  
-  // Field errors
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Reset states
     setGlobalError('');
     setSuccess('');
     setErrors({});
-    
+
     let hasError = false;
     const newErrors: { email?: string; password?: string } = {};
 
@@ -34,7 +29,7 @@ export const LoginForm: React.FC = () => {
       newErrors.email = 'El formato del correo electrónico es inválido';
       hasError = true;
     }
-    
+
     if (!password) {
       newErrors.password = 'Este campo es obligatorio';
       hasError = true;
@@ -45,7 +40,6 @@ export const LoginForm: React.FC = () => {
       return;
     }
 
-    // Mock API Call para la base de datos
     setIsLoading(true);
     try {
       await new Promise((resolve, reject) => {
@@ -57,14 +51,7 @@ export const LoginForm: React.FC = () => {
           }
         }, 1500);
       });
-
       setSuccess('¡Inicio de sesión exitoso! Redirigiendo a tu panel de control...');
-      
-      // Simulate Redirect
-      // setTimeout(() => {
-      //   window.location.href = '/dashboard';
-      // }, 1500);
-
     } catch (err: any) {
       setGlobalError(err.message || 'Error desconocido al iniciar sesión');
     } finally {
@@ -74,17 +61,16 @@ export const LoginForm: React.FC = () => {
 
   return (
     <>
-      {/* Alerta flotante desvinculada del form normal para no empujar la UI */}
       {globalError && <Alert type="error" message={globalError} onClose={() => setGlobalError('')} />}
       {success && <Alert type="success" message={success} onClose={() => setSuccess('')} />}
-      
+
       <form className="space-y-4" onSubmit={handleSubmit} noValidate>
-        <Input 
-          label="Correo electrónico" 
-          id="email" 
-          name="email" 
-          type="email" 
-          placeholder="tucorreo@ejemplo.com" 
+        <Input
+          label="Correo electrónico"
+          id="email"
+          name="email"
+          type="email"
+          placeholder="tucorreo@ejemplo.com"
           value={email}
           onChange={(e) => {
             setEmail(e.target.value);
@@ -93,11 +79,11 @@ export const LoginForm: React.FC = () => {
           error={errors.email}
         />
 
-        <PasswordInput 
-          label="Contraseña" 
-          id="password" 
-          name="password" 
-          placeholder="Ingresa tu contraseña" 
+        <PasswordInput
+          label="Contraseña"
+          id="password"
+          name="password"
+          placeholder="Ingresa tu contraseña"
           value={password}
           onChange={(e) => {
             setPassword(e.target.value);
@@ -106,29 +92,32 @@ export const LoginForm: React.FC = () => {
           error={errors.password}
         />
 
-        <div className="flex items-center justify-between pt-1 pb-2">
-          <Checkbox 
-            label="Recordarme" 
-            id="remember-me" 
-            name="remember-me" 
+        <div className="flex items-center justify-between">
+          <Checkbox
+            label="Recordarme"
+            id="remember-me"
+            name="remember-me"
             checked={rememberMe}
             onChange={(e) => setRememberMe(e.target.checked)}
           />
-          <a href="#" className="text-sm font-semibold text-primary hover:text-primary-hover transition-colors">
+          <a href="#" className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 transition-colors">
             ¿Olvidaste tu contraseña?
           </a>
         </div>
 
-        <div className="pt-2">
-          <Button type="submit" fullWidth isLoading={isLoading} className="py-4 text-base">
-            {isLoading ? 'Iniciando sesión...' : 'Iniciar Sesión'}
-          </Button>
-        </div>
+        <Button
+          type="submit"
+          fullWidth
+          isLoading={isLoading}
+          className="py-3 text-sm bg-gradient-to-r from-indigo-600 to-blue-500 hover:from-indigo-700 hover:to-blue-600 shadow-lg shadow-indigo-500/30 border-0 mt-1"
+        >
+          {isLoading ? 'Iniciando sesión...' : 'Iniciar Sesión'}
+        </Button>
 
-        <div className="text-center mt-6">
+        <div className="text-center">
           <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
             ¿No tienes cuenta?{' '}
-            <a href="#" className="font-bold text-primary hover:text-primary-hover transition-colors">
+            <a href="#" className="font-bold text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 transition-colors">
               Solicitar acceso
             </a>
           </p>
