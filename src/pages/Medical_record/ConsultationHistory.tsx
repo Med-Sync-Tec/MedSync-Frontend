@@ -124,8 +124,15 @@ export const ConsultationHistory: React.FC = () => {
                 </p>
               </div>
 
-              <div className="flex items-center gap-2">
-                <button className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-[#1e293b] border border-gray-200 dark:border-gray-700 rounded-xl text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-all">
+              <div className="flex items-center gap-3">
+                <button 
+                  onClick={() => window.location.href = '/medical-record/new-soap'}
+                  className="flex items-center gap-2 px-6 py-2.5 bg-[#1d2451] hover:bg-[#151a3a] text-white rounded-xl text-sm font-bold transition-all shadow-lg shadow-indigo-100 dark:shadow-none"
+                >
+                  <span className="material-symbols-outlined text-[22px]">add</span>
+                  Nueva Consulta
+                </button>
+                <button className="flex items-center gap-2 px-4 py-2.5 bg-white dark:bg-[#1e293b] border border-gray-200 dark:border-gray-700 rounded-xl text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-all">
                   <span className="material-symbols-outlined text-[20px]">filter_list</span>
                   Filtrar
                 </button>

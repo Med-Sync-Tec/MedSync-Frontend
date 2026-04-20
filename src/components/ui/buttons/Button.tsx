@@ -22,7 +22,8 @@ export const Button: React.FC<ButtonProps> = ({
   const variants = {
     primary: 'border border-transparent shadow-sm text-white bg-[#4f46e5] hover:bg-[#4338ca] focus:ring-[#4f46e5]',
     secondary: 'border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 focus:ring-gray-200',
-    outline: 'border border-gray-200 dark:border-gray-700 bg-transparent text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 focus:ring-gray-200'
+    outline: 'border border-gray-200 dark:border-gray-700 bg-transparent text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 focus:ring-gray-200',
+    danger: 'border border-transparent shadow-sm text-white bg-red-600 hover:bg-red-700 focus:ring-red-500',
   };
 
   return (
