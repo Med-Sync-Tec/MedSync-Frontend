@@ -20,7 +20,12 @@
   "devDependencies": {
     "@eslint/js": "^9.39.4",
     "@storybook/addon-a11y": "^10.3.5",
+    "@storybook/addon-essentials": "^8.6.14",
+    "@storybook/addon-interactions": "^8.6.14",
+    "@storybook/addon-links": "^10.3.5",
+    "@storybook/blocks": "^8.6.14",
     "@storybook/react-vite": "^10.3.5",
+    "@storybook/test": "^8.6.15",
     "@tailwindcss/container-queries": "^0.1.1",
     "@tailwindcss/forms": "^0.5.11",
     "@tailwindcss/postcss": "^4.2.2",
