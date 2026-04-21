@@ -1,10 +1,10 @@
 import React from 'react';
-import { Header } from '../../components/ui/navigation/Header';
-import { Button } from '../../components/ui/buttons/Button';
-import { Input } from '../../components/ui/inputs/Input';
-import { Textarea } from '../../components/ui/inputs/Textarea';
-import { SOAPSection } from '../../components/ui/cards/SOAPSection';
-import { FileUploadZone } from '../../components/ui/inputs/FileUploadZone';
+import { Header } from '../../../components/ui/navigation/Header';
+import { Button } from '../../../components/ui/buttons/Button';
+import { Input } from '../../../components/ui/inputs/Input';
+import { Textarea } from '../../../components/ui/inputs/Textarea';
+import { SOAPSection } from '../../../components/ui/cards/SOAPSection';
+import { FileUploadZone } from '../../../components/ui/inputs/FileUploadZone';
 
 export const NewSOAPEntry: React.FC = () => {
   const patientName = "Carlos Eduardo Mendez";
@@ -27,9 +27,9 @@ export const NewSOAPEntry: React.FC = () => {
               Paciente: <span className="text-gray-900 dark:text-gray-200 font-bold">{patientName}</span> • ID: {patientId}
             </p>
           </div>
-          
+
           <div className="flex items-center gap-3">
-            <button 
+            <button
               onClick={handleBack}
               className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-[#1e293b] border border-gray-200 dark:border-gray-700 rounded-xl text-sm font-bold text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-all shadow-sm"
             >
@@ -45,9 +45,9 @@ export const NewSOAPEntry: React.FC = () => {
         {/* SOAP Form Sections */}
         <div className="space-y-6">
           {/* S - Subjetivo */}
-          <SOAPSection 
-            letter="S" 
-            title="Subjetivo" 
+          <SOAPSection
+            letter="S"
+            title="Subjetivo"
             subtitle="Sintomatología y Motivo"
             headerAction={
               <button className="flex items-center gap-2 px-3 py-1.5 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 rounded-lg text-[10px] font-bold uppercase tracking-wider hover:bg-indigo-100 dark:hover:bg-indigo-900/40 transition-colors">
@@ -56,17 +56,17 @@ export const NewSOAPEntry: React.FC = () => {
               </button>
             }
           >
-            <Textarea 
-              placeholder="Describa el motivo de consulta, síntomas actuales, antecedentes y preocupaciones del paciente..." 
+            <Textarea
+              placeholder="Describa el motivo de consulta, síntomas actuales, antecedentes y preocupaciones del paciente..."
               className="w-full bg-transparent border-none focus:ring-0 focus:bg-transparent p-0 dark:focus:bg-transparent"
               rows={5}
             />
           </SOAPSection>
 
           {/* O - Objetivo */}
-          <SOAPSection 
-            letter="O" 
-            title="Objetivo" 
+          <SOAPSection
+            letter="O"
+            title="Objetivo"
             subtitle="Examen Físico y Signos Vitales"
           >
             <div className="space-y-6">
@@ -78,8 +78,8 @@ export const NewSOAPEntry: React.FC = () => {
               </div>
               <div className="space-y-2">
                 <h4 className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Hallazgos del examen físico</h4>
-                <Textarea 
-                  placeholder="Detalle los hallazgos observados durante la exploración..." 
+                <Textarea
+                  placeholder="Detalle los hallazgos observados durante la exploración..."
                   className="w-full bg-transparent border-none focus:ring-0 focus:bg-transparent p-0 dark:focus:bg-transparent"
                   rows={3}
                 />
@@ -90,8 +90,8 @@ export const NewSOAPEntry: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* A - Análisis */}
             <SOAPSection letter="A" title="Análisis" subtitle="Diagnóstico">
-              <Textarea 
-                placeholder="Razonamiento clínico y diagnóstico presuntivo o definitivo..." 
+              <Textarea
+                placeholder="Razonamiento clínico y diagnóstico presuntivo o definitivo..."
                 className="w-full bg-transparent border-none focus:ring-0 focus:bg-transparent p-0 dark:focus:bg-transparent"
                 rows={5}
               />
@@ -99,8 +99,8 @@ export const NewSOAPEntry: React.FC = () => {
 
             {/* P - Plan */}
             <SOAPSection letter="P" title="Plan" subtitle="Tratamiento">
-              <Textarea 
-                placeholder="Medicamentos, dosis, estudios complementarios solicitados y seguimiento..." 
+              <Textarea
+                placeholder="Medicamentos, dosis, estudios complementarios solicitados y seguimiento..."
                 className="w-full bg-transparent border-none focus:ring-0 focus:bg-transparent p-0 dark:focus:bg-transparent"
                 rows={5}
               />
@@ -112,14 +112,14 @@ export const NewSOAPEntry: React.FC = () => {
 
         {/* Form Footer Actions */}
         <div className="flex items-center justify-between gap-4 pt-8 border-t border-gray-100 dark:border-gray-800">
-          <Button 
-            variant="danger" 
+          <Button
+            variant="danger"
             onClick={handleBack}
             icon={<span className="material-symbols-outlined">delete</span>}
           >
             Cancelar y descartar
           </Button>
-          
+
           <div className="flex items-center gap-4">
             <Button variant="secondary" icon={<span className="material-symbols-outlined">picture_as_pdf</span>}>
               Exportar PDF

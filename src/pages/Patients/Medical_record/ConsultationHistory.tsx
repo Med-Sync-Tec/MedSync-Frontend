@@ -1,10 +1,10 @@
 import React, { useState, useMemo } from 'react';
-import { Header } from '../../components/ui/navigation/Header';
-import { PatientDetailCard } from '../../components/ui/cards/PatientDetailCard';
-import { ConsultationCard } from '../../components/ui/cards/ConsultationCard';
-import type { ConsultationSummary } from '../../components/ui/cards/ConsultationCard';
-import { SOAPModal } from '../../components/ui/feedback/SOAPModal';
-import type { SOAPData } from '../../components/ui/feedback/SOAPModal';
+import { Header } from '../../../components/ui/navigation/Header';
+import { PatientDetailCard } from '../../../components/ui/cards/PatientDetailCard';
+import { ConsultationCard } from '../../../components/ui/cards/ConsultationCard';
+import type { ConsultationSummary } from '../../../components/ui/cards/ConsultationCard';
+import { SOAPModal } from '../../../components/ui/feedback/SOAPModal';
+import type { SOAPData } from '../../../components/ui/feedback/SOAPModal';
 
 interface FullConsultation extends ConsultationSummary {
   doctorName: string;
@@ -125,7 +125,7 @@ export const ConsultationHistory: React.FC = () => {
               </div>
 
               <div className="flex items-center gap-3">
-                <button 
+                <button
                   onClick={() => window.location.href = '/medical-record/new-soap'}
                   className="flex items-center gap-2 px-6 py-2.5 bg-[#1d2451] hover:bg-[#151a3a] text-white rounded-xl text-sm font-bold transition-all shadow-lg shadow-indigo-100 dark:shadow-none"
                 >
