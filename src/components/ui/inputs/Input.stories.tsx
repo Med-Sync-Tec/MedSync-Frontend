@@ -14,7 +14,7 @@ const meta: Meta<typeof Input> = {
   },
   decorators: [
     (Story) => (
-      <div className="w-96 p-6 bg-white dark:bg-[#1e293b] rounded-xl">
+      <div className="w-96 p-6 bg-surface rounded-xl">
         <Story />
       </div>
     ),

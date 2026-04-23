@@ -78,7 +78,7 @@ export const IARecommendationModal: React.FC<IARecommendationModalProps> = ({
                   className={`px-4 py-2 text-sm font-semibold text-white rounded-xl transition-colors ${
                     status === 'critical'
                       ? 'bg-red-600 hover:bg-red-700'
-                      : 'bg-[#4f46e5] hover:bg-[#4338ca]'
+                      : 'bg-primary hover:bg-primary-hover'
                   }`}
                 >
                   Aplicar sugerencia

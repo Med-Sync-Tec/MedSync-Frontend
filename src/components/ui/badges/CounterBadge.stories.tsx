@@ -12,7 +12,7 @@ const meta: Meta<typeof CounterBadge> = {
   args: { text: '+2 nuevos', variant: 'info' },
   decorators: [
     (Story) => (
-      <div className="p-4 bg-white dark:bg-[#1e293b] rounded-xl">
+      <div className="p-4 bg-surface rounded-xl">
         <Story />
       </div>
     ),

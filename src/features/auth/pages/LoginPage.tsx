@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { RoleSelector } from '../../components/ui/selectors/RoleSelector';
-import type { RoleType } from '../../components/ui/selectors/RoleSelector';
-import { IconButton } from '../../components/ui/buttons/IconButton';
-import { LoginForm } from '../../components/auth/LoginForm';
+import { RoleSelector } from '@ui/selectors/RoleSelector';
+import type { RoleType } from '@ui/selectors/RoleSelector';
+import { IconButton } from '@ui/buttons/IconButton';
+import { LoginForm } from '@features/auth/components/LoginForm';
+import { useTheme } from '@lib/theme';
 
 interface Slide {
   image: string;
@@ -10,54 +11,67 @@ interface Slide {
   description: string;
 }
 
-const slides: Slide[] = [
+const SLIDES: Slide[] = [
   {
-    image: "https://images.unsplash.com/photo-1530026405186-ed1f139313f8?q=80&w=2535&auto=format&fit=crop",
-    title: <>Sincroniza tus <br />operaciones médicas <br />sin esfuerzo.</>,
-    description: "Med Sync agiliza los flujos de trabajo clínicos asignando tareas, monitoreando el progreso del paciente y logrando hitos operativos juntos."
+    image:
+      'https://images.unsplash.com/photo-1530026405186-ed1f139313f8?q=80&w=2535&auto=format&fit=crop',
+    title: (
+      <>
+        Sincroniza tus <br />
+        operaciones médicas <br />
+        sin esfuerzo.
+      </>
+    ),
+    description:
+      'Med Sync agiliza los flujos de trabajo clínicos asignando tareas, monitoreando el progreso del paciente y logrando hitos operativos juntos.',
   },
   {
-    image: "https://images.unsplash.com/photo-1581056771107-24ca5f033842?q=80&w=2500&auto=format&fit=crop",
-    title: <>Historiales clínicos <br />centralizados en <br />la palma de tu mano.</>,
-    description: "Accede a datos en tiempo real de forma segura. Todo tu entorno bajo protocolos médicos e integraciones precisas en un solo lugar."
+    image:
+      'https://images.unsplash.com/photo-1581056771107-24ca5f033842?q=80&w=2500&auto=format&fit=crop',
+    title: (
+      <>
+        Historiales clínicos <br />
+        centralizados en <br />
+        la palma de tu mano.
+      </>
+    ),
+    description:
+      'Accede a datos en tiempo real de forma segura. Todo tu entorno bajo protocolos médicos e integraciones precisas en un solo lugar.',
   },
   {
-    image: "https://images.unsplash.com/photo-1576091160550-2173dba999ef?q=80&w=2500&auto=format&fit=crop",
-    title: <>Inteligencia Artificial <br />conectada contra <br />riesgos médicos.</>,
-    description: "Obtén notificaciones inteligentes enlazadas a bases de datos actualizadas para prevenir interacciones farmacéuticas negativas."
-  }
+    image:
+      'https://images.unsplash.com/photo-1576091160550-2173dba999ef?q=80&w=2500&auto=format&fit=crop',
+    title: (
+      <>
+        Inteligencia Artificial <br />
+        conectada contra <br />
+        riesgos médicos.
+      </>
+    ),
+    description:
+      'Obtén notificaciones inteligentes enlazadas a bases de datos actualizadas para prevenir interacciones farmacéuticas negativas.',
+  },
 ];
 
-export const Login: React.FC = () => {
-  const [role, setRole] = useState<RoleType>('doctor');
-  const [isDark, setIsDark] = useState(false);
-  const [currentSlide, setCurrentSlide] = useState(0);
+const SLIDE_INTERVAL_MS = 6000;
 
-  useEffect(() => {
-    setIsDark(document.documentElement.classList.contains('dark'));
-  }, []);
+export const LoginPage: React.FC = () => {
+  const [role, setRole] = useState<RoleType>('doctor');
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const { theme, toggle } = useTheme();
+  const isDark = theme === 'dark';
 
   useEffect(() => {
     const timer = setInterval(() => {
-      setCurrentSlide((prev) => (prev + 1) % slides.length);
-    }, 6000);
+      setCurrentSlide((prev) => (prev + 1) % SLIDES.length);
+    }, SLIDE_INTERVAL_MS);
     return () => clearInterval(timer);
   }, []);
 
-  const toggleDarkMode = () => {
-    const next = !isDark;
-    setIsDark(next);
-    document.documentElement.classList.toggle('dark', next);
-  };
-
   return (
-    <div className="bg-gradient-to-br from-slate-50 via-white to-indigo-50/40 dark:bg-[#0f172a] dark:bg-none min-h-[100dvh] sm:h-[100dvh] w-full overflow-hidden flex items-center justify-center p-4 sm:p-6 lg:p-8 transition-colors duration-300">
-
-      <main className="w-full max-w-[1200px] flex flex-col lg:flex-row bg-white dark:bg-[#1e293b] rounded-3xl sm:rounded-[2.5rem] overflow-hidden shadow-2xl shadow-indigo-200/40 dark:shadow-black/40 h-full max-h-[900px] relative">
-
-        {/* Panel Izquierdo */}
+    <div className="bg-gradient-to-br from-slate-50 via-white to-indigo-50/40 dark:bg-background dark:bg-none min-h-[100dvh] sm:h-[100dvh] w-full overflow-hidden flex items-center justify-center p-4 sm:p-6 lg:p-8 transition-colors duration-300">
+      <main className="w-full max-w-[1200px] flex flex-col lg:flex-row bg-surface rounded-3xl sm:rounded-[2.5rem] overflow-hidden shadow-2xl shadow-indigo-200/40 dark:shadow-black/40 h-full max-h-[900px] relative">
         <div className="w-full lg:w-[58%] flex flex-col p-6 sm:p-8 lg:p-10 xl:px-14 xl:py-6 relative z-10 overflow-hidden">
-
           <div className="w-full flex items-center justify-between shrink-0 mb-4">
             <div className="flex items-center gap-2.5">
               <div className="w-9 h-9 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center text-white shrink-0 shadow-md shadow-indigo-400/40">
@@ -69,7 +83,7 @@ export const Login: React.FC = () => {
             </div>
 
             <IconButton
-              onClick={toggleDarkMode}
+              onClick={toggle}
               title={isDark ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'}
               icon={
                 <span className="material-symbols-outlined text-[22px]">
@@ -99,27 +113,26 @@ export const Login: React.FC = () => {
           </div>
         </div>
 
-        {/* Panel Derecho */}
-        <div className="hidden lg:block w-[42%] p-4 pl-0 bg-white dark:bg-[#1e293b]">
+        <div className="hidden lg:block w-[42%] p-4 pl-0 bg-surface">
           <div className="h-full w-full rounded-[2.2rem] overflow-hidden relative bg-black flex flex-col justify-end p-10 xl:p-12">
-
             <div className="absolute inset-0 z-0">
               <div className="absolute top-0 right-0 w-[120%] h-[120%] bg-gradient-to-br from-indigo-900 via-blue-900 to-black opacity-90 z-10 pointer-events-none" />
               <div className="absolute top-[-20%] right-[-20%] w-[80%] h-[80%] bg-blue-600 rounded-full blur-[120px] opacity-40 mix-blend-screen animate-pulse z-10 pointer-events-none" />
               <div className="absolute bottom-[-10%] left-[-10%] w-[60%] h-[60%] bg-purple-600 rounded-full blur-[100px] opacity-30 mix-blend-screen z-10 pointer-events-none" />
 
-              {slides.map((slide, idx) => (
+              {SLIDES.map((slide, idx) => (
                 <div
                   key={`img-${idx}`}
-                  className={`absolute inset-0 bg-cover bg-center transition-opacity duration-1000 ease-in-out ${currentSlide === idx ? 'opacity-40 z-0' : 'opacity-0 -z-10'}`}
+                  className={`absolute inset-0 bg-cover bg-center transition-opacity duration-1000 ease-in-out ${
+                    currentSlide === idx ? 'opacity-40 z-0' : 'opacity-0 -z-10'
+                  }`}
                   style={{ backgroundImage: `url('${slide.image}')`, mixBlendMode: 'overlay' }}
                 />
               ))}
             </div>
 
-            {/* Textos del carrusel */}
             <div className="relative z-20 w-full mb-5" style={{ height: '185px' }}>
-              {slides.map((slide, idx) => (
+              {SLIDES.map((slide, idx) => (
                 <div
                   key={`text-${idx}`}
                   className={`absolute bottom-0 left-0 w-full transition-all duration-700 transform ease-out ${
@@ -138,11 +151,11 @@ export const Login: React.FC = () => {
               ))}
             </div>
 
-            {/* Dots del carrusel */}
             <div className="relative z-20 flex gap-2 h-6 items-center">
-              {slides.map((_, idx) => (
+              {SLIDES.map((_, idx) => (
                 <button
                   key={`dot-${idx}`}
+                  type="button"
                   onClick={() => setCurrentSlide(idx)}
                   aria-label={`Ir a la diapositiva ${idx + 1}`}
                   className={`h-1.5 rounded-full transition-all duration-500 ease-in-out ${
@@ -151,10 +164,8 @@ export const Login: React.FC = () => {
                 />
               ))}
             </div>
-
           </div>
         </div>
-
       </main>
     </div>
   );

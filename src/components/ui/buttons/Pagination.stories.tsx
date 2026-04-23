@@ -9,7 +9,7 @@ const meta: Meta<typeof Pagination> = {
   parameters: { layout: 'centered' },
   decorators: [
     (Story) => (
-      <div className="p-6 bg-white dark:bg-[#1e293b] rounded-xl">
+      <div className="p-6 bg-surface rounded-xl">
         <Story />
       </div>
     ),

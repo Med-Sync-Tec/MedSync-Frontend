@@ -8,7 +8,7 @@ const meta: Meta<typeof LoginForm> = {
   parameters: { layout: 'centered' },
   decorators: [
     (Story) => (
-      <div className="w-[460px] p-8 bg-white dark:bg-[#1e293b] rounded-2xl shadow-xl">
+      <div className="w-[460px] p-8 bg-surface rounded-2xl shadow-xl">
         <Story />
       </div>
     ),

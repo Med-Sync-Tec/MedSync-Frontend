@@ -105,7 +105,7 @@ export const PatientDetailCard: React.FC<PatientDetailCardProps> = ({
           <ul className="space-y-3">
             {treatments.map((t) => (
               <li key={t.name} className="flex items-start gap-3">
-                <div className="w-8 h-8 rounded-lg bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center text-[#4f46e5] shrink-0">
+                <div className="w-8 h-8 rounded-lg bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center text-primary shrink-0">
                   <span className="material-symbols-outlined text-base">{t.icon ?? 'medication'}</span>
                 </div>
                 <div>

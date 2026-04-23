@@ -19,7 +19,7 @@ export const WelcomeCard: React.FC<WelcomeCardProps> = ({
   const today = date ?? new Date().toLocaleDateString('es-MX', { weekday: 'long', day: 'numeric', month: 'long' });
 
   return (
-    <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#1d2451] to-[#4f46e5] text-white p-6 shadow-xl">
+    <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-accent to-primary text-white p-6 shadow-xl">
       <div className="relative z-10">
         <p className="text-sm text-blue-200 capitalize">{today}</p>
         <h2 className="text-2xl font-bold mt-1">Buenos días, {doctorName}</h2>

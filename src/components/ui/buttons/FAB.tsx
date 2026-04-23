@@ -18,7 +18,7 @@ export const FAB: React.FC<FABProps> = ({
       </span>
       <button
         type="button"
-        className="w-14 h-14 rounded-full bg-[#4f46e5] hover:bg-[#4338ca] text-white shadow-xl flex items-center justify-center transition-all hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-[#4f46e5] focus:ring-offset-2"
+        className="w-14 h-14 rounded-full bg-primary hover:bg-primary-hover text-white shadow-xl flex items-center justify-center transition-all hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
         {...props}
       >
         {icon ?? (

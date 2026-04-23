@@ -1,11 +1,7 @@
 import React from 'react';
+import type { SOAPData } from '@features/consultations/types';
 
-export interface SOAPData {
-  subjective: string;
-  objective: string;
-  assessment: string;
-  plan: string;
-}
+export type { SOAPData } from '@features/consultations/types';
 
 interface SOAPModalProps {
   isOpen: boolean;
@@ -31,7 +27,7 @@ export const SOAPModal: React.FC<SOAPModalProps> = ({
         onClick={onClose} 
       />
       
-      <div className="relative bg-white dark:bg-[#1e293b] rounded-[2rem] shadow-2xl border border-gray-100 dark:border-gray-700 w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col animate-in fade-in zoom-in duration-200">
+      <div className="relative bg-surface rounded-[2rem] shadow-2xl border border-gray-100 dark:border-gray-700 w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col animate-in fade-in zoom-in duration-200">
         {/* Header */}
         <div className="px-6 py-5 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between bg-gray-50/50 dark:bg-gray-800/50">
           <div className="flex items-center gap-3">
@@ -102,7 +98,7 @@ export const SOAPModal: React.FC<SOAPModalProps> = ({
         <div className="px-6 py-4 border-t border-gray-100 dark:border-gray-700 flex justify-end bg-gray-50/30 dark:bg-gray-800/30">
           <button
             onClick={onClose}
-            className="px-6 py-2.5 bg-[#1d2451] hover:bg-[#151a3a] text-white rounded-xl text-sm font-bold transition-all shadow-md shadow-indigo-100 dark:shadow-none"
+            className="px-6 py-2.5 bg-accent hover:bg-accent-hover text-white rounded-xl text-sm font-bold transition-all shadow-md shadow-indigo-100 dark:shadow-none"
           >
             Cerrar Resumen
           </button>

@@ -15,7 +15,7 @@ const meta: Meta<typeof AlertBanner> = {
   },
   decorators: [
     (Story) => (
-      <div className="max-w-lg p-4 bg-white dark:bg-[#1e293b] rounded-xl">
+      <div className="max-w-lg p-4 bg-surface rounded-xl">
         <Story />
       </div>
     ),

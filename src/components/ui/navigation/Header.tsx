@@ -1,6 +1,7 @@
 import React from 'react';
 import { SearchBar } from '../inputs/SearchBar';
 import { IconButton } from '../buttons/IconButton';
+import { useAuthStore } from '@features/auth/store';
 
 type HeaderRole = 'doctor' | 'coo';
 
@@ -39,9 +40,11 @@ export const Header: React.FC<HeaderProps> = ({
   onSearch,
 }) => {
   const links = navLinks[role];
+  const user = useAuthStore((s) => s.user);
+  const logout = useAuthStore((s) => s.logout);
 
   return (
-    <header className="w-full bg-[#1d2451] text-white px-6 py-3 flex items-center gap-6 shadow-lg">
+    <header className="w-full bg-accent text-white px-6 py-3 flex items-center gap-6 shadow-lg">
       <div className="flex items-center gap-2 shrink-0">
         <span className="material-symbols-outlined text-2xl text-blue-300">medical_services</span>
         <span className="text-lg font-bold tracking-tight">MedSync</span>
@@ -70,17 +73,37 @@ export const Header: React.FC<HeaderProps> = ({
         />
       </div>
 
-      <div className="relative ml-auto">
-        <IconButton
-          icon={<span className="material-symbols-outlined text-[22px]">notifications</span>}
-          onClick={onNotificationsClick}
-          className="bg-white/10 hover:bg-white/20 text-white dark:bg-white/10 dark:hover:bg-white/20 dark:text-white"
-          title="Notificaciones"
-        />
-        {notificationCount > 0 && (
-          <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center">
-            {notificationCount > 9 ? '9+' : notificationCount}
-          </span>
+      <div className="ml-auto flex items-center gap-2">
+        <div className="relative">
+          <IconButton
+            icon={<span className="material-symbols-outlined text-[22px]">notifications</span>}
+            onClick={onNotificationsClick}
+            className="bg-white/10 hover:bg-white/20 text-white dark:bg-white/10 dark:hover:bg-white/20 dark:text-white"
+            title="Notificaciones"
+          />
+          {notificationCount > 0 && (
+            <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center">
+              {notificationCount > 9 ? '9+' : notificationCount}
+            </span>
+          )}
+        </div>
+
+        {user && (
+          <>
+            <span
+              className="hidden md:inline text-sm font-medium text-blue-100 ml-2 mr-1 truncate max-w-[140px]"
+              title={user.email}
+            >
+              {user.name}
+            </span>
+            <IconButton
+              icon={<span className="material-symbols-outlined text-[22px]">logout</span>}
+              onClick={logout}
+              className="bg-white/10 hover:bg-white/20 text-white dark:bg-white/10 dark:hover:bg-white/20 dark:text-white"
+              title="Cerrar sesión"
+              aria-label="Cerrar sesión"
+            />
+          </>
         )}
       </div>
     </header>

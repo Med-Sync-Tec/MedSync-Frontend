@@ -12,7 +12,7 @@ const meta: Meta<typeof SOAPLetterBadge> = {
   args: { section: 'S', title: 'Subjetivo' },
   decorators: [
     (Story) => (
-      <div className="p-6 bg-white dark:bg-[#1e293b] rounded-xl">
+      <div className="p-6 bg-surface rounded-xl">
         <Story />
       </div>
     ),

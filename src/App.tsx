@@ -1,20 +1,16 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { Login } from './pages/Login/Login';
-import { ConsultationHistory } from './pages/Patients/Medical_record/ConsultationHistory';
-import { NewSOAPEntry } from './pages/Patients/Medical_record/NewSOAPEntry';
-import { PatientList } from './pages/Patients/PatientList';
+import { BrowserRouter, useRoutes } from 'react-router-dom';
+import { ThemeProvider } from '@lib/theme';
+import { routes } from '@routes/index';
+
+const AppRoutes = () => useRoutes(routes);
 
 function App() {
   return (
-    <Router>
-      <Routes>
-        <Route path="/" element={<Login />} />
-        <Route path="/medical-record/history" element={<ConsultationHistory />} />
-        <Route path="/medical-record/new-soap" element={<NewSOAPEntry />} />
-        <Route path="/doctor/patients" element={<PatientList />} />
-        {/* Futuras rutas: /doctor/dashboard, /coo/dashboard */}
-      </Routes>
-    </Router>
+    <ThemeProvider>
+      <BrowserRouter>
+        <AppRoutes />
+      </BrowserRouter>
+    </ThemeProvider>
   );
 }
 

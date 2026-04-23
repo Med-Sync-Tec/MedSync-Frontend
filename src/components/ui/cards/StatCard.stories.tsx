@@ -13,7 +13,7 @@ const meta: Meta<typeof StatCard> = {
   },
   decorators: [
     (Story) => (
-      <div className="w-52 p-4 bg-gray-50 dark:bg-[#0f172a] rounded-2xl">
+      <div className="w-52 p-4 bg-background rounded-2xl">
         <Story />
       </div>
     ),
@@ -63,7 +63,7 @@ export const Pendientes: Story = {
 
 export const DashboardRow: Story = {
   render: () => (
-    <div className="grid grid-cols-4 gap-4 p-4 bg-gray-50 dark:bg-[#0f172a] rounded-2xl">
+    <div className="grid grid-cols-4 gap-4 p-4 bg-background rounded-2xl">
       <StatCard
         label="Alertas Críticas"
         value={3}
