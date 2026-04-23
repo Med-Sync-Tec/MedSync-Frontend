@@ -17,7 +17,7 @@ const meta: Meta<typeof TabButton> = {
   },
   decorators: [
     (Story) => (
-      <div className="p-6 bg-gray-50 dark:bg-[#0f172a] rounded-xl">
+      <div className="p-6 bg-background rounded-xl">
         <Story />
       </div>
     ),

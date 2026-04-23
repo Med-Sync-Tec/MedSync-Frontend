@@ -8,7 +8,7 @@ const meta: Meta<typeof SearchBar> = {
   parameters: { layout: 'centered' },
   decorators: [
     (Story) => (
-      <div className="w-80 p-4 bg-white dark:bg-[#1e293b] rounded-xl">
+      <div className="w-80 p-4 bg-surface rounded-xl">
         <Story />
       </div>
     ),

@@ -21,7 +21,7 @@ export const StatCard: React.FC<StatCardProps> = ({
   return (
     <div className={`bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-5 shadow-sm flex flex-col gap-3 ${className}`}>
       <div className="flex items-start justify-between">
-        <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center text-[#4f46e5]">
+        <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center text-primary">
           {icon}
         </div>
         {badge && <CounterBadge text={badge} variant={badgeVariant} />}

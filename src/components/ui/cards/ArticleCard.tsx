@@ -48,7 +48,7 @@ export const ArticleCard: React.FC<ArticleCardProps> = ({
         <button
           type="button"
           onClick={onSave}
-          className="shrink-0 text-gray-400 hover:text-[#4f46e5] transition-colors"
+          className="shrink-0 text-gray-400 hover:text-primary transition-colors"
           aria-label={saved ? 'Quitar de guardados' : 'Guardar artículo'}
         >
           <span className="material-symbols-outlined text-xl">{saved ? 'bookmark' : 'bookmark_border'}</span>

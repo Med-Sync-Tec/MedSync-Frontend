@@ -18,9 +18,9 @@ export const TabButton: React.FC<TabButtonProps> = ({
   return (
     <button
       type="button"
-      className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all focus:outline-none focus:ring-2 focus:ring-[#4f46e5]/30 ${
+      className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all focus:outline-none focus:ring-2 focus:ring-primary/30 ${
         active
-          ? 'bg-[#4f46e5] text-white shadow-md'
+          ? 'bg-primary text-white shadow-md'
           : 'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
       } ${className}`}
       {...props}

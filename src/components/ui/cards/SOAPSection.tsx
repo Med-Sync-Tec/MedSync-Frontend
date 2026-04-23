@@ -27,7 +27,7 @@ export const SOAPSection: React.FC<SOAPSectionProps> = ({
   const styles = config[letter];
 
   return (
-    <div className={`bg-white dark:bg-[#1e293b] rounded-[2rem] border border-gray-100 dark:border-gray-700 shadow-sm overflow-hidden flex flex-col ${className}`}>
+    <div className={`bg-surface rounded-[2rem] border border-gray-100 dark:border-gray-700 shadow-sm overflow-hidden flex flex-col ${className}`}>
       {/* Header */}
       <div className="px-6 py-4 flex items-center justify-between border-b border-gray-50 dark:border-gray-700/50">
         <div className="flex items-center gap-4">

@@ -12,7 +12,7 @@ const meta: Meta<typeof ChatCard> = {
   },
   decorators: [
     (Story) => (
-      <div className="p-6 bg-gray-100 dark:bg-[#0f172a] rounded-2xl">
+      <div className="p-6 bg-gray-100 dark:bg-background rounded-2xl">
         <Story />
       </div>
     ),

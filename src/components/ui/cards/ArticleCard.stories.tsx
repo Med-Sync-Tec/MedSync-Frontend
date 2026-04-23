@@ -22,7 +22,7 @@ const meta: Meta<typeof ArticleCard> = {
   },
   decorators: [
     (Story) => (
-      <div className="max-w-sm p-4 bg-gray-50 dark:bg-[#0f172a] rounded-2xl">
+      <div className="max-w-sm p-4 bg-background rounded-2xl">
         <Story />
       </div>
     ),

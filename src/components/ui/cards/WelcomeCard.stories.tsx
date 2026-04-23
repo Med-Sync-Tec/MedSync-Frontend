@@ -12,7 +12,7 @@ const meta: Meta<typeof WelcomeCard> = {
   },
   decorators: [
     (Story) => (
-      <div className="max-w-xl p-6 bg-gray-50 dark:bg-[#0f172a] rounded-2xl">
+      <div className="max-w-xl p-6 bg-background rounded-2xl">
         <Story />
       </div>
     ),

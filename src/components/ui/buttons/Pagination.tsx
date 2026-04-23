@@ -27,7 +27,7 @@ export const Pagination: React.FC<PaginationProps> = ({
   };
 
   const btnBase =
-    'w-9 h-9 flex items-center justify-center rounded-lg text-sm font-semibold transition-all focus:outline-none focus:ring-2 focus:ring-[#4f46e5]/30';
+    'w-9 h-9 flex items-center justify-center rounded-lg text-sm font-semibold transition-all focus:outline-none focus:ring-2 focus:ring-primary/30';
 
   return (
     <nav className={`flex items-center gap-1 ${className}`} aria-label="Paginación">
@@ -53,7 +53,7 @@ export const Pagination: React.FC<PaginationProps> = ({
             onClick={() => onPageChange(page as number)}
             className={`${btnBase} ${
               currentPage === page
-                ? 'bg-[#4f46e5] text-white shadow-md'
+                ? 'bg-primary text-white shadow-md'
                 : 'border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
             }`}
             aria-current={currentPage === page ? 'page' : undefined}
