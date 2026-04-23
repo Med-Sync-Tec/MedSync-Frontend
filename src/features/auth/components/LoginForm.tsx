@@ -5,20 +5,10 @@ import { Checkbox } from '@ui/inputs/Checkbox';
 import { Button } from '@ui/buttons/Button';
 import { Alert } from '@ui/feedback/Alert';
 import { LoginCredentialsSchema } from '@features/auth/schemas';
-import type { AuthUser, LoginCredentials } from '@features/auth/schemas';
+import type { LoginCredentials } from '@features/auth/schemas';
 import { useAuthStore } from '@features/auth/store';
-
-const MOCK_CREDENTIALS = {
-  email: 'admin@medsync.com',
-  password: '123456',
-} as const;
-
-const MOCK_USER: AuthUser = {
-  id: 'mock-admin-1',
-  email: MOCK_CREDENTIALS.email,
-  name: 'Admin Demo',
-  role: 'doctor',
-};
+import { signInWithEmail } from '@features/auth/api';
+import { describeAuthError } from '@features/auth/errors';
 
 const DEFAULT_LANDING = '/medical-record/history';
 
@@ -62,28 +52,13 @@ export const LoginForm: React.FC = () => {
     setErrors({});
     setIsLoading(true);
     try {
-      await new Promise<void>((resolve, reject) => {
-        setTimeout(() => {
-          if (
-            parsed.data.email === MOCK_CREDENTIALS.email &&
-            parsed.data.password === MOCK_CREDENTIALS.password
-          ) {
-            resolve();
-          } else {
-            reject(
-              new Error('Correo electrónico o contraseña incorrectos. Por favor, inténtalo de nuevo.')
-            );
-          }
-        }, 1000);
-      });
-
-      login(MOCK_USER);
+      const user = await signInWithEmail(parsed.data.email, parsed.data.password);
+      login(user);
       setSuccess('¡Inicio de sesión exitoso! Redirigiendo...');
       const redirectTo = (location.state as LocationState | null)?.from ?? DEFAULT_LANDING;
       navigate(redirectTo, { replace: true });
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Error desconocido al iniciar sesión';
-      setGlobalError(message);
+      setGlobalError(describeAuthError(err));
     } finally {
       setIsLoading(false);
     }

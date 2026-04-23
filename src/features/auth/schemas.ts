@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-export const UserRoleSchema = z.enum(['doctor', 'coo']);
+export const UserRoleSchema = z.enum(['DOCTOR', 'COO', 'CMO']);
 
 export const LoginCredentialsSchema = z.object({
   email: z.string().min(1, 'Este campo es obligatorio').email('Formato de correo inválido'),
