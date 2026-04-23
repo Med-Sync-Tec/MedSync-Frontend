@@ -7,6 +7,8 @@ interface StatCardProps {
   icon: React.ReactNode;
   badge?: string;
   badgeVariant?: 'info' | 'warning' | 'success';
+  iconBg?: string;
+  iconColor?: string;
   className?: string;
 }
 
@@ -16,12 +18,17 @@ export const StatCard: React.FC<StatCardProps> = ({
   icon,
   badge,
   badgeVariant = 'info',
+  iconBg,
+  iconColor,
   className = '',
 }) => {
   return (
     <div className={`bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-5 shadow-sm flex flex-col gap-3 ${className}`}>
       <div className="flex items-start justify-between">
-        <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center text-primary">
+        <div
+          className="w-10 h-10 rounded-xl flex items-center justify-center"
+          style={{ backgroundColor: iconBg ?? '#EFF6FF', color: iconColor ?? '#4f46e5' }}
+        >
           {icon}
         </div>
         {badge && <CounterBadge text={badge} variant={badgeVariant} />}

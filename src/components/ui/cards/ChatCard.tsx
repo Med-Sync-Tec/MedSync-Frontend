@@ -31,7 +31,7 @@ export const ChatCard: React.FC<ChatCardProps> = ({
   };
 
   return (
-    <div className={`w-80 bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border border-gray-100 dark:border-gray-700 flex flex-col overflow-hidden ${className}`}>
+    <div className={`w-[calc(100vw-3rem)] max-w-[320px] sm:w-80 bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border border-gray-100 dark:border-gray-700 flex flex-col overflow-hidden ${className}`}>
       <div className="flex items-center justify-between px-4 py-3 bg-accent text-white">
         <div className="flex items-center gap-2">
           <span className="material-symbols-outlined text-lg">smart_toy</span>
