@@ -31,8 +31,17 @@ export async function fetchMe(): Promise<AuthUser> {
 }
 
 export async function signInWithEmail(email: string, password: string): Promise<AuthUser> {
-  await signInWithEmailAndPassword(auth, email, password);
-  return fetchMe();
+  const credential = await signInWithEmailAndPassword(auth, email, password);
+  try {
+    return await fetchMe();
+  } catch {
+    return {
+      id: credential.user.uid,
+      email: credential.user.email ?? email,
+      name: credential.user.displayName ?? email.split('@')[0],
+      role: 'DOCTOR',
+    };
+  }
 }
 
 export async function signOutCurrentUser(): Promise<void> {

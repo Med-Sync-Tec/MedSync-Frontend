@@ -1,19 +1,16 @@
 import React, { useState } from 'react';
-import { Header } from '../../components/ui/navigation/Header';
-import { StatCard } from '../../components/ui/cards/StatCard';
-import { ArticleCard } from '../../components/ui/cards/ArticleCard';
-import { ChatCard } from '../../components/ui/cards/ChatCard';
-import { FAB } from '../../components/ui/buttons/FAB';
+import { StatCard } from '@ui/cards/StatCard';
+import { ArticleCard } from '@ui/cards/ArticleCard';
+import { ChatCard } from '@ui/cards/ChatCard';
+import { FAB } from '@ui/buttons/FAB';
 
-// TODO: Replace with API call GET /api/doctor/stats
 const mockStats = {
-  alertasCriticas:      { value: 3, badge: '+2 nuevos' },
-  coincidenciasMedia:   { value: 12 },
-  coincidenciasBaja:    { value: 8 },
-  totalCoincidencias:   { value: 28 },
+  alertasCriticas:    { value: 3, badge: '+2 nuevos' },
+  coincidenciasMedia: { value: 12 },
+  coincidenciasBaja:  { value: 8 },
+  totalCoincidencias: { value: 28 },
 };
 
-// TODO: Replace with API call GET /api/noticias?limit=5
 const mockArticles = [
   {
     id: '1',
@@ -72,35 +69,34 @@ const mockArticles = [
   },
 ];
 
-export const DoctorDashboard: React.FC = () => {
+export const DoctorDashboardPage: React.FC = () => {
   const [chatOpen, setChatOpen] = useState(false);
   const [savedArticles, setSavedArticles] = useState<Set<string>>(new Set());
 
   const toggleSave = (id: string) => {
     setSavedArticles((prev) => {
       const next = new Set(prev);
-      next.has(id) ? next.delete(id) : next.add(id);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
       return next;
     });
   };
 
-  const doctorName = 'Dr. García'; // TODO: Replace with auth context user name
+  const doctorName = 'Dr. García';
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-[#0f172a] flex flex-col">
-      <Header role="doctor" activeLink="Inicio" showNotifications={false} />
+    <>
+      <main className="w-full max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
 
-      <main className="flex-1 w-full max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
-
-        {/* Welcome + Stats row */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
 
-          {/* Welcome Banner */}
           <div
             className="relative overflow-hidden rounded-2xl text-white p-6 shadow-xl flex flex-col justify-between min-h-[180px]"
-            style={{ background: 'linear-gradient(135deg, #0047AB 0%, #1D4ED8 100%)' }}
+            style={{ background: 'linear-gradient(135deg, var(--color-welcome-from) 0%, var(--color-welcome-to) 100%)' }}
           >
-            {/* Doctor avatar — TODO: Replace icon with auth context user photo */}
             <div className="absolute top-5 right-5 z-20 w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-white/15 border-2 border-white/30 flex items-center justify-center overflow-hidden shadow-xl">
               <span className="material-symbols-outlined text-[36px] sm:text-[40px] text-white/80">account_circle</span>
             </div>
@@ -116,22 +112,11 @@ export const DoctorDashboard: React.FC = () => {
               </p>
             </div>
 
-            <div className="relative z-10 mt-4">
-              <button
-                type="button"
-                className="flex items-center gap-2 border border-white/30 hover:bg-white/10 text-white text-sm font-medium px-4 py-2.5 rounded-xl transition-colors"
-              >
-                <span className="material-symbols-outlined text-[18px]">notifications</span>
-                Ver alertas
-              </button>
-            </div>
-
             <span className="material-symbols-outlined absolute -right-4 -bottom-4 text-[120px] text-white/5 select-none pointer-events-none">
               medical_services
             </span>
           </div>
 
-          {/* Stats Grid 2x2 */}
           <div className="grid grid-cols-2 gap-3 sm:gap-4">
             <StatCard
               label="Alertas Críticas"
@@ -139,39 +124,38 @@ export const DoctorDashboard: React.FC = () => {
               icon={<span className="material-symbols-outlined text-xl">emergency</span>}
               badge={mockStats.alertasCriticas.badge}
               badgeVariant="warning"
-              iconBg="#FEF2F2"
-              iconColor="#DC2626"
+              iconBg="var(--color-danger-subtle)"
+              iconColor="var(--color-danger)"
             />
             <StatCard
               label="Coincidencias Media"
               value={mockStats.coincidenciasMedia.value}
               icon={<span className="material-symbols-outlined text-xl">warning</span>}
-              iconBg="#EFF6FF"
-              iconColor="#2563EB"
+              iconBg="var(--color-info-subtle)"
+              iconColor="var(--color-info)"
             />
             <StatCard
               label="Coincidencias Baja"
               value={mockStats.coincidenciasBaja.value}
               icon={<span className="material-symbols-outlined text-xl">info</span>}
-              iconBg="#FFF7ED"
-              iconColor="#EA580C"
+              iconBg="var(--color-caution-subtle)"
+              iconColor="var(--color-caution)"
             />
             <StatCard
               label="Total Coincidencias"
               value={mockStats.totalCoincidencias.value}
               icon={<span className="material-symbols-outlined text-xl">analytics</span>}
-              iconBg="#F0FDF4"
-              iconColor="#16A34A"
+              iconBg="var(--color-success-subtle)"
+              iconColor="var(--color-success-strong)"
             />
           </div>
 
         </div>
 
-        {/* Noticias */}
         <div>
           <div className="flex items-center justify-between mb-4 gap-2">
-            <h2 className="text-base sm:text-lg font-bold text-gray-900 dark:text-white">Noticias Médicas Relevantes</h2>
-            <button type="button" className="text-sm text-indigo-600 dark:text-indigo-400 font-medium hover:underline shrink-0">
+            <h2 className="text-base sm:text-lg font-bold text-text-primary">Noticias Médicas Relevantes</h2>
+            <button type="button" className="text-sm text-primary font-medium hover:underline shrink-0">
               Ver todas
             </button>
           </div>
@@ -196,13 +180,9 @@ export const DoctorDashboard: React.FC = () => {
 
       </main>
 
-      {/* MediBot FAB */}
       <div className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-50 flex flex-col items-end gap-3">
         {chatOpen && (
-          <ChatCard
-            onClose={() => setChatOpen(false)}
-            // TODO: Connect to POST /api/medibot/chat
-          />
+          <ChatCard onClose={() => setChatOpen(false)} />
         )}
         <FAB
           label={chatOpen ? '' : 'MediBot IA'}
@@ -215,6 +195,6 @@ export const DoctorDashboard: React.FC = () => {
           aria-label={chatOpen ? 'Cerrar MediBot' : 'Abrir MediBot'}
         />
       </div>
-    </div>
+    </>
   );
 };

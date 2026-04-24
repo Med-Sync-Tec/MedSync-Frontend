@@ -29,8 +29,19 @@
   /* Status */
   --color-danger: #dc2626;
   --color-danger-hover: #b91c1c;
+  --color-danger-subtle: #fef2f2;
   --color-success: #10b981;
+  --color-success-strong: #16a34a;
+  --color-success-subtle: #f0fdf4;
   --color-warning: #f59e0b;
+  --color-info: #2563eb;
+  --color-info-subtle: #eff6ff;
+  --color-caution: #ea580c;
+  --color-caution-subtle: #fff7ed;
+
+  /* Welcome banner gradient */
+  --color-welcome-from: #0047ab;
+  --color-welcome-to: #1d4ed8;
 
   /* Typography */
   --font-sans: 'Inter', sans-serif;

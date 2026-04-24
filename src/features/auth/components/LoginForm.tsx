@@ -10,7 +10,7 @@ import { useAuthStore } from '@features/auth/store';
 import { signInWithEmail } from '@features/auth/api';
 import { describeAuthError } from '@features/auth/errors';
 
-const DEFAULT_LANDING = '/medical-record/history';
+const DEFAULT_LANDING = '/doctor/dashboard';
 
 type FieldErrors = Partial<Record<keyof LoginCredentials, string>>;
 
