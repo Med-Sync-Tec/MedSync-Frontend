@@ -8,7 +8,7 @@ const meta: Meta<typeof RoleSelector> = {
   tags: ['autodocs'],
   decorators: [
     (Story) => (
-      <div className="w-[460px] p-6 bg-white dark:bg-[#1e293b] rounded-xl">
+      <div className="w-[460px] p-6 bg-surface rounded-xl">
         <Story />
       </div>
     ),

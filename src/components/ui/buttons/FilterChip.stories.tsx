@@ -11,7 +11,7 @@ const meta: Meta<typeof FilterChip> = {
   },
   decorators: [
     (Story) => (
-      <div className="p-6 bg-white dark:bg-[#1e293b] rounded-xl flex gap-2 flex-wrap">
+      <div className="p-6 bg-surface rounded-xl flex gap-2 flex-wrap">
         <Story />
       </div>
     ),

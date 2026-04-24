@@ -1,12 +1,70 @@
 @import "tailwindcss";
-@config "../tailwind.config.js";
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap');
+@plugin "@tailwindcss/forms";
+@plugin "@tailwindcss/container-queries";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  /* Brand */
+  --color-primary: #4f46e5;
+  --color-primary-hover: #4338ca;
+  --color-primary-subtle: #eef2ff;
+
+  --color-accent: #1d2451;
+  --color-accent-hover: #151a3a;
+
+  /* Surfaces (light) — overridden under .dark below */
+  --color-background: #f9fafb;
+  --color-surface: #ffffff;
+  --color-surface-muted: #f3f4f6;
+
+  /* Text (light) */
+  --color-text-primary: #111827;
+  --color-text-muted: #6b7280;
+
+  /* Borders (light) */
+  --color-border-subtle: #f3f4f6;
+
+  /* Status */
+  --color-danger: #dc2626;
+  --color-danger-hover: #b91c1c;
+  --color-danger-subtle: #fef2f2;
+  --color-success: #10b981;
+  --color-success-strong: #16a34a;
+  --color-success-subtle: #f0fdf4;
+  --color-warning: #f59e0b;
+  --color-info: #2563eb;
+  --color-info-subtle: #eff6ff;
+  --color-caution: #ea580c;
+  --color-caution-subtle: #fff7ed;
+
+  /* Welcome banner gradient */
+  --color-welcome-from: #0047ab;
+  --color-welcome-to: #1d4ed8;
+
+  /* Typography */
+  --font-sans: 'Inter', sans-serif;
+
+  /* Radii */
+  --radius: 0.5rem;
+  --radius-xl: 1rem;
+  --radius-2xl: 1.5rem;
+  --radius-3xl: 2rem;
+}
 
 @layer base {
+  .dark {
+    --color-background: #0f172a;
+    --color-surface: #1e293b;
+    --color-surface-muted: #1f2937;
+    --color-text-primary: #f9fafb;
+    --color-text-muted: #9ca3af;
+    --color-border-subtle: #334155;
+  }
+
   body {
-    font-family: 'Inter', sans-serif;
+    font-family: var(--font-sans);
   }
 
   .material-symbols-outlined {

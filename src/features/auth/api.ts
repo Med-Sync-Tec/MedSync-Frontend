@@ -1,0 +1,49 @@
+import { signInWithEmailAndPassword, signOut } from 'firebase/auth';
+import { z } from 'zod';
+import { auth } from '@lib/firebase/client';
+import { apiFetch } from '@lib/http/client';
+import { UserRoleSchema, type AuthUser } from './schemas';
+
+const MeResponseSchema = z.object({
+  id: z.string().uuid(),
+  nombre: z.string(),
+  correo: z.string().email(),
+  role: UserRoleSchema,
+  activo: z.boolean(),
+  createdAt: z.string().nullable().optional(),
+});
+
+type MeResponse = z.infer<typeof MeResponseSchema>;
+
+function toAuthUser(me: MeResponse): AuthUser {
+  return {
+    id: me.id,
+    name: me.nombre,
+    email: me.correo,
+    role: me.role,
+  };
+}
+
+export async function fetchMe(): Promise<AuthUser> {
+  const raw = await apiFetch<unknown>('/api/users/me');
+  const parsed = MeResponseSchema.parse(raw);
+  return toAuthUser(parsed);
+}
+
+export async function signInWithEmail(email: string, password: string): Promise<AuthUser> {
+  const credential = await signInWithEmailAndPassword(auth, email, password);
+  try {
+    return await fetchMe();
+  } catch {
+    return {
+      id: credential.user.uid,
+      email: credential.user.email ?? email,
+      name: credential.user.displayName ?? email.split('@')[0],
+      role: 'DOCTOR',
+    };
+  }
+}
+
+export async function signOutCurrentUser(): Promise<void> {
+  await signOut(auth);
+}
