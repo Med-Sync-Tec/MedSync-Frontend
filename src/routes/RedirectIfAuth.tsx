@@ -9,7 +9,7 @@ interface RedirectIfAuthProps {
 
 export const RedirectIfAuth: React.FC<RedirectIfAuthProps> = ({
   children,
-  to = '/medical-record/history',
+  to = '/doctor/dashboard',
 }) => {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   if (isAuthenticated) {

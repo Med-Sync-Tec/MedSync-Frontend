@@ -3,6 +3,7 @@ import { AuthLayout, DoctorLayout } from '@layouts/index';
 import { LoginPage } from '@features/auth/pages/LoginPage';
 import { ConsultationHistoryPage } from '@features/consultations/pages/ConsultationHistoryPage';
 import { NewSOAPEntryPage } from '@features/consultations/pages/NewSOAPEntryPage';
+import { DoctorDashboardPage } from '@features/doctor';
 import { NotFoundPage } from './NotFoundPage';
 import { RequireAuth } from './RequireAuth';
 import { RedirectIfAuth } from './RedirectIfAuth';
@@ -28,6 +29,7 @@ export const routes: RouteObject[] = [
       </RequireAuth>
     ),
     children: [
+      { path: '/doctor/dashboard', element: <DoctorDashboardPage /> },
       { path: '/medical-record/history', element: <ConsultationHistoryPage /> },
       { path: '/medical-record/new-soap', element: <NewSOAPEntryPage /> },
     ],

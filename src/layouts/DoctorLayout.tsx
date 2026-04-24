@@ -4,6 +4,7 @@ import { Header } from '@ui/navigation/Header';
 import { ErrorBoundary } from './ErrorBoundary';
 
 function resolveActiveNav(pathname: string): string | undefined {
+  if (pathname.startsWith('/doctor/dashboard')) return 'Inicio';
   if (pathname.startsWith('/medical-record')) return 'Pacientes';
   return undefined;
 }
