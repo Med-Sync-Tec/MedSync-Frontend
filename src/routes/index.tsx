@@ -4,6 +4,8 @@ import { LoginPage } from '@features/auth/pages/LoginPage';
 import { ConsultationHistoryPage } from '@features/consultations/pages/ConsultationHistoryPage';
 import { NewSOAPEntryPage } from '@features/consultations/pages/NewSOAPEntryPage';
 import { DoctorDashboardPage } from '@features/doctor';
+import { PatientsListPage } from '@features/patients/pages/PatientsListPage';
+import { SavedNewsPage } from '@features/news/pages/SavedNewsPage';
 import { NotFoundPage } from './NotFoundPage';
 import { RequireAuth } from './RequireAuth';
 import { RedirectIfAuth } from './RedirectIfAuth';
@@ -30,6 +32,8 @@ export const routes: RouteObject[] = [
     ),
     children: [
       { path: '/doctor/dashboard', element: <DoctorDashboardPage /> },
+      { path: '/doctor/patients', element: <PatientsListPage /> },
+      { path: '/doctor/saved-news', element: <SavedNewsPage /> },
       { path: '/medical-record/history', element: <ConsultationHistoryPage /> },
       { path: '/medical-record/new-soap', element: <NewSOAPEntryPage /> },
     ],

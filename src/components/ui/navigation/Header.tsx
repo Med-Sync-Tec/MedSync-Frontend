@@ -1,4 +1,5 @@
 import React, { useContext, useEffect, useRef, useState } from 'react';
+import { Link } from 'react-router-dom';
 import {
   Activity,
   Bell,
@@ -24,12 +25,12 @@ interface NavLink {
 
 const NAV_LINKS: Record<HeaderRole, NavLink[]> = {
   doctor: [
-    { label: 'Inicio', href: '#' },
-    { label: 'Pacientes', href: '#' },
-    { label: 'Noticias Guardadas', href: '#' },
+    { label: 'Inicio', href: '/doctor/dashboard' },
+    { label: 'Pacientes', href: '/doctor/patients' },
+    { label: 'Noticias Guardadas', href: '/doctor/saved-news' },
   ],
   coo: [
-    { label: 'Inicio', href: '#' },
+    { label: 'Inicio', href: '/doctor/dashboard' },
     { label: 'Inventario', href: '#' },
     { label: 'Reportes', href: '#' },
   ],
@@ -117,8 +118,8 @@ export const Header: React.FC<HeaderProps> = ({
   return (
     <header className={SHELL_STYLES}>
       <div className={INNER_STYLES}>
-        <a
-          href="#"
+        <Link
+          to="/doctor/dashboard"
           className="flex items-center gap-2 shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring rounded-md px-1"
           aria-label="MedSync — Inicio"
         >
@@ -126,7 +127,7 @@ export const Header: React.FC<HeaderProps> = ({
             <Activity size={18} strokeWidth={2.25} aria-hidden="true" />
           </span>
           <span className="text-[15px] font-semibold tracking-tight text-nav-foreground">MedSync</span>
-        </a>
+        </Link>
 
         <span aria-hidden="true" className="hidden lg:block h-6 w-px bg-nav-border shrink-0" />
 
@@ -134,9 +135,9 @@ export const Header: React.FC<HeaderProps> = ({
           {links.map((link) => {
             const isActive = activeLink === link.label;
             return (
-              <a
+              <Link
                 key={link.label}
-                href={link.href}
+                to={link.href}
                 aria-current={isActive ? 'page' : undefined}
                 className={`${NAV_LINK_BASE} ${isActive ? NAV_LINK_ACTIVE : NAV_LINK_IDLE}`}
               >
@@ -147,7 +148,7 @@ export const Header: React.FC<HeaderProps> = ({
                     className="absolute left-3 right-3 -bottom-[13px] h-0.5 rounded-full bg-nav-active"
                   />
                 )}
-              </a>
+              </Link>
             );
           })}
         </nav>
@@ -340,9 +341,9 @@ export const Header: React.FC<HeaderProps> = ({
           {links.map((link) => {
             const isActive = activeLink === link.label;
             return (
-              <a
+              <Link
                 key={link.label}
-                href={link.href}
+                to={link.href}
                 onClick={() => setMobileNavOpen(false)}
                 aria-current={isActive ? 'page' : undefined}
                 className={`flex items-center h-10 px-3 rounded-md text-sm font-medium transition-colors ${
@@ -352,7 +353,7 @@ export const Header: React.FC<HeaderProps> = ({
                 }`}
               >
                 {link.label}
-              </a>
+              </Link>
             );
           })}
         </nav>
