@@ -2,29 +2,43 @@ import { PatientDetailSchema } from '@features/patients/schemas';
 import type { PatientDetail } from '@features/patients/schemas';
 
 const rawPatient: PatientDetail = {
-  id: 'p-001',
-  name: 'Juan Pérez Rodríguez',
-  status: 'estable',
-  personalInfo: {
-    age: 45,
-    gender: 'Masculino',
-    phone: '55-1234-5678',
-    email: 'juan.perez@email.com',
+  patient: {
+    id: 'p-001',
+    expedienteExternoId: 'HG-2024-10234',
+    nombre: 'Juan Pérez Rodríguez',
+    fechaNacimiento: '1980-03-17',
+    genero: 'Masculino',
+    medicoId: 'doc-004',
+    activo: true,
+    createdAt: '2023-05-12T08:15:00Z',
+    updatedAt: '2025-11-02T14:30:00Z',
   },
-  medicalHistory: {
-    chronicConditions: ['Hipertensión Arterial', 'Diabetes Tipo 2'],
-    allergies: ['Penicilina', 'Polen'],
+  expediente: {
+    id: 'exp-001',
+    pacienteExternoId: 'HG-2024-10234',
+    doctorResponsableId: 'doc-004',
+    createdAt: '2023-05-12T08:20:00Z',
   },
-  treatments: [
-    { icon: 'medication', name: 'Enalapril', dose: '10mg', instructions: '1 tableta cada 12 horas' },
-    { icon: 'pill', name: 'Metformina', dose: '850mg', instructions: '1 tableta con la cena' },
+  consultas: [
+    {
+      id: '1',
+      fecha: '2024-03-15T10:00:00Z',
+      diagnostico: 'Hipertensión arterial controlada',
+      prescripcion: 'Enalapril 10 mg cada 12 horas',
+    },
+    {
+      id: '2',
+      fecha: '2024-02-10T09:30:00Z',
+      diagnostico: 'Faringoamigdalitis viral aguda',
+      prescripcion: 'Paracetamol 500 mg cada 8 horas por 3 días',
+    },
+    {
+      id: '3',
+      fecha: '2024-01-05T11:15:00Z',
+      diagnostico: 'Soplo sistólico grado I',
+      prescripcion: 'Ecocardiograma transtorácico de control',
+    },
   ],
-  vitalStats: {
-    bloodPressure: '125/80',
-    bpm: 72,
-    weight: 82,
-    o2Sat: 98,
-  },
 };
 
 export const MOCK_PATIENT: PatientDetail = PatientDetailSchema.parse(rawPatient);

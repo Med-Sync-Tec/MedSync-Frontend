@@ -1,140 +1,323 @@
-import React from 'react';
-import { StatusBadge } from '../badges/StatusBadge';
+import React, { forwardRef, useMemo } from 'react';
+import {
+  CalendarClock,
+  Download,
+  Files,
+  IdCard,
+  PhoneCall,
+  Share2,
+  UserRound,
+} from 'lucide-react';
+import type { Expediente, Patient, PatientConsultaLite } from '@features/patients/types';
 
-interface PersonalInfo {
-  age: number;
-  gender: string;
-  phone: string;
-  email: string;
+interface PatientDetailCardProps extends React.HTMLAttributes<HTMLElement> {
+  patient: Patient;
+  expediente?: Expediente;
+  consultas: PatientConsultaLite[];
+  lastActivityAuthor?: string;
+  lastActivityAt?: string;
+  onCall?: () => void;
+  onExport?: () => void;
+  onShare?: () => void;
 }
 
-interface MedicalHistory {
-  chronicConditions: string[];
-  allergies: string[];
+const CARD_STYLES =
+  'rounded-2xl border border-border-subtle bg-surface shadow-card overflow-hidden';
+
+const SECTION_TITLE_STYLES =
+  'text-[10px] font-semibold uppercase tracking-[0.12em] text-text-muted';
+
+const ROW_STYLES =
+  'flex items-center justify-between gap-3 px-4 py-2 text-[13px]';
+
+const dateFormatter = new Intl.DateTimeFormat('es-MX', {
+  day: '2-digit',
+  month: 'short',
+  year: 'numeric',
+});
+
+const dateShortFormatter = new Intl.DateTimeFormat('es-MX', {
+  day: '2-digit',
+  month: 'short',
+  year: '2-digit',
+});
+
+function parseDate(value: string): Date | null {
+  const parsed = new Date(value);
+  return Number.isNaN(parsed.getTime()) ? null : parsed;
 }
 
-interface Treatment {
-  icon?: string;
-  name: string;
-  dose: string;
-  instructions: string;
+function formatDate(value: string | undefined): string {
+  if (!value) return '—';
+  const parsed = parseDate(value);
+  return parsed ? dateFormatter.format(parsed) : '—';
 }
 
-interface VitalStats {
-  bloodPressure: string;
-  bpm: number;
-  weight: number;
-  o2Sat: number;
+function formatDateShort(value: string | undefined): string {
+  if (!value) return '—';
+  const parsed = parseDate(value);
+  return parsed ? dateShortFormatter.format(parsed) : '—';
 }
 
-interface PatientDetailCardProps {
-  patientName: string;
-  status?: 'estable' | 'critico' | 'en-observacion' | 'alta';
-  personalInfo: PersonalInfo;
-  medicalHistory: MedicalHistory;
-  treatments: Treatment[];
-  vitalStats: VitalStats;
-  className?: string;
+function calculateAge(fechaNacimiento: string): number | null {
+  const birth = parseDate(fechaNacimiento);
+  if (!birth) return null;
+  const now = new Date();
+  let age = now.getFullYear() - birth.getFullYear();
+  const m = now.getMonth() - birth.getMonth();
+  if (m < 0 || (m === 0 && now.getDate() < birth.getDate())) age -= 1;
+  return age >= 0 ? age : null;
 }
 
-export const PatientDetailCard: React.FC<PatientDetailCardProps> = ({
-  patientName,
-  status = 'estable',
-  personalInfo,
-  medicalHistory,
-  treatments,
-  vitalStats,
-  className = '',
-}) => {
-  const cardBase = 'bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-5 shadow-sm';
+function daysBetween(from: Date, to: Date): number {
+  const ms = to.getTime() - from.getTime();
+  return Math.max(0, Math.floor(ms / (1000 * 60 * 60 * 24)));
+}
 
-  return (
-    <div className={`space-y-4 ${className}`}>
-      <div className="flex items-center justify-between mb-2">
-        <h2 className="text-lg font-bold text-gray-900 dark:text-white">{patientName}</h2>
-        <StatusBadge status={status} />
-      </div>
+function formatRelativeFromNow(value: string): string {
+  const parsed = parseDate(value);
+  if (!parsed) return '—';
+  const days = daysBetween(parsed, new Date());
+  return formatRelative(days);
+}
 
-      <div className="grid grid-cols-2 gap-4">
-        {/* 5a — Información Personal */}
-        <div className={cardBase}>
-          <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-3">Información Personal</h3>
-          <table className="w-full text-sm">
-            <tbody className="divide-y divide-gray-50 dark:divide-gray-700">
-              {[
-                ['Edad', `${personalInfo.age} años`],
-                ['Género', personalInfo.gender],
-                ['Teléfono', personalInfo.phone],
-                ['Email', personalInfo.email],
-              ].map(([label, value]) => (
-                <tr key={label}>
-                  <td className="py-2 pr-3 text-gray-500 dark:text-gray-400 font-medium">{label}</td>
-                  <td className="py-2 text-gray-900 dark:text-white text-right">{value}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+function formatRelative(days: number): string {
+  if (days === 0) return 'Hoy';
+  if (days === 1) return 'Ayer';
+  if (days < 30) return `hace ${days} d`;
+  const months = Math.floor(days / 30);
+  if (months < 12) return `hace ${months} m`;
+  const years = Math.floor(days / 365);
+  return `hace ${years} a`;
+}
 
-        {/* 5b — Historial Médico */}
-        <div className={cardBase}>
-          <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-3">Historial Médico</h3>
-          <div className="space-y-3">
-            <div className="bg-red-50 dark:bg-red-900/10 rounded-xl p-3">
-              <p className="text-xs font-bold text-red-600 dark:text-red-400 mb-1">Condiciones Crónicas</p>
-              <ul className="space-y-0.5">
-                {medicalHistory.chronicConditions.map((c) => (
-                  <li key={c} className="text-sm text-gray-700 dark:text-gray-300">{c}</li>
-                ))}
-              </ul>
+function getInitials(value: string): string {
+  return value
+    .trim()
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((part) => part[0] ?? '')
+    .join('')
+    .toUpperCase();
+}
+
+export const PatientDetailCard = forwardRef<HTMLElement, PatientDetailCardProps>(
+  function PatientDetailCard(
+    {
+      patient,
+      expediente,
+      consultas,
+      lastActivityAuthor,
+      lastActivityAt,
+      onCall,
+      onExport,
+      onShare,
+      className = '',
+      ...rest
+    },
+    ref
+  ) {
+    const age = useMemo(() => calculateAge(patient.fechaNacimiento), [patient.fechaNacimiento]);
+
+    const sortedConsultas = useMemo(
+      () =>
+        [...consultas].sort((a, b) => {
+          const da = parseDate(a.fecha)?.getTime() ?? 0;
+          const db = parseDate(b.fecha)?.getTime() ?? 0;
+          return db - da;
+        }),
+      [consultas]
+    );
+
+    const ultima = sortedConsultas[0];
+    const ultimaDate = ultima ? parseDate(ultima.fecha) : null;
+    const diasDesdeUltima = ultimaDate ? daysBetween(ultimaDate, new Date()) : null;
+
+    const initials = getInitials(patient.nombre);
+
+    return (
+      <article ref={ref} className={`${CARD_STYLES} ${className}`} {...rest}>
+        <header className="px-5 pt-5 pb-4 border-b border-border-subtle">
+          <div className="flex items-start gap-3">
+            <div className="relative shrink-0">
+              <span
+                className="inline-flex items-center justify-center w-11 h-11 rounded-full text-sm font-semibold tracking-tight bg-primary-subtle text-primary"
+                aria-label={`${patient.nombre} · ${patient.activo ? 'Activo' : 'Inactivo'}`}
+              >
+                {initials}
+              </span>
+              <span
+                aria-hidden="true"
+                className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full ring-2 ring-surface ${
+                  patient.activo ? 'bg-status-stable-ring' : 'bg-text-subtle'
+                }`}
+              />
             </div>
-            <div className="bg-orange-50 dark:bg-orange-900/10 rounded-xl p-3">
-              <p className="text-xs font-bold text-orange-600 dark:text-orange-400 mb-1">Alergias</p>
-              <ul className="space-y-0.5">
-                {medicalHistory.allergies.map((a) => (
-                  <li key={a} className="text-sm text-gray-700 dark:text-gray-300">{a}</li>
-                ))}
-              </ul>
+            <div className="min-w-0 flex-1">
+              <h2 className="text-[15px] font-semibold tracking-tight text-text-primary leading-tight">
+                {patient.nombre}
+              </h2>
+              <p className="mt-0.5 text-xs text-text-muted tracking-tight">
+                <span>{age !== null ? `${age} años` : 'Edad n/d'}</span>
+                <span aria-hidden="true" className="mx-1.5 text-text-subtle">·</span>
+                <span>{patient.genero}</span>
+                <span aria-hidden="true" className="mx-1.5 text-text-subtle">·</span>
+                <span className={patient.activo ? 'text-status-stable font-medium' : 'text-text-muted font-medium'}>
+                  {patient.activo ? 'Activo' : 'Inactivo'}
+                </span>
+              </p>
+              <p className="mt-1 font-mono text-[11px] text-text-subtle tracking-tight truncate">
+                #{patient.expedienteExternoId}
+              </p>
             </div>
           </div>
-        </div>
+        </header>
 
-        {/* 5c — Tratamiento Actual */}
-        <div className={cardBase}>
-          <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-3">Tratamiento Actual</h3>
-          <ul className="space-y-3">
-            {treatments.map((t) => (
-              <li key={t.name} className="flex items-start gap-3">
-                <div className="w-8 h-8 rounded-lg bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center text-primary shrink-0">
-                  <span className="material-symbols-outlined text-base">{t.icon ?? 'medication'}</span>
-                </div>
-                <div>
-                  <p className="text-sm font-semibold text-gray-800 dark:text-white">{t.name} — {t.dose}</p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">{t.instructions}</p>
-                </div>
-              </li>
-            ))}
-          </ul>
-        </div>
-
-        {/* 5d — Estadísticas Recientes */}
-        <div className={cardBase}>
-          <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-3">Estadísticas Recientes</h3>
-          <div className="grid grid-cols-2 gap-3">
-            {[
-              { label: 'Presión Art.', value: vitalStats.bloodPressure, icon: 'favorite' },
-              { label: 'BPM', value: vitalStats.bpm, icon: 'monitor_heart' },
-              { label: 'Peso', value: `${vitalStats.weight} kg`, icon: 'scale' },
-              { label: 'O₂ Sat.', value: `${vitalStats.o2Sat}%`, icon: 'air' },
-            ].map((stat) => (
-              <div key={stat.label} className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-3 text-center">
-                <p className="text-xl font-bold text-gray-900 dark:text-white">{stat.value}</p>
-                <p className="text-xs text-gray-400 mt-0.5">{stat.label}</p>
+        <section aria-labelledby="patient-registro">
+          <div className="flex items-center gap-2 px-5 pt-4 pb-2">
+            <IdCard size={12} strokeWidth={2} aria-hidden="true" className="text-text-subtle" />
+            <h3 id="patient-registro" className={SECTION_TITLE_STYLES}>
+              Registro
+            </h3>
+          </div>
+          <dl className="divide-y divide-border-subtle px-1 pb-1">
+            <div className={ROW_STYLES}>
+              <dt className="text-text-muted tracking-tight">Expediente externo</dt>
+              <dd className="font-mono font-medium text-text-primary tracking-tight truncate">
+                {patient.expedienteExternoId}
+              </dd>
+            </div>
+            {expediente && (
+              <div className={ROW_STYLES}>
+                <dt className="text-text-muted tracking-tight">Expediente hospital</dt>
+                <dd className="font-mono font-medium text-text-primary tracking-tight truncate">
+                  {expediente.id}
+                </dd>
               </div>
-            ))}
+            )}
+            <div className={ROW_STYLES}>
+              <dt className="text-text-muted tracking-tight">Nacimiento</dt>
+              <dd className="font-medium text-text-primary tracking-tight">
+                {formatDate(patient.fechaNacimiento)}
+              </dd>
+            </div>
+            <div className={ROW_STYLES}>
+              <dt className="text-text-muted tracking-tight">Alta</dt>
+              <dd className="font-medium text-text-primary tracking-tight">
+                {formatDate(patient.createdAt)}
+              </dd>
+            </div>
+            <div className={ROW_STYLES}>
+              <dt className="text-text-muted tracking-tight">Actualizado</dt>
+              <dd className="font-medium text-text-primary tracking-tight">
+                {formatDateShort(patient.updatedAt)}
+              </dd>
+            </div>
+          </dl>
+        </section>
+
+        <section
+          aria-labelledby="patient-resumen"
+          className="mt-1 border-t border-border-subtle bg-surface-subtle"
+        >
+          <div className="flex items-center gap-2 px-5 pt-4 pb-3">
+            <UserRound size={12} strokeWidth={2} aria-hidden="true" className="text-text-subtle" />
+            <h3 id="patient-resumen" className={SECTION_TITLE_STYLES}>
+              Resumen clínico
+            </h3>
           </div>
+          <div className="grid grid-cols-2 gap-px bg-border-subtle border-y border-border-subtle">
+            <div className="bg-surface-subtle px-4 py-3">
+              <div className="flex items-center gap-1.5 text-text-subtle">
+                <Files size={11} strokeWidth={2} aria-hidden="true" />
+                <p className="text-[10px] uppercase tracking-[0.1em] font-semibold">Consultas</p>
+              </div>
+              <p className="mt-1 text-xl font-semibold tracking-tight text-text-primary tabular-nums">
+                {consultas.length}
+              </p>
+              <p className="mt-0.5 text-[11px] text-text-subtle tracking-tight">
+                {sortedConsultas.length > 0
+                  ? `Desde ${formatDateShort(sortedConsultas[sortedConsultas.length - 1]?.fecha)}`
+                  : 'Sin historial'}
+              </p>
+            </div>
+            <div className="bg-surface-subtle px-4 py-3">
+              <div className="flex items-center gap-1.5 text-text-subtle">
+                <CalendarClock size={11} strokeWidth={2} aria-hidden="true" />
+                <p className="text-[10px] uppercase tracking-[0.1em] font-semibold">Última</p>
+              </div>
+              <p className="mt-1 text-xl font-semibold tracking-tight text-text-primary tabular-nums">
+                {ultima ? formatDateShort(ultima.fecha) : '—'}
+              </p>
+              <p className="mt-0.5 text-[11px] text-text-subtle tracking-tight">
+                {diasDesdeUltima !== null ? formatRelative(diasDesdeUltima) : 'Sin consultas'}
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <div className="px-5 pt-4 pb-4 border-t border-border-subtle flex items-center gap-1">
+          <button
+            type="button"
+            onClick={onCall}
+            className="inline-flex items-center gap-1.5 h-8 px-2.5 rounded-md border border-border-subtle bg-surface text-[12px] font-medium text-text-primary hover:bg-surface-muted hover:border-border-strong transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
+            aria-label="Llamar al paciente"
+          >
+            <PhoneCall size={12} strokeWidth={2} aria-hidden="true" />
+            Llamar
+          </button>
+          <button
+            type="button"
+            onClick={onExport}
+            className="inline-flex items-center justify-center w-8 h-8 rounded-md border border-border-subtle bg-surface text-text-muted hover:bg-surface-muted hover:text-text-primary hover:border-border-strong transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
+            aria-label="Exportar expediente en PDF"
+            title="Exportar PDF"
+          >
+            <Download size={12} strokeWidth={2} aria-hidden="true" />
+          </button>
+          <button
+            type="button"
+            onClick={onShare}
+            className="inline-flex items-center justify-center w-8 h-8 rounded-md border border-border-subtle bg-surface text-text-muted hover:bg-surface-muted hover:text-text-primary hover:border-border-strong transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
+            aria-label="Compartir expediente"
+            title="Compartir"
+          >
+            <Share2 size={12} strokeWidth={2} aria-hidden="true" />
+          </button>
         </div>
-      </div>
-    </div>
-  );
-};
+
+        <footer className="px-5 py-3 flex items-start gap-2 border-t border-border-subtle bg-surface-subtle">
+          <span
+            aria-hidden="true"
+            className="mt-1 w-1 h-1 rounded-full bg-status-stable-ring shrink-0 medsync-pulse-dot"
+          />
+          <div className="min-w-0 flex-1">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-text-subtle">
+              Actividad
+            </p>
+            <p className="mt-0.5 text-[11px] text-text-muted leading-snug">
+              {lastActivityAuthor ? (
+                <>
+                  Última edición por <span className="text-text-primary font-medium">{lastActivityAuthor}</span>
+                </>
+              ) : (
+                <>Última actualización del expediente</>
+              )}
+              {(lastActivityAt || patient.updatedAt) && (
+                <>
+                  <span className="text-text-subtle"> · </span>
+                  <time
+                    dateTime={lastActivityAt ?? patient.updatedAt}
+                    className="tabular-nums"
+                  >
+                    {formatRelativeFromNow(lastActivityAt ?? patient.updatedAt)}
+                  </time>
+                </>
+              )}
+            </p>
+          </div>
+        </footer>
+      </article>
+    );
+  }
+);
