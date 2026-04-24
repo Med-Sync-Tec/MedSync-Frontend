@@ -15,27 +15,45 @@
   --color-accent-hover: #151a3a;
 
   /* Surfaces (light) — overridden under .dark below */
-  --color-background: #f9fafb;
+  --color-background: #f7f8fb;
   --color-surface: #ffffff;
   --color-surface-muted: #f3f4f6;
+  --color-surface-subtle: #f8fafc;
+  --color-surface-elevated: #ffffff;
+  --color-surface-sunken: #f1f3f8;
+
+  /* Navigation shell */
+  --color-nav-surface: #ffffff;
+  --color-nav-surface-hover: #f3f4f6;
+  --color-nav-border: #e5e7eb;
+  --color-nav-foreground: #111827;
+  --color-nav-foreground-muted: #6b7280;
+  --color-nav-active: #4f46e5;
+  --color-nav-active-subtle: #eef2ff;
 
   /* Text (light) */
   --color-text-primary: #111827;
   --color-text-muted: #6b7280;
+  --color-text-subtle: #9ca3af;
 
   /* Borders (light) */
-  --color-border-subtle: #f3f4f6;
+  --color-border-subtle: #eef0f4;
+  --color-border-strong: #e2e5ec;
 
-  /* Status */
+  /* Focus */
+  --color-focus-ring: #6366f1;
+
+  /* Status — generic */
   --color-danger: #dc2626;
   --color-danger-hover: #b91c1c;
   --color-danger-subtle: #fef2f2;
   --color-success: #10b981;
   --color-success-strong: #16a34a;
-  --color-success-subtle: #f0fdf4;
+  --color-success-subtle: #ecfdf5;
   --color-warning: #f59e0b;
-  --color-info: #2563eb;
-  --color-info-subtle: #eff6ff;
+  --color-warning-subtle: #fffbeb;
+  --color-info: #0284c7;
+  --color-info-subtle: #f0f9ff;
   --color-caution: #ea580c;
   --color-caution-subtle: #fff7ed;
 
@@ -43,28 +61,140 @@
   --color-welcome-from: #0047ab;
   --color-welcome-to: #1d4ed8;
 
+  /* Status clínico (paciente) */
+  --color-status-stable: #047857;
+  --color-status-stable-subtle: #ecfdf5;
+  --color-status-stable-ring: #10b981;
+
+  --color-status-critical: #b91c1c;
+  --color-status-critical-subtle: #fef2f2;
+  --color-status-critical-ring: #ef4444;
+
+  --color-status-observation: #b45309;
+  --color-status-observation-subtle: #fffbeb;
+  --color-status-observation-ring: #f59e0b;
+
+  --color-status-discharge: #1d4ed8;
+  --color-status-discharge-subtle: #eff6ff;
+  --color-status-discharge-ring: #3b82f6;
+
+  /* Severidad clínica (alergias, condiciones) */
+  --color-severity-high: #b91c1c;
+  --color-severity-high-subtle: #fef2f2;
+  --color-severity-medium: #b45309;
+  --color-severity-medium-subtle: #fffbeb;
+  --color-severity-low: #1e40af;
+  --color-severity-low-subtle: #eff6ff;
+
+  /* Signos vitales (rangos) */
+  --color-vital-normal: #047857;
+  --color-vital-normal-subtle: #ecfdf5;
+  --color-vital-warning: #b45309;
+  --color-vital-warning-subtle: #fffbeb;
+  --color-vital-danger: #b91c1c;
+  --color-vital-danger-subtle: #fef2f2;
+  --color-vital-track: #e5e7eb;
+
   /* Typography */
   --font-sans: 'Inter', sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
 
   /* Radii */
   --radius: 0.5rem;
   --radius-xl: 1rem;
   --radius-2xl: 1.5rem;
   --radius-3xl: 2rem;
+
+  /* Elevation */
+  --shadow-card: 0 1px 2px 0 rgb(17 24 39 / 0.04), 0 1px 3px 0 rgb(17 24 39 / 0.04);
+  --shadow-elevated: 0 4px 12px -2px rgb(17 24 39 / 0.06), 0 2px 6px -2px rgb(17 24 39 / 0.04);
+  --shadow-popover: 0 12px 32px -8px rgb(17 24 39 / 0.12), 0 4px 12px -4px rgb(17 24 39 / 0.08);
 }
 
 @layer base {
   .dark {
-    --color-background: #0f172a;
-    --color-surface: #1e293b;
-    --color-surface-muted: #1f2937;
-    --color-text-primary: #f9fafb;
-    --color-text-muted: #9ca3af;
-    --color-border-subtle: #334155;
+    --color-background: #0b1020;
+    --color-surface: #111a2e;
+    --color-surface-muted: #1a2340;
+    --color-surface-subtle: #141d34;
+    --color-surface-elevated: #1a2340;
+    --color-surface-sunken: #0c1226;
+
+    --color-nav-surface: #0f172a;
+    --color-nav-surface-hover: #1a2340;
+    --color-nav-border: #1f2a48;
+    --color-nav-foreground: #f9fafb;
+    --color-nav-foreground-muted: #94a3b8;
+    --color-nav-active: #818cf8;
+    --color-nav-active-subtle: #1e1b4b;
+
+    --color-text-primary: #f1f5f9;
+    --color-text-muted: #94a3b8;
+    --color-text-subtle: #64748b;
+
+    --color-border-subtle: #1f2a48;
+    --color-border-strong: #2a365c;
+
+    --color-focus-ring: #6366f1;
+
+    --color-primary-subtle: #1e1b4b;
+    --color-danger-subtle: #2a1010;
+    --color-success-subtle: #052e21;
+    --color-warning-subtle: #2a1d06;
+    --color-info-subtle: #082438;
+
+    --color-status-stable: #34d399;
+    --color-status-stable-subtle: #052e21;
+    --color-status-stable-ring: #10b981;
+
+    --color-status-critical: #fca5a5;
+    --color-status-critical-subtle: #2a1010;
+    --color-status-critical-ring: #ef4444;
+
+    --color-status-observation: #fcd34d;
+    --color-status-observation-subtle: #2a1d06;
+    --color-status-observation-ring: #f59e0b;
+
+    --color-status-discharge: #93c5fd;
+    --color-status-discharge-subtle: #0f1b3a;
+    --color-status-discharge-ring: #60a5fa;
+
+    --color-severity-high: #fca5a5;
+    --color-severity-high-subtle: #2a1010;
+    --color-severity-medium: #fcd34d;
+    --color-severity-medium-subtle: #2a1d06;
+    --color-severity-low: #93c5fd;
+    --color-severity-low-subtle: #0f1b3a;
+
+    --color-vital-normal: #34d399;
+    --color-vital-normal-subtle: #052e21;
+    --color-vital-warning: #fcd34d;
+    --color-vital-warning-subtle: #2a1d06;
+    --color-vital-danger: #fca5a5;
+    --color-vital-danger-subtle: #2a1010;
+    --color-vital-track: #1f2a48;
+
+    --shadow-card: 0 1px 2px 0 rgb(0 0 0 / 0.4), 0 1px 3px 0 rgb(0 0 0 / 0.3);
+    --shadow-elevated: 0 4px 12px -2px rgb(0 0 0 / 0.4), 0 2px 6px -2px rgb(0 0 0 / 0.3);
+    --shadow-popover: 0 12px 32px -8px rgb(0 0 0 / 0.5), 0 4px 12px -4px rgb(0 0 0 / 0.4);
   }
 
   body {
     font-family: var(--font-sans);
+    font-feature-settings: 'cv11' on, 'ss01' on, 'ss03' on, 'tnum' on, 'zero' on;
+    letter-spacing: -0.006em;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    letter-spacing: -0.02em;
+  }
+
+  code, kbd, pre, samp, .font-mono {
+    font-feature-settings: 'ss01' on, 'zero' on, 'cv11' on;
+    letter-spacing: -0.01em;
   }
 
   .material-symbols-outlined {
@@ -90,6 +220,38 @@
     transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
     transition-duration: 300ms;
   }
+
+  .medsync-pulse-dot {
+    animation: medsync-pulse-dot 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+
+  .medsync-pulse-ring {
+    animation: medsync-pulse-ring 1.8s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+
+  .medsync-heartbeat {
+    animation: medsync-heartbeat 1.2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    transform-origin: center;
+  }
+}
+
+@keyframes medsync-pulse-dot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.55; transform: scale(0.92); }
+}
+
+@keyframes medsync-pulse-ring {
+  0% { box-shadow: 0 0 0 0 currentColor; opacity: 0.6; }
+  70% { box-shadow: 0 0 0 10px currentColor; opacity: 0; }
+  100% { box-shadow: 0 0 0 0 currentColor; opacity: 0; }
+}
+
+@keyframes medsync-heartbeat {
+  0%, 100% { transform: scale(1); }
+  15% { transform: scale(1.12); }
+  30% { transform: scale(1); }
+  45% { transform: scale(1.08); }
+  60% { transform: scale(1); }
 }
 
 ::-webkit-scrollbar {

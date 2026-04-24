@@ -1,46 +1,38 @@
 import { z } from 'zod';
 
-export const PatientStatusSchema = z.enum(['estable', 'critico', 'en-observacion', 'alta']);
-
-export const PersonalInfoSchema = z.object({
-  age: z.number().int().min(0),
-  gender: z.string(),
-  phone: z.string(),
-  email: z.string().email(),
+export const PatientSchema = z.object({
+  id: z.string(),
+  expedienteExternoId: z.string(),
+  nombre: z.string(),
+  fechaNacimiento: z.string(),
+  genero: z.string(),
+  medicoId: z.string(),
+  activo: z.boolean(),
+  createdAt: z.string(),
+  updatedAt: z.string(),
 });
 
-export const MedicalHistorySchema = z.object({
-  chronicConditions: z.array(z.string()),
-  allergies: z.array(z.string()),
+export const ExpedienteSchema = z.object({
+  id: z.string(),
+  pacienteExternoId: z.string(),
+  doctorResponsableId: z.string(),
+  createdAt: z.string(),
 });
 
-export const TreatmentSchema = z.object({
-  icon: z.string().optional(),
-  name: z.string(),
-  dose: z.string(),
-  instructions: z.string(),
-});
-
-export const VitalStatsSchema = z.object({
-  bloodPressure: z.string(),
-  bpm: z.number(),
-  weight: z.number(),
-  o2Sat: z.number(),
+export const PatientConsultaLiteSchema = z.object({
+  id: z.string(),
+  fecha: z.string(),
+  diagnostico: z.string(),
+  prescripcion: z.string(),
 });
 
 export const PatientDetailSchema = z.object({
-  id: z.string().optional(),
-  name: z.string(),
-  status: PatientStatusSchema,
-  personalInfo: PersonalInfoSchema,
-  medicalHistory: MedicalHistorySchema,
-  treatments: z.array(TreatmentSchema),
-  vitalStats: VitalStatsSchema,
+  patient: PatientSchema,
+  expediente: ExpedienteSchema.optional(),
+  consultas: z.array(PatientConsultaLiteSchema),
 });
 
-export type PatientStatus = z.infer<typeof PatientStatusSchema>;
-export type PersonalInfo = z.infer<typeof PersonalInfoSchema>;
-export type MedicalHistory = z.infer<typeof MedicalHistorySchema>;
-export type Treatment = z.infer<typeof TreatmentSchema>;
-export type VitalStats = z.infer<typeof VitalStatsSchema>;
+export type Patient = z.infer<typeof PatientSchema>;
+export type Expediente = z.infer<typeof ExpedienteSchema>;
+export type PatientConsultaLite = z.infer<typeof PatientConsultaLiteSchema>;
 export type PatientDetail = z.infer<typeof PatientDetailSchema>;
