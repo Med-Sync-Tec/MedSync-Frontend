@@ -34,7 +34,7 @@ export const routes: RouteObject[] = [
       { path: '/doctor/dashboard', element: <DoctorDashboardPage /> },
       { path: '/doctor/patients', element: <PatientsListPage /> },
       { path: '/doctor/saved-news', element: <SavedNewsPage /> },
-      { path: '/medical-record/history', element: <ConsultationHistoryPage /> },
+      { path: '/patients/:patientId/history', element: <ConsultationHistoryPage /> },
       { path: '/medical-record/new-soap', element: <NewSOAPEntryPage /> },
     ],
   },

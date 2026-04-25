@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import {
+  AlertTriangle,
   ChevronLeft,
   ChevronRight,
   ChevronRight as ChevronRightIcon,
@@ -13,9 +14,13 @@ import {
 import { PatientDetailCard } from '@ui/cards/PatientDetailCard';
 import { ConsultationCard } from '@ui/cards/ConsultationCard';
 import { SOAPModal } from '@ui/feedback/SOAPModal';
-import { MOCK_CONSULTATIONS } from '@mocks/consultations';
-import { MOCK_PATIENT } from '@mocks/patients';
-import type { Consultation } from '@features/consultations/types';
+import { ApiError } from '@lib/http/errors';
+import { usePatientDetail } from '@features/patients/queries';
+import {
+  PatientDetailCardSkeleton,
+  ConsultationTimelineSkeleton,
+} from '@features/patients/components/PatientDetailCardSkeleton';
+import type { Consulta, ConsultationSummary } from '@features/consultations/schemas';
 
 type TabId = 'historial' | 'resumen' | 'documentos' | 'vitales';
 
@@ -28,10 +33,21 @@ interface TabDef {
 
 const yearFormatter = new Intl.DateTimeFormat('es-MX', { year: 'numeric' });
 
-function groupByYear(items: Consultation[]): Array<[string, Consultation[]]> {
-  const groups = new Map<string, Consultation[]>();
+function toConsultationSummary(c: Consulta): ConsultationSummary {
+  return {
+    id: c.id,
+    date: c.fecha,
+    reason: c.motivoConsulta,
+    diagnosis: c.diagnostico,
+    type: 'general',
+  };
+}
+
+function groupByYear(items: Consulta[]): Array<[string, Consulta[]]> {
+  const groups = new Map<string, Consulta[]>();
   for (const c of items) {
-    const key = yearFormatter.format(new Date(c.date));
+    const parsed = new Date(c.fecha);
+    const key = Number.isNaN(parsed.getTime()) ? '—' : yearFormatter.format(parsed);
     const list = groups.get(key) ?? [];
     list.push(c);
     groups.set(key, list);
@@ -41,23 +57,27 @@ function groupByYear(items: Consultation[]): Array<[string, Consultation[]]> {
 
 export const ConsultationHistoryPage: React.FC = () => {
   const navigate = useNavigate();
+  const { patientId } = useParams<{ patientId: string }>();
   const [selectedConsultationId, setSelectedConsultationId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<TabId>('historial');
 
-  const selectedConsultation = useMemo(
-    () => MOCK_CONSULTATIONS.find((c) => c.id === selectedConsultationId),
-    [selectedConsultationId]
-  );
+  const { data, isLoading, error, refetch } = usePatientDetail(patientId);
 
+  const consultas = useMemo<Consulta[]>(() => data?.consultas ?? [], [data]);
   const sortedConsultations = useMemo(
     () =>
-      [...MOCK_CONSULTATIONS].sort(
-        (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+      [...consultas].sort(
+        (a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime(),
       ),
-    []
+    [consultas],
   );
 
   const grouped = useMemo(() => groupByYear(sortedConsultations), [sortedConsultations]);
+
+  const selectedConsultation = useMemo(
+    () => consultas.find((c) => c.id === selectedConsultationId) ?? null,
+    [consultas, selectedConsultationId],
+  );
 
   const tabs: TabDef[] = [
     { id: 'historial', label: 'Historial', count: sortedConsultations.length },
@@ -65,6 +85,21 @@ export const ConsultationHistoryPage: React.FC = () => {
     { id: 'documentos', label: 'Documentos', disabled: true },
     { id: 'vitales', label: 'Signos vitales', disabled: true },
   ];
+
+  if (!patientId) {
+    return (
+      <main className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        <PageError
+          title="Paciente no especificado"
+          message="La URL no contiene un identificador de paciente válido."
+          onRetry={() => navigate('/doctor/patients')}
+          retryLabel="Ir a pacientes"
+        />
+      </main>
+    );
+  }
+
+  const patientName = data?.patient.nombre ?? 'Paciente';
 
   return (
     <main className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-5 lg:py-6">
@@ -76,6 +111,7 @@ export const ConsultationHistoryPage: React.FC = () => {
           <li>
             <button
               type="button"
+              onClick={() => navigate('/doctor/patients')}
               className="inline-flex items-center gap-1.5 text-text-muted hover:text-text-primary transition-colors"
             >
               <Users size={13} strokeWidth={2} aria-hidden="true" />
@@ -86,8 +122,8 @@ export const ConsultationHistoryPage: React.FC = () => {
             <ChevronRightIcon size={13} strokeWidth={2} />
           </li>
           <li className="min-w-0">
-            <span className="text-text-primary font-medium truncate">
-              {MOCK_PATIENT.patient.nombre}
+            <span className="text-text-primary font-medium truncate" aria-live="polite">
+              {isLoading ? 'Cargando…' : patientName}
             </span>
           </li>
           <li aria-hidden="true" className="text-text-subtle">
@@ -106,9 +142,6 @@ export const ConsultationHistoryPage: React.FC = () => {
           >
             <ChevronLeft size={14} strokeWidth={2} aria-hidden="true" />
           </button>
-          <span className="px-2 text-[11px] font-mono text-text-subtle tabular-nums">
-            12 / 84
-          </span>
           <button
             type="button"
             aria-label="Siguiente paciente"
@@ -119,134 +152,161 @@ export const ConsultationHistoryPage: React.FC = () => {
         </div>
       </nav>
 
-      <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
-        <aside className="w-full lg:w-[320px] xl:w-[340px] shrink-0">
-          <div className="lg:sticky lg:top-20">
-            <PatientDetailCard
-              patient={MOCK_PATIENT.patient}
-              expediente={MOCK_PATIENT.expediente}
-              consultas={MOCK_PATIENT.consultas}
-              lastActivityAuthor="Dra. Ana Martínez"
-              lastActivityAt={MOCK_PATIENT.patient.updatedAt}
-            />
-          </div>
-        </aside>
+      {error ? (
+        <PageError
+          title="Error al cargar paciente"
+          message={resolveErrorMessage(error)}
+          onRetry={() => refetch()}
+          retryLabel="Reintentar"
+        />
+      ) : (
+        <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
+          <aside className="w-full lg:w-[320px] xl:w-[340px] shrink-0">
+            <div className="lg:sticky lg:top-20">
+              {isLoading || !data ? (
+                <PatientDetailCardSkeleton />
+              ) : (
+                <PatientDetailCard
+                  patient={data.patient}
+                  expediente={data.expediente ?? undefined}
+                  consultas={data.consultas}
+                  lastActivityAt={data.patient.updatedAt}
+                />
+              )}
+            </div>
+          </aside>
 
-        <section className="flex-1 min-w-0">
-          <div className="border-b border-border-subtle mb-5">
-            <div className="flex items-end justify-between gap-4 flex-wrap">
-              <div
-                role="tablist"
-                aria-label="Secciones del paciente"
-                className="flex items-center gap-1 -mb-px"
-              >
-                {tabs.map((tab) => {
-                  const isActive = activeTab === tab.id;
-                  return (
-                    <button
-                      key={tab.id}
-                      role="tab"
-                      type="button"
-                      aria-selected={isActive}
-                      aria-controls={`panel-${tab.id}`}
-                      disabled={tab.disabled}
-                      onClick={() => setActiveTab(tab.id)}
-                      className={`relative inline-flex items-center gap-1.5 h-10 px-3 text-[13px] font-medium tracking-tight transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring rounded-t-md ${
-                        isActive
-                          ? 'text-text-primary'
-                          : tab.disabled
-                            ? 'text-text-subtle cursor-not-allowed'
-                            : 'text-text-muted hover:text-text-primary'
-                      }`}
-                    >
-                      {tab.label}
-                      {typeof tab.count === 'number' && (
-                        <span
-                          className={`inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded text-[10px] font-mono font-semibold tabular-nums ${
-                            isActive
-                              ? 'bg-primary-subtle text-primary'
-                              : 'bg-surface-muted text-text-muted'
-                          }`}
-                        >
-                          {tab.count}
-                        </span>
-                      )}
-                      {tab.disabled && (
-                        <span className="text-[9px] uppercase tracking-wide text-text-subtle ml-0.5">
-                          Pronto
-                        </span>
-                      )}
-                      {isActive && (
-                        <span
-                          aria-hidden="true"
-                          className="absolute inset-x-2 -bottom-px h-0.5 bg-primary rounded-full"
-                        />
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
+          <section className="flex-1 min-w-0">
+            <div className="border-b border-border-subtle mb-5">
+              <div className="flex items-end justify-between gap-4 flex-wrap">
+                <div
+                  role="tablist"
+                  aria-label="Secciones del paciente"
+                  className="flex items-center gap-1 -mb-px"
+                >
+                  {tabs.map((tab) => {
+                    const isActive = activeTab === tab.id;
+                    return (
+                      <button
+                        key={tab.id}
+                        role="tab"
+                        type="button"
+                        aria-selected={isActive}
+                        aria-controls={`panel-${tab.id}`}
+                        disabled={tab.disabled}
+                        onClick={() => setActiveTab(tab.id)}
+                        className={`relative inline-flex items-center gap-1.5 h-10 px-3 text-[13px] font-medium tracking-tight transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring rounded-t-md ${
+                          isActive
+                            ? 'text-text-primary'
+                            : tab.disabled
+                              ? 'text-text-subtle cursor-not-allowed'
+                              : 'text-text-muted hover:text-text-primary'
+                        }`}
+                      >
+                        {tab.label}
+                        {typeof tab.count === 'number' && (
+                          <span
+                            className={`inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded text-[10px] font-mono font-semibold tabular-nums ${
+                              isActive
+                                ? 'bg-primary-subtle text-primary'
+                                : 'bg-surface-muted text-text-muted'
+                            }`}
+                          >
+                            {tab.count}
+                          </span>
+                        )}
+                        {tab.disabled && (
+                          <span className="text-[9px] uppercase tracking-wide text-text-subtle ml-0.5">
+                            Pronto
+                          </span>
+                        )}
+                        {isActive && (
+                          <span
+                            aria-hidden="true"
+                            className="absolute inset-x-2 -bottom-px h-0.5 bg-primary rounded-full"
+                          />
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
 
-              <div className="flex items-center gap-2 pb-2">
-                <button
-                  type="button"
-                  className="inline-flex items-center gap-1.5 h-8 px-2.5 rounded-md border border-border-subtle bg-surface text-[12px] font-medium text-text-primary hover:bg-surface-muted hover:border-border-strong transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
-                >
-                  <ListFilter size={12} strokeWidth={2} aria-hidden="true" />
-                  Filtrar
-                </button>
-                <button
-                  type="button"
-                  onClick={() => navigate('/medical-record/new-soap')}
-                  className="inline-flex items-center gap-1.5 h-8 px-3 rounded-md bg-primary text-white text-[12px] font-medium hover:bg-primary-hover transition-colors shadow-card focus:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
-                >
-                  <Plus size={12} strokeWidth={2.5} aria-hidden="true" />
-                  Nueva consulta
-                </button>
+                <div className="flex items-center gap-2 pb-2">
+                  <button
+                    type="button"
+                    className="inline-flex items-center gap-1.5 h-8 px-2.5 rounded-md border border-border-subtle bg-surface text-[12px] font-medium text-text-primary hover:bg-surface-muted hover:border-border-strong transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
+                  >
+                    <ListFilter size={12} strokeWidth={2} aria-hidden="true" />
+                    Filtrar
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => navigate('/medical-record/new-soap')}
+                    className="inline-flex items-center gap-1.5 h-8 px-3 rounded-md bg-primary text-white text-[12px] font-medium hover:bg-primary-hover transition-colors shadow-card focus:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
+                  >
+                    <Plus size={12} strokeWidth={2.5} aria-hidden="true" />
+                    Nueva consulta
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
 
-          <div
-            id="panel-historial"
-            role="tabpanel"
-            aria-labelledby="tab-historial"
-            hidden={activeTab !== 'historial'}
-          >
-            {activeTab === 'historial' && (
-              <>
-                {sortedConsultations.length === 0 ? (
-                  <EmptyState />
-                ) : (
-                  <Timeline groups={grouped} onViewSOAP={setSelectedConsultationId} />
-                )}
-              </>
+            <div
+              id="panel-historial"
+              role="tabpanel"
+              aria-labelledby="tab-historial"
+              hidden={activeTab !== 'historial'}
+            >
+              {activeTab === 'historial' && (
+                <>
+                  {isLoading ? (
+                    <ConsultationTimelineSkeleton items={4} />
+                  ) : sortedConsultations.length === 0 ? (
+                    <EmptyState />
+                  ) : (
+                    <Timeline groups={grouped} onViewSOAP={setSelectedConsultationId} />
+                  )}
+                </>
+              )}
+            </div>
+
+            {activeTab !== 'historial' && (
+              <PlaceholderPanel label={currentTabLabel(activeTab, tabs)} />
             )}
-          </div>
-
-          {activeTab !== 'historial' && <PlaceholderPanel label={currentTabLabel(activeTab, tabs)} />}
-        </section>
-      </div>
+          </section>
+        </div>
+      )}
 
       {selectedConsultation && (
         <SOAPModal
           isOpen={Boolean(selectedConsultationId)}
           onClose={() => setSelectedConsultationId(null)}
-          date={selectedConsultation.date}
-          doctorName={selectedConsultation.doctorName}
-          soap={selectedConsultation.soap}
+          date={selectedConsultation.fecha}
+          doctorName={data?.patient.medicoId ?? '—'}
+          soap={{
+            subjective: selectedConsultation.subjetivo,
+            objective: selectedConsultation.objetivo,
+            assessment: selectedConsultation.evaluacion,
+            plan: selectedConsultation.plan,
+          }}
         />
       )}
     </main>
   );
 };
 
+function resolveErrorMessage(error: unknown): string {
+  if (error instanceof ApiError) return error.message;
+  if (error instanceof Error) return error.message;
+  return 'No pudimos cargar el historial del paciente.';
+}
+
 function currentTabLabel(id: TabId, tabs: TabDef[]): string {
   return tabs.find((t) => t.id === id)?.label ?? '';
 }
 
 interface TimelineProps {
-  groups: Array<[string, Consultation[]]>;
+  groups: Array<[string, Consulta[]]>;
   onViewSOAP: (id: string) => void;
 }
 
@@ -273,14 +333,14 @@ const Timeline: React.FC<TimelineProps> = ({ groups, onViewSOAP }) => {
               <span aria-hidden="true" className="flex-1 h-px bg-border-subtle" />
             </div>
             <ol className="space-y-2 pl-10">
-              {items.map((consultation) => (
-                <li key={consultation.id} className="relative">
+              {items.map((consulta) => (
+                <li key={consulta.id} className="relative">
                   <span
                     aria-hidden="true"
                     className="absolute -left-[29px] top-5 w-2 h-2 rounded-full bg-surface border-2 border-border-strong"
                   />
                   <ConsultationCard
-                    consultation={consultation}
+                    consultation={toConsultationSummary(consulta)}
                     onViewSOAP={onViewSOAP}
                   />
                 </li>
@@ -314,5 +374,33 @@ const PlaceholderPanel: React.FC<{ label: string }> = ({ label }) => (
     <p className="mt-1 text-xs text-text-muted max-w-xs">
       Esta sección se habilitará cuando el backend exponga los endpoints correspondientes.
     </p>
+  </div>
+);
+
+interface PageErrorProps {
+  title: string;
+  message: string;
+  onRetry: () => void;
+  retryLabel: string;
+}
+
+const PageError: React.FC<PageErrorProps> = ({ title, message, onRetry, retryLabel }) => (
+  <div
+    role="alert"
+    aria-live="polite"
+    className="flex flex-col items-center justify-center text-center py-16 rounded-2xl border border-border-subtle bg-surface shadow-card px-6"
+  >
+    <span className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-danger/10 text-danger mb-3">
+      <AlertTriangle size={18} strokeWidth={2} aria-hidden="true" />
+    </span>
+    <h3 className="text-sm font-semibold text-text-primary tracking-tight">{title}</h3>
+    <p className="mt-1 text-xs text-text-muted max-w-md">{message}</p>
+    <button
+      type="button"
+      onClick={onRetry}
+      className="mt-4 inline-flex items-center gap-1.5 h-9 px-3 rounded-lg bg-primary text-white text-sm font-medium hover:bg-primary-hover transition-colors shadow-card focus:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
+    >
+      {retryLabel}
+    </button>
   </div>
 );
