@@ -1,87 +1,40 @@
 import React, { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Search, Users } from 'lucide-react';
-import { PatientCard } from '@ui/cards/PatientCard';
-import { MOCK_PATIENT } from '@mocks/patients';
+import { AlertTriangle, Plus, Search, Users } from 'lucide-react';
+import { PatientCard, type PatientCardStatus } from '@ui/cards/PatientCard';
+import { ApiError } from '@lib/http/errors';
+import { usePatients } from '@features/patients/queries';
+import { PatientListSkeleton } from '@features/patients/components/PatientListSkeleton';
+import { NewPatientModal } from '@features/patients/components/NewPatientModal';
+import type { Patient } from '@features/patients/schemas';
 
-type PatientRow = {
-  id: string;
-  name: string;
-  patientId: string;
-  status: 'estable' | 'critico' | 'en-observacion' | 'alta';
-  needsAttention: boolean;
-};
-
-const EXTRA_PATIENTS: PatientRow[] = [
-  {
-    id: 'p-002',
-    name: 'María Fernanda López',
-    patientId: 'HG-2024-10238',
-    status: 'critico',
-    needsAttention: true,
-  },
-  {
-    id: 'p-003',
-    name: 'Elena Gómez Ruiz',
-    patientId: 'HG-2024-10245',
-    status: 'en-observacion',
-    needsAttention: false,
-  },
-  {
-    id: 'p-004',
-    name: 'Roberto Jiménez Aguirre',
-    patientId: 'HG-2024-10257',
-    status: 'estable',
-    needsAttention: false,
-  },
-  {
-    id: 'p-005',
-    name: 'Sofía Castañeda Morales',
-    patientId: 'HG-2024-10262',
-    status: 'alta',
-    needsAttention: false,
-  },
-  {
-    id: 'p-006',
-    name: 'Carlos Eduardo Méndez',
-    patientId: 'HG-2024-10271',
-    status: 'estable',
-    needsAttention: false,
-  },
-];
+function deriveStatus(patient: Patient): PatientCardStatus {
+  return patient.activo ? 'estable' : 'alta';
+}
 
 export const PatientsListPage: React.FC = () => {
   const navigate = useNavigate();
   const [query, setQuery] = useState('');
-  const [selectedId, setSelectedId] = useState<string>(MOCK_PATIENT.patient.id);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [isNewOpen, setIsNewOpen] = useState(false);
 
-  const patients: PatientRow[] = useMemo(
-    () => [
-      {
-        id: MOCK_PATIENT.patient.id,
-        name: MOCK_PATIENT.patient.nombre,
-        patientId: MOCK_PATIENT.patient.expedienteExternoId,
-        status: 'estable' as const,
-        needsAttention: false,
-      },
-      ...EXTRA_PATIENTS,
-    ],
-    []
-  );
+  const { data, isLoading, isError, error, refetch, isFetching } = usePatients();
+
+  const patients = useMemo<Patient[]>(() => data ?? [], [data]);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     if (!q) return patients;
     return patients.filter(
-      (p) => p.name.toLowerCase().includes(q) || p.patientId.toLowerCase().includes(q)
+      (p) =>
+        p.nombre.toLowerCase().includes(q) ||
+        p.expedienteExternoId.toLowerCase().includes(q),
     );
   }, [patients, query]);
 
   const handleOpen = (id: string) => {
     setSelectedId(id);
-    if (id === MOCK_PATIENT.patient.id) {
-      navigate('/medical-record/history');
-    }
+    navigate(`/patients/${id}/history`);
   };
 
   return (
@@ -95,9 +48,12 @@ export const PatientsListPage: React.FC = () => {
           <h1 className="text-xl font-semibold tracking-tight text-text-primary">
             Gestión de pacientes
           </h1>
-          <p className="text-sm text-text-muted">
-            {patients.length}{' '}
-            {patients.length === 1 ? 'paciente registrado' : 'pacientes registrados'} en tu cartera
+          <p className="text-sm text-text-muted" aria-live="polite">
+            {isLoading
+              ? 'Cargando pacientes…'
+              : `${patients.length} ${
+                  patients.length === 1 ? 'paciente registrado' : 'pacientes registrados'
+                } en tu cartera`}
           </p>
         </div>
 
@@ -111,12 +67,14 @@ export const PatientsListPage: React.FC = () => {
               placeholder="Buscar por nombre o expediente"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
+              disabled={isLoading || isError}
               className="flex-1 min-w-0 bg-transparent border-0 text-sm text-text-primary placeholder-text-subtle px-2 focus:outline-none focus:ring-0"
             />
           </label>
 
           <button
             type="button"
+            onClick={() => setIsNewOpen(true)}
             className="inline-flex items-center gap-1.5 h-9 px-3 rounded-lg bg-primary text-white text-sm font-medium hover:bg-primary-hover transition-colors shadow-card focus:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
           >
             <Plus size={14} strokeWidth={2.5} aria-hidden="true" />
@@ -131,16 +89,24 @@ export const PatientsListPage: React.FC = () => {
       >
         <div className="px-4 py-2 border-b border-border-subtle flex items-center justify-between gap-3 bg-surface-subtle">
           <span className="text-[11px] font-semibold uppercase tracking-[0.1em] text-text-muted">
-            {filtered.length}{' '}
-            {filtered.length === 1 ? 'resultado' : 'resultados'}
+            {isLoading
+              ? 'Cargando…'
+              : `${filtered.length} ${filtered.length === 1 ? 'resultado' : 'resultados'}`}
+            {isFetching && !isLoading ? ' · actualizando' : ''}
           </span>
           <span className="text-[11px] text-text-subtle tracking-tight">
             Haz clic en un paciente para abrir su historial
           </span>
         </div>
 
-        {filtered.length === 0 ? (
-          <p className="py-10 text-center text-sm text-text-muted">
+        {isLoading ? (
+          <PatientListSkeleton rows={6} />
+        ) : isError ? (
+          <ErrorState error={error} onRetry={() => refetch()} />
+        ) : patients.length === 0 ? (
+          <EmptyState />
+        ) : filtered.length === 0 ? (
+          <p className="py-10 text-center text-sm text-text-muted" aria-live="polite">
             Sin coincidencias para &ldquo;{query}&rdquo;.
           </p>
         ) : (
@@ -148,10 +114,10 @@ export const PatientsListPage: React.FC = () => {
             {filtered.map((p) => (
               <li key={p.id}>
                 <PatientCard
-                  name={p.name}
-                  patientId={p.patientId}
-                  status={p.status}
-                  needsAttention={p.needsAttention}
+                  name={p.nombre}
+                  patientId={p.expedienteExternoId}
+                  status={deriveStatus(p)}
+                  needsAttention={false}
                   selected={selectedId === p.id}
                   onClick={() => handleOpen(p.id)}
                   className="rounded-none"
@@ -161,6 +127,66 @@ export const PatientsListPage: React.FC = () => {
           </ul>
         )}
       </section>
+
+      <NewPatientModal
+        isOpen={isNewOpen}
+        onClose={() => setIsNewOpen(false)}
+        onCreated={(p) => {
+          setIsNewOpen(false);
+          navigate(`/patients/${p.id}/history`);
+        }}
+      />
     </main>
+  );
+};
+
+const EmptyState: React.FC = () => (
+  <div className="flex flex-col items-center justify-center text-center py-16">
+    <span className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-surface-muted text-text-subtle mb-3">
+      <Users size={18} strokeWidth={2} aria-hidden="true" />
+    </span>
+    <h3 className="text-sm font-semibold text-text-primary tracking-tight">
+      Aún no tienes pacientes
+    </h3>
+    <p className="mt-1 text-xs text-text-muted max-w-xs">
+      Los pacientes que registres aparecerán aquí para consultar su historial.
+    </p>
+  </div>
+);
+
+interface ErrorStateProps {
+  error: unknown;
+  onRetry: () => void;
+}
+
+const ErrorState: React.FC<ErrorStateProps> = ({ error, onRetry }) => {
+  const message =
+    error instanceof ApiError
+      ? error.message
+      : error instanceof Error
+        ? error.message
+        : 'No pudimos cargar la lista de pacientes.';
+
+  return (
+    <div
+      role="alert"
+      aria-live="polite"
+      className="flex flex-col items-center justify-center text-center py-16 px-6"
+    >
+      <span className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-danger/10 text-danger mb-3">
+        <AlertTriangle size={18} strokeWidth={2} aria-hidden="true" />
+      </span>
+      <h3 className="text-sm font-semibold text-text-primary tracking-tight">
+        Error al cargar pacientes
+      </h3>
+      <p className="mt-1 text-xs text-text-muted max-w-sm">{message}</p>
+      <button
+        type="button"
+        onClick={onRetry}
+        className="mt-4 inline-flex items-center gap-1.5 h-9 px-3 rounded-lg bg-primary text-white text-sm font-medium hover:bg-primary-hover transition-colors shadow-card focus:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
+      >
+        Reintentar
+      </button>
+    </div>
   );
 };

@@ -9,6 +9,16 @@ import {
   UserRound,
 } from 'lucide-react';
 import type { Expediente, Patient, PatientConsultaLite } from '@features/patients/types';
+import {
+  calculateAge,
+  daysBetween,
+  formatDate,
+  formatDateShort,
+  formatRelative,
+  formatRelativeFromNow,
+  getInitials,
+  parseDate,
+} from '@features/patients/utils';
 
 interface PatientDetailCardProps extends React.HTMLAttributes<HTMLElement> {
   patient: Patient;
@@ -29,77 +39,6 @@ const SECTION_TITLE_STYLES =
 
 const ROW_STYLES =
   'flex items-center justify-between gap-3 px-4 py-2 text-[13px]';
-
-const dateFormatter = new Intl.DateTimeFormat('es-MX', {
-  day: '2-digit',
-  month: 'short',
-  year: 'numeric',
-});
-
-const dateShortFormatter = new Intl.DateTimeFormat('es-MX', {
-  day: '2-digit',
-  month: 'short',
-  year: '2-digit',
-});
-
-function parseDate(value: string): Date | null {
-  const parsed = new Date(value);
-  return Number.isNaN(parsed.getTime()) ? null : parsed;
-}
-
-function formatDate(value: string | undefined): string {
-  if (!value) return '—';
-  const parsed = parseDate(value);
-  return parsed ? dateFormatter.format(parsed) : '—';
-}
-
-function formatDateShort(value: string | undefined): string {
-  if (!value) return '—';
-  const parsed = parseDate(value);
-  return parsed ? dateShortFormatter.format(parsed) : '—';
-}
-
-function calculateAge(fechaNacimiento: string): number | null {
-  const birth = parseDate(fechaNacimiento);
-  if (!birth) return null;
-  const now = new Date();
-  let age = now.getFullYear() - birth.getFullYear();
-  const m = now.getMonth() - birth.getMonth();
-  if (m < 0 || (m === 0 && now.getDate() < birth.getDate())) age -= 1;
-  return age >= 0 ? age : null;
-}
-
-function daysBetween(from: Date, to: Date): number {
-  const ms = to.getTime() - from.getTime();
-  return Math.max(0, Math.floor(ms / (1000 * 60 * 60 * 24)));
-}
-
-function formatRelativeFromNow(value: string): string {
-  const parsed = parseDate(value);
-  if (!parsed) return '—';
-  const days = daysBetween(parsed, new Date());
-  return formatRelative(days);
-}
-
-function formatRelative(days: number): string {
-  if (days === 0) return 'Hoy';
-  if (days === 1) return 'Ayer';
-  if (days < 30) return `hace ${days} d`;
-  const months = Math.floor(days / 30);
-  if (months < 12) return `hace ${months} m`;
-  const years = Math.floor(days / 365);
-  return `hace ${years} a`;
-}
-
-function getInitials(value: string): string {
-  return value
-    .trim()
-    .split(/\s+/)
-    .slice(0, 2)
-    .map((part) => part[0] ?? '')
-    .join('')
-    .toUpperCase();
-}
 
 export const PatientDetailCard = forwardRef<HTMLElement, PatientDetailCardProps>(
   function PatientDetailCard(
