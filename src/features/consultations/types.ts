@@ -3,5 +3,6 @@ export type {
   ConsultationSummary,
   ConsultationType,
   Consulta,
+  CreateConsultaInput,
   SOAPData,
 } from './schemas';

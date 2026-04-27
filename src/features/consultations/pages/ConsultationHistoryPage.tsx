@@ -241,7 +241,7 @@ export const ConsultationHistoryPage: React.FC = () => {
                   </button>
                   <button
                     type="button"
-                    onClick={() => navigate('/medical-record/new-soap')}
+                    onClick={() => navigate(`/patients/${patientId}/consultas/new`)}
                     className="inline-flex items-center gap-1.5 h-8 px-3 rounded-md bg-primary text-white text-[12px] font-medium hover:bg-primary-hover transition-colors shadow-card focus:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
                   >
                     <Plus size={12} strokeWidth={2.5} aria-hidden="true" />

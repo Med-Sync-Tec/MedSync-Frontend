@@ -35,8 +35,55 @@ export const ConsultaSchema = z.object({
   createdAt: z.string(),
 });
 
+export const CreateConsultaInputSchema = z.object({
+  fecha: z.string().min(1, 'Requerido'),
+  motivoConsulta: z
+    .string()
+    .trim()
+    .max(2000, 'Máximo 2000 caracteres')
+    .optional()
+    .transform((v) => (v && v.length > 0 ? v : undefined)),
+  subjetivo: z
+    .string()
+    .trim()
+    .max(5000, 'Máximo 5000 caracteres')
+    .optional()
+    .transform((v) => (v && v.length > 0 ? v : undefined)),
+  objetivo: z
+    .string()
+    .trim()
+    .max(5000, 'Máximo 5000 caracteres')
+    .optional()
+    .transform((v) => (v && v.length > 0 ? v : undefined)),
+  evaluacion: z
+    .string()
+    .trim()
+    .max(5000, 'Máximo 5000 caracteres')
+    .optional()
+    .transform((v) => (v && v.length > 0 ? v : undefined)),
+  plan: z
+    .string()
+    .trim()
+    .max(5000, 'Máximo 5000 caracteres')
+    .optional()
+    .transform((v) => (v && v.length > 0 ? v : undefined)),
+  prescripcion: z
+    .string()
+    .trim()
+    .max(5000, 'Máximo 5000 caracteres')
+    .optional()
+    .transform((v) => (v && v.length > 0 ? v : undefined)),
+  diagnostico: z
+    .string()
+    .trim()
+    .max(2000, 'Máximo 2000 caracteres')
+    .optional()
+    .transform((v) => (v && v.length > 0 ? v : undefined)),
+});
+
 export type ConsultationType = z.infer<typeof ConsultationTypeSchema>;
 export type SOAPData = z.infer<typeof SOAPDataSchema>;
 export type ConsultationSummary = z.infer<typeof ConsultationSummarySchema>;
 export type Consultation = z.infer<typeof ConsultationSchema>;
 export type Consulta = z.infer<typeof ConsultaSchema>;
+export type CreateConsultaInput = z.infer<typeof CreateConsultaInputSchema>;

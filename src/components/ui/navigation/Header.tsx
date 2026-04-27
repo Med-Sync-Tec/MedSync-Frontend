@@ -58,7 +58,7 @@ const ICON_BTN_STYLES =
   'relative inline-flex items-center justify-center w-10 h-10 rounded-lg text-nav-foreground-muted hover:text-nav-foreground hover:bg-nav-surface-hover transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring';
 
 const SEARCH_WRAPPER_STYLES =
-  'group relative hidden md:flex items-center h-9 w-full max-w-sm rounded-lg border border-border-subtle bg-surface-subtle hover:bg-surface-muted focus-within:bg-surface focus-within:border-primary/40 focus-within:ring-2 focus-within:ring-primary/15 transition-colors';
+  'group relative hidden md:flex items-center h-9 w-full max-w-2xl rounded-lg border border-border-subtle bg-surface-subtle hover:bg-surface-muted focus-within:bg-surface focus-within:border-primary/40 focus-within:ring-2 focus-within:ring-primary/15 transition-colors';
 
 function getInitials(value: string): string {
   return value
@@ -183,7 +183,7 @@ export const Header: React.FC<HeaderProps> = ({
           </kbd>
         </label>
 
-        <div className="flex items-center gap-1 shrink-0">
+        <div className="ml-auto flex items-center gap-1 shrink-0">
           {toggleTheme && (
             <button
               type="button"
