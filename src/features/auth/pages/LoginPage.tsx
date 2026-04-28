@@ -108,7 +108,7 @@ export const LoginPage: React.FC = () => {
             </div>
 
             <div className="shrink-0">
-              <LoginForm />
+              <LoginForm role={role} />
             </div>
           </div>
         </div>

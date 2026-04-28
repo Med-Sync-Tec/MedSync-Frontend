@@ -18,9 +18,24 @@ const meta: Meta<typeof LoginForm> = {
 export default meta;
 type Story = StoryObj<typeof LoginForm>;
 
-export const Default: Story = {};
+export const Default: Story = {
+  args: { role: 'doctor' },
+};
+
+export const AsCoo: Story = {
+  args: { role: 'coo' },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'El backend valida que el usuario autenticado tenga rol COO. Si no coincide, devuelve 403.',
+      },
+    },
+  },
+};
 
 export const Hint: Story = {
+  args: { role: 'doctor' },
   parameters: {
     docs: {
       description: {

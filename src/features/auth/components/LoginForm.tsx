@@ -4,13 +4,22 @@ import { Input, PasswordInput } from '@ui/inputs/Input';
 import { Checkbox } from '@ui/inputs/Checkbox';
 import { Button } from '@ui/buttons/Button';
 import { Alert } from '@ui/feedback/Alert';
+import type { RoleType } from '@ui/selectors/RoleSelector';
 import { LoginCredentialsSchema } from '@features/auth/schemas';
-import type { LoginCredentials } from '@features/auth/schemas';
+import type { LoginCredentials, UserRole } from '@features/auth/schemas';
 import { useAuthStore } from '@features/auth/store';
 import { signInWithEmail } from '@features/auth/api';
 import { describeAuthError } from '@features/auth/errors';
 
-const DEFAULT_LANDING = '/doctor/dashboard';
+const LANDING_BY_ROLE: Record<UserRole, string> = {
+  DOCTOR: '/doctor/dashboard',
+  COO: '/coo/dashboard',
+  CMO: '/cmo/dashboard',
+};
+
+function toUserRole(role: RoleType): UserRole {
+  return role.toUpperCase() as UserRole;
+}
 
 type FieldErrors = Partial<Record<keyof LoginCredentials, string>>;
 
@@ -18,7 +27,11 @@ interface LocationState {
   from?: string;
 }
 
-export const LoginForm: React.FC = () => {
+interface LoginFormProps {
+  role: RoleType;
+}
+
+export const LoginForm: React.FC<LoginFormProps> = ({ role }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const login = useAuthStore((s) => s.login);
@@ -52,10 +65,12 @@ export const LoginForm: React.FC = () => {
     setErrors({});
     setIsLoading(true);
     try {
-      const user = await signInWithEmail(parsed.data.email, parsed.data.password);
+      const expectedRole = toUserRole(role);
+      const user = await signInWithEmail(parsed.data.email, parsed.data.password, expectedRole);
       login(user);
       setSuccess('¡Inicio de sesión exitoso! Redirigiendo...');
-      const redirectTo = (location.state as LocationState | null)?.from ?? DEFAULT_LANDING;
+      const redirectTo =
+        (location.state as LocationState | null)?.from ?? LANDING_BY_ROLE[user.role];
       navigate(redirectTo, { replace: true });
     } catch (err: unknown) {
       setGlobalError(describeAuthError(err));

@@ -2,7 +2,9 @@ import { signInWithEmailAndPassword, signOut } from 'firebase/auth';
 import { z } from 'zod';
 import { auth } from '@lib/firebase/client';
 import { apiFetch } from '@lib/http/client';
-import { UserRoleSchema, type AuthUser } from './schemas';
+import { ApiError } from '@lib/http/errors';
+import { UserRoleSchema, type AuthUser, type UserRole } from './schemas';
+import { RoleMismatchError } from './errors';
 
 const MeResponseSchema = z.object({
   id: z.string().uuid(),
@@ -30,17 +32,40 @@ export async function fetchMe(): Promise<AuthUser> {
   return toAuthUser(parsed);
 }
 
-export async function signInWithEmail(email: string, password: string): Promise<AuthUser> {
-  const credential = await signInWithEmailAndPassword(auth, email, password);
+export async function loginWithExpectedRole(expectedRole: UserRole): Promise<AuthUser> {
   try {
-    return await fetchMe();
-  } catch {
-    return {
-      id: credential.user.uid,
-      email: credential.user.email ?? email,
-      name: credential.user.displayName ?? email.split('@')[0],
-      role: 'DOCTOR',
-    };
+    const raw = await apiFetch<unknown>('/api/auth/login', {
+      method: 'POST',
+      body: { expectedRole },
+    });
+    const parsed = MeResponseSchema.parse(raw);
+    return toAuthUser(parsed);
+  } catch (err) {
+    if (err instanceof ApiError && err.isForbidden) {
+      const actualRole = err.metadata?.actualRole;
+      const expectedRoleFromServer = err.metadata?.expectedRole;
+      throw new RoleMismatchError(
+        typeof actualRole === 'string' ? actualRole : 'desconocido',
+        typeof expectedRoleFromServer === 'string' ? expectedRoleFromServer : expectedRole,
+      );
+    }
+    throw err;
+  }
+}
+
+export async function signInWithEmail(
+  email: string,
+  password: string,
+  expectedRole: UserRole,
+): Promise<AuthUser> {
+  await signInWithEmailAndPassword(auth, email, password);
+  try {
+    return await loginWithExpectedRole(expectedRole);
+  } catch (err) {
+    await signOut(auth).catch(() => {
+      // best-effort cleanup; surface the original error
+    });
+    throw err;
   }
 }
 

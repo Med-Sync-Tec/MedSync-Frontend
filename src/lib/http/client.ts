@@ -43,8 +43,9 @@ http.interceptors.response.use(
       if (error.response) {
         const parsed = BackendErrorSchema.safeParse(error.response.data);
         if (parsed.success) {
+          const { status, message, details, ...rest } = parsed.data;
           return Promise.reject(
-            new ApiError(parsed.data.status, parsed.data.message, parsed.data.details ?? []),
+            new ApiError(status, message, details ?? [], rest as Record<string, unknown>),
           );
         }
         return Promise.reject(
