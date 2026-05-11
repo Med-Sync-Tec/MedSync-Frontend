@@ -71,8 +71,31 @@ export const CreatePatientInputSchema = z.object({
     .transform((v) => (v && v.length > 0 ? v : undefined)),
 });
 
+export const CONTEXTO_TIPOS = ['enfermedad', 'sintoma', 'tratamiento', 'medicamento'] as const;
+export const ContextoTipoSchema = z.enum(CONTEXTO_TIPOS);
+
+export const PacienteContextoSchema = z.object({
+  id: z.string(),
+  pacienteId: z.string(),
+  tipo: ContextoTipoSchema,
+  valor: z.string(),
+  createdAt: z.string(),
+});
+
+export const CreatePacienteContextoInputSchema = z.object({
+  tipo: ContextoTipoSchema,
+  valor: z
+    .string()
+    .trim()
+    .min(1, 'Requerido')
+    .max(500, 'Máximo 500 caracteres'),
+});
+
 export type Patient = z.infer<typeof PatientSchema>;
 export type Expediente = z.infer<typeof ExpedienteSchema>;
 export type PatientConsultaLite = z.infer<typeof PatientConsultaLiteSchema>;
 export type PatientDetail = z.infer<typeof PatientDetailSchema>;
 export type CreatePatientInput = z.infer<typeof CreatePatientInputSchema>;
+export type ContextoTipo = z.infer<typeof ContextoTipoSchema>;
+export type PacienteContexto = z.infer<typeof PacienteContextoSchema>;
+export type CreatePacienteContextoInput = z.infer<typeof CreatePacienteContextoInputSchema>;
