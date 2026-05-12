@@ -1,4 +1,4 @@
-import { Article } from '../news/types';
+import type { Article } from '../news/types';
 
 export interface DashboardData {
   novedades_48h: Article[];

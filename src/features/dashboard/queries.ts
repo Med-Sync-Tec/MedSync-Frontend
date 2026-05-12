@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { getDashboardData } from './api';
-import { DashboardData } from './types';
+import type { DashboardData } from './types';
 
 export const useDashboardData = () => {
   return useQuery<DashboardData, Error>({

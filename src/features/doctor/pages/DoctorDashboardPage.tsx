@@ -8,6 +8,7 @@ import type { Article } from '@features/news/types';
 import { useDashboardData } from '@features/dashboard/queries';
 import type { DashboardData } from '@features/dashboard/types';
 import { RefreshCw } from 'lucide-react';
+import { Pagination } from '@ui/buttons/Pagination';
 
 
 // Mapeo de tipos de tags de backend a categorías visuales del frontend
@@ -22,6 +23,8 @@ export const DoctorDashboardPage: React.FC = () => {
   const [chatOpen, setChatOpen] = useState(false);
   const [savedArticles, setSavedArticles] = useState<Set<string>>(new Set());
   const [selectedCategory, setSelectedCategory] = useState<keyof DashboardData>('novedades_48h');
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 10;
 
   // Consumir el endpoint de KPIs del dashboard
   const { data: dashboardData, isLoading, isError } = useDashboardData();
@@ -89,7 +92,7 @@ export const DoctorDashboardPage: React.FC = () => {
           </div>
 
           <div className="grid grid-cols-2 gap-3 sm:gap-4">
-            <div onClick={() => setSelectedCategory('novedades_48h')} className={`cursor-pointer transition-all ${selectedCategory === 'novedades_48h' ? 'ring-2 ring-primary rounded-xl' : 'opacity-80 hover:opacity-100'}`}>
+            <div onClick={() => { setSelectedCategory('novedades_48h'); setCurrentPage(1); }} className={`cursor-pointer transition-all ${selectedCategory === 'novedades_48h' ? 'ring-2 ring-primary rounded-xl' : 'opacity-80 hover:opacity-100'}`}>
               <StatCard
                 label="Novedades 48h"
                 value={dashboardData?.novedades_48h?.length || 0}
@@ -98,7 +101,7 @@ export const DoctorDashboardPage: React.FC = () => {
                 iconColor="var(--color-info)"
               />
             </div>
-            <div onClick={() => setSelectedCategory('por_especialidad')} className={`cursor-pointer transition-all ${selectedCategory === 'por_especialidad' ? 'ring-2 ring-primary rounded-xl' : 'opacity-80 hover:opacity-100'}`}>
+            <div onClick={() => { setSelectedCategory('por_especialidad'); setCurrentPage(1); }} className={`cursor-pointer transition-all ${selectedCategory === 'por_especialidad' ? 'ring-2 ring-primary rounded-xl' : 'opacity-80 hover:opacity-100'}`}>
               <StatCard
                 label="Por Especialidad"
                 value={dashboardData?.por_especialidad?.length || 0}
@@ -107,7 +110,7 @@ export const DoctorDashboardPage: React.FC = () => {
                 iconColor="var(--color-success-strong)"
               />
             </div>
-            <div onClick={() => setSelectedCategory('alta_evidencia')} className={`cursor-pointer transition-all ${selectedCategory === 'alta_evidencia' ? 'ring-2 ring-primary rounded-xl' : 'opacity-80 hover:opacity-100'}`}>
+            <div onClick={() => { setSelectedCategory('alta_evidencia'); setCurrentPage(1); }} className={`cursor-pointer transition-all ${selectedCategory === 'alta_evidencia' ? 'ring-2 ring-primary rounded-xl' : 'opacity-80 hover:opacity-100'}`}>
               <StatCard
                 label="Alta Evidencia"
                 value={dashboardData?.alta_evidencia?.length || 0}
@@ -116,7 +119,7 @@ export const DoctorDashboardPage: React.FC = () => {
                 iconColor="var(--color-caution)"
               />
             </div>
-            <div onClick={() => setSelectedCategory('no_leidos')} className={`cursor-pointer transition-all ${selectedCategory === 'no_leidos' ? 'ring-2 ring-primary rounded-xl' : 'opacity-80 hover:opacity-100'}`}>
+            <div onClick={() => { setSelectedCategory('no_leidos'); setCurrentPage(1); }} className={`cursor-pointer transition-all ${selectedCategory === 'no_leidos' ? 'ring-2 ring-primary rounded-xl' : 'opacity-80 hover:opacity-100'}`}>
               <StatCard
                 label="No Leídos"
                 value={dashboardData?.no_leidos?.length || 0}
@@ -164,29 +167,49 @@ export const DoctorDashboardPage: React.FC = () => {
                 No hay noticias disponibles en esta categoría.
               </div>
             ) : (
-              dashboardData[selectedCategory].map((article: Article) => {
-                const mainTag = article.tags?.[0];
-                const category = mainTag?.valor || article.tipoPublicacion || 'General';
-                const categoryType = (CATEGORY_MAP[mainTag?.tipo] || 'default') as any;
-                const timeAgo = article.updatedAt ? formatTimeAgo(article.updatedAt) : 'Reciente';
+              (() => {
+                const articles = dashboardData[selectedCategory];
+                const totalPages = Math.ceil(articles.length / ITEMS_PER_PAGE);
+                const paginatedArticles = articles.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
 
                 return (
-                  <ArticleCard
-                    key={article.id}
-                    category={category}
-                    categoryType={categoryType}
-                    timestamp={timeAgo}
-                    title={article.titulo}
-                    excerpt={article.abstractText}
-                    source={article.revista}
-                    matchText="PubMed"
-                    matchVariant="normal"
-                    saved={savedArticles.has(article.id)}
-                    onSave={() => toggleSave(article.id)}
-                    url={article.url}
-                  />
+                  <>
+                    {paginatedArticles.map((article: Article) => {
+                      const mainTag = article.tags?.[0];
+                      const category = mainTag?.valor || article.tipoPublicacion || 'General';
+                      const categoryType = (CATEGORY_MAP[mainTag?.tipo] || 'default') as any;
+                      const timeAgo = article.updatedAt ? formatTimeAgo(article.updatedAt) : 'Reciente';
+
+                      return (
+                        <ArticleCard
+                          key={article.id}
+                          category={category}
+                          categoryType={categoryType}
+                          timestamp={timeAgo}
+                          title={article.titulo}
+                          excerpt={article.abstractText}
+                          source={article.revista}
+                          matchText="PubMed"
+                          matchVariant="normal"
+                          saved={savedArticles.has(article.id)}
+                          onSave={() => toggleSave(article.id)}
+                          url={article.url}
+                        />
+                      );
+                    })}
+                    
+                    {totalPages > 1 && (
+                      <div className="mt-6 mb-2 flex justify-center">
+                        <Pagination
+                          currentPage={currentPage}
+                          totalPages={totalPages}
+                          onPageChange={setCurrentPage}
+                        />
+                      </div>
+                    )}
+                  </>
                 );
-              })
+              })()
             )}
           </div>
         </div>
