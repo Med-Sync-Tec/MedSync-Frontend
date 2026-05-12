@@ -1,138 +1,316 @@
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useMemo, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import { Button } from '@ui/buttons/Button';
 import { Input } from '@ui/inputs/Input';
 import { Textarea } from '@ui/inputs/Textarea';
 import { SOAPSection } from '@ui/cards/SOAPSection';
-import { FileUploadZone } from '@ui/inputs/FileUploadZone';
+import { Alert } from '@ui/feedback/Alert';
+import { ApiError } from '@lib/http/errors';
+import { usePatient } from '@features/patients/queries';
+import { useCreateConsulta } from '@features/consultations/queries';
+import {
+  CreateConsultaInputSchema,
+  type CreateConsultaInput,
+} from '@features/consultations/schemas';
+
+type FormState = {
+  fecha: string;
+  motivoConsulta: string;
+  subjetivo: string;
+  objetivo: string;
+  evaluacion: string;
+  diagnostico: string;
+  plan: string;
+  prescripcion: string;
+};
+
+type FieldErrors = Partial<Record<keyof FormState, string>>;
+
+function nowDatetimeLocal(): string {
+  const d = new Date();
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+function toBackendFecha(value: string): string {
+  return value.length === 16 ? `${value}:00` : value;
+}
+
+const EMPTY_FORM: FormState = {
+  fecha: nowDatetimeLocal(),
+  motivoConsulta: '',
+  subjetivo: '',
+  objetivo: '',
+  evaluacion: '',
+  diagnostico: '',
+  plan: '',
+  prescripcion: '',
+};
 
 export const NewSOAPEntryPage: React.FC = () => {
   const navigate = useNavigate();
-  const patientName = 'Carlos Eduardo Mendez';
-  const patientId = '29.332-1';
+  const { patientId } = useParams<{ patientId: string }>();
 
-  const goToHistory = () => navigate('/medical-record/history');
+  const patientQuery = usePatient(patientId);
+  const createMutation = useCreateConsulta(patientId ?? '');
+
+  const [form, setForm] = useState<FormState>(EMPTY_FORM);
+  const [errors, setErrors] = useState<FieldErrors>({});
+  const [submitError, setSubmitError] = useState<string | null>(null);
+
+  const goToHistory = useMemo(
+    () => () => {
+      if (patientId) {
+        navigate(`/patients/${patientId}/history`);
+      } else {
+        navigate('/doctor/patients');
+      }
+    },
+    [navigate, patientId],
+  );
+
+  if (!patientId) {
+    return (
+      <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        <div className="rounded-2xl border border-border-subtle bg-surface p-6 text-center">
+          <h1 className="text-lg font-semibold text-text-primary">Paciente no especificado</h1>
+          <p className="mt-1 text-sm text-text-muted">
+            La URL no contiene un identificador de paciente válido.
+          </p>
+          <button
+            type="button"
+            onClick={() => navigate('/doctor/patients')}
+            className="mt-4 inline-flex items-center gap-1.5 h-9 px-3 rounded-lg bg-primary text-white text-sm font-medium hover:bg-primary-hover transition-colors"
+          >
+            Ir a pacientes
+          </button>
+        </div>
+      </main>
+    );
+  }
+
+  const update = <K extends keyof FormState>(field: K, value: FormState[K]) => {
+    setForm((prev) => ({ ...prev, [field]: value }));
+    if (errors[field]) {
+      setErrors((prev) => {
+        const next = { ...prev };
+        delete next[field];
+        return next;
+      });
+    }
+  };
+
+  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setSubmitError(null);
+
+    const candidate = {
+      fecha: toBackendFecha(form.fecha),
+      motivoConsulta: form.motivoConsulta,
+      subjetivo: form.subjetivo,
+      objetivo: form.objetivo,
+      evaluacion: form.evaluacion,
+      diagnostico: form.diagnostico,
+      plan: form.plan,
+      prescripcion: form.prescripcion,
+    };
+
+    const parsed = CreateConsultaInputSchema.safeParse(candidate);
+    if (!parsed.success) {
+      const fieldErrors: FieldErrors = {};
+      for (const issue of parsed.error.issues) {
+        const key = issue.path[0] as keyof FormState | undefined;
+        if (key && !fieldErrors[key]) fieldErrors[key] = issue.message;
+      }
+      setErrors(fieldErrors);
+      return;
+    }
+
+    const payload: CreateConsultaInput = parsed.data;
+
+    createMutation.mutate(payload, {
+      onSuccess: () => {
+        goToHistory();
+      },
+      onError: (err) => {
+        if (err instanceof ApiError) {
+          if (err.isValidation && err.fieldErrors.length > 0) {
+            const fieldErrors: FieldErrors = {};
+            for (const fe of err.fieldErrors) {
+              const key = fe.field as keyof FormState;
+              if (!fieldErrors[key]) fieldErrors[key] = fe.message;
+            }
+            setErrors(fieldErrors);
+            setSubmitError('Revisa los campos marcados.');
+            return;
+          }
+          setSubmitError(err.message);
+          return;
+        }
+        setSubmitError('No pudimos guardar la consulta. Intenta de nuevo.');
+      },
+    });
+  };
+
+  const patientName = patientQuery.data?.nombre ?? (patientQuery.isLoading ? 'Cargando…' : 'Paciente');
+  const expedienteId = patientQuery.data?.expedienteExternoId ?? '—';
+  const isSaving = createMutation.isPending;
 
   return (
-    <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8 pb-24">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
-        <div className="space-y-1">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-            Nueva Entrada Clínica (SOAP)
-          </h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">
-            Paciente:{' '}
-            <span className="text-gray-900 dark:text-gray-200 font-bold">{patientName}</span> • ID:{' '}
-            {patientId}
-          </p>
-        </div>
+    <>
+      {submitError && (
+        <Alert
+          type="error"
+          message={submitError}
+          onClose={() => setSubmitError(null)}
+        />
+      )}
 
-        <div className="flex items-center gap-3">
-          <button
-            type="button"
-            onClick={goToHistory}
-            className="flex items-center gap-2 px-4 py-2 bg-surface border border-gray-200 dark:border-gray-700 rounded-xl text-sm font-bold text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-all shadow-sm"
-          >
-            <span className="material-symbols-outlined text-[20px]">history</span>
-            Historial
-          </button>
-          <button
-            type="button"
-            className="flex items-center justify-center w-10 h-10 bg-surface border border-gray-200 dark:border-gray-700 rounded-xl text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 transition-all shadow-sm"
-          >
-            <span className="material-symbols-outlined text-[20px]">print</span>
-          </button>
-        </div>
-      </div>
+      <form
+        onSubmit={handleSubmit}
+        className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8 pb-24"
+        noValidate
+      >
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+          <div className="space-y-1">
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+              Nueva Entrada Clínica (SOAP)
+            </h1>
+            <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">
+              Paciente:{' '}
+              <span className="text-gray-900 dark:text-gray-200 font-bold">{patientName}</span> •
+              Expediente: {expedienteId}
+            </p>
+          </div>
 
-      <div className="space-y-6">
-        <SOAPSection
-          letter="S"
-          title="Subjetivo"
-          subtitle="Sintomatología y Motivo"
-          headerAction={
+          <div className="flex items-center gap-3">
             <button
               type="button"
-              className="flex items-center gap-2 px-3 py-1.5 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 rounded-lg text-[10px] font-bold uppercase tracking-wider hover:bg-indigo-100 dark:hover:bg-indigo-900/40 transition-colors"
+              onClick={goToHistory}
+              className="flex items-center gap-2 px-4 py-2 bg-surface border border-gray-200 dark:border-gray-700 rounded-xl text-sm font-bold text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-all shadow-sm"
             >
-              <span className="material-symbols-outlined text-[16px]">mic</span>
-              Dictado por voz
+              <span className="material-symbols-outlined text-[20px]">history</span>
+              Historial
             </button>
-          }
-        >
-          <Textarea
-            placeholder="Describa el motivo de consulta, síntomas actuales, antecedentes y preocupaciones del paciente..."
-            className="w-full bg-transparent border-none focus:ring-0 focus:bg-transparent p-0 dark:focus:bg-transparent"
-            rows={5}
-          />
-        </SOAPSection>
+          </div>
+        </div>
 
-        <SOAPSection letter="O" title="Objetivo" subtitle="Examen Físico y Signos Vitales">
-          <div className="space-y-6">
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-              <Input label="TEMP (°C)" placeholder="36.5" />
-              <Input label="PRESIÓN ART. (MMHG)" placeholder="120/80" />
-              <Input label="FREC. CARDÍACA (LPM)" placeholder="72" />
-              <Input label="SATURACIÓN O2 (%)" placeholder="98" />
-            </div>
-            <div className="space-y-2">
-              <h4 className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
-                Hallazgos del examen físico
-              </h4>
+        <div className="rounded-2xl border border-gray-200 dark:border-gray-700 bg-surface p-5">
+          <Input
+            label="Fecha y hora de la consulta"
+            type="datetime-local"
+            value={form.fecha}
+            onChange={(e) => update('fecha', e.target.value)}
+            error={errors.fecha}
+            id="fecha"
+            required
+          />
+        </div>
+
+        <div className="space-y-6">
+          <SOAPSection letter="S" title="Subjetivo" subtitle="Motivo y sintomatología">
+            <div className="space-y-4">
+              <Input
+                label="Motivo de consulta"
+                placeholder="Ej. Dolor abdominal de 3 días de evolución"
+                value={form.motivoConsulta}
+                onChange={(e) => update('motivoConsulta', e.target.value)}
+                error={errors.motivoConsulta}
+                id="motivoConsulta"
+              />
               <Textarea
-                placeholder="Detalle los hallazgos observados durante la exploración..."
-                className="w-full bg-transparent border-none focus:ring-0 focus:bg-transparent p-0 dark:focus:bg-transparent"
-                rows={3}
+                label="Síntomas, antecedentes y preocupaciones del paciente"
+                placeholder="Describa el motivo de consulta, síntomas actuales, antecedentes y preocupaciones del paciente..."
+                rows={5}
+                value={form.subjetivo}
+                onChange={(e) => update('subjetivo', e.target.value)}
+                error={errors.subjetivo}
+                id="subjetivo"
               />
             </div>
+          </SOAPSection>
+
+          <SOAPSection letter="O" title="Objetivo" subtitle="Hallazgos del examen físico">
+            <Textarea
+              placeholder="Detalle los hallazgos observados durante la exploración..."
+              rows={5}
+              value={form.objetivo}
+              onChange={(e) => update('objetivo', e.target.value)}
+              error={errors.objetivo}
+              id="objetivo"
+            />
+          </SOAPSection>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <SOAPSection letter="A" title="Análisis" subtitle="Evaluación y diagnóstico">
+              <div className="space-y-4">
+                <Textarea
+                  label="Evaluación clínica"
+                  placeholder="Razonamiento clínico, interpretación de hallazgos..."
+                  rows={4}
+                  value={form.evaluacion}
+                  onChange={(e) => update('evaluacion', e.target.value)}
+                  error={errors.evaluacion}
+                  id="evaluacion"
+                />
+                <Textarea
+                  label="Diagnóstico"
+                  placeholder="Diagnóstico presuntivo o definitivo..."
+                  rows={3}
+                  value={form.diagnostico}
+                  onChange={(e) => update('diagnostico', e.target.value)}
+                  error={errors.diagnostico}
+                  id="diagnostico"
+                />
+              </div>
+            </SOAPSection>
+
+            <SOAPSection letter="P" title="Plan" subtitle="Tratamiento y seguimiento">
+              <div className="space-y-4">
+                <Textarea
+                  label="Plan terapéutico"
+                  placeholder="Estudios complementarios, interconsultas, seguimiento..."
+                  rows={4}
+                  value={form.plan}
+                  onChange={(e) => update('plan', e.target.value)}
+                  error={errors.plan}
+                  id="plan"
+                />
+                <Textarea
+                  label="Prescripción"
+                  placeholder="Medicamentos, dosis, vía y duración..."
+                  rows={3}
+                  value={form.prescripcion}
+                  onChange={(e) => update('prescripcion', e.target.value)}
+                  error={errors.prescripcion}
+                  id="prescripcion"
+                />
+              </div>
+            </SOAPSection>
           </div>
-        </SOAPSection>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <SOAPSection letter="A" title="Análisis" subtitle="Diagnóstico">
-            <Textarea
-              placeholder="Razonamiento clínico y diagnóstico presuntivo o definitivo..."
-              className="w-full bg-transparent border-none focus:ring-0 focus:bg-transparent p-0 dark:focus:bg-transparent"
-              rows={5}
-            />
-          </SOAPSection>
-
-          <SOAPSection letter="P" title="Plan" subtitle="Tratamiento">
-            <Textarea
-              placeholder="Medicamentos, dosis, estudios complementarios solicitados y seguimiento..."
-              className="w-full bg-transparent border-none focus:ring-0 focus:bg-transparent p-0 dark:focus:bg-transparent"
-              rows={5}
-            />
-          </SOAPSection>
         </div>
 
-        <FileUploadZone />
-      </div>
-
-      <div className="flex items-center justify-between gap-4 pt-8 border-t border-gray-100 dark:border-gray-800">
-        <Button
-          variant="danger"
-          onClick={goToHistory}
-          icon={<span className="material-symbols-outlined">delete</span>}
-        >
-          Cancelar y descartar
-        </Button>
-
-        <div className="flex items-center gap-4">
+        <div className="flex items-center justify-between gap-4 pt-8 border-t border-gray-100 dark:border-gray-800">
           <Button
-            variant="secondary"
-            icon={<span className="material-symbols-outlined">picture_as_pdf</span>}
+            type="button"
+            variant="danger"
+            onClick={goToHistory}
+            disabled={isSaving}
+            icon={<span className="material-symbols-outlined">delete</span>}
           >
-            Exportar PDF
+            Cancelar y descartar
           </Button>
+
           <Button
+            type="submit"
             className="px-8"
+            isLoading={isSaving}
             icon={<span className="material-symbols-outlined">save</span>}
           >
-            Guardar Entrada
+            {isSaving ? 'Guardando…' : 'Guardar Entrada'}
           </Button>
         </div>
-      </div>
-    </main>
+      </form>
+    </>
   );
 };

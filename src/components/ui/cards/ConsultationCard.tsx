@@ -1,4 +1,5 @@
 import React from 'react';
+import { ChevronRight, FileText } from 'lucide-react';
 import type { ConsultationSummary, ConsultationType } from '@features/consultations/types';
 
 export type { ConsultationSummary } from '@features/consultations/types';
@@ -9,64 +10,76 @@ interface ConsultationCardProps {
   className?: string;
 }
 
-const typeStyles: Record<ConsultationType, string> = {
-  general: 'bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-300',
-  especialista: 'bg-purple-50 text-purple-700 dark:bg-purple-900/20 dark:text-purple-300',
-  seguimiento: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-300',
-};
-
-const typeLabels: Record<ConsultationType, string> = {
-  general: 'Medicina General',
+const TYPE_LABELS: Record<ConsultationType, string> = {
+  general: 'Medicina general',
   especialista: 'Especialista',
   seguimiento: 'Seguimiento',
 };
+
+const CARD_STYLES =
+  'group relative flex items-center gap-4 rounded-xl border border-border-subtle bg-surface px-4 py-3 shadow-card hover:border-primary/30 hover:shadow-elevated transition-all duration-200 focus-within:ring-2 focus-within:ring-focus-ring';
+
+const DATE_BLOCK_STYLES =
+  'shrink-0 flex flex-col items-center justify-center w-12 h-12 rounded-lg border border-border-subtle bg-surface-subtle';
+
+const monthFormatter = new Intl.DateTimeFormat('es-MX', { month: 'short' });
+const dayFormatter = new Intl.DateTimeFormat('es-MX', { day: '2-digit' });
+const yearFormatter = new Intl.DateTimeFormat('es-MX', { year: 'numeric' });
+
+function cleanMonth(value: string): string {
+  return value.replace('.', '').toUpperCase();
+}
 
 export const ConsultationCard: React.FC<ConsultationCardProps> = ({
   consultation,
   onViewSOAP,
   className = '',
 }) => {
+  const date = new Date(consultation.date);
+  const hasValidDate = !Number.isNaN(date.getTime());
+
   return (
-    <div className={`bg-surface rounded-2xl border border-gray-100 dark:border-gray-700 p-5 shadow-sm hover:shadow-md transition-all duration-200 group ${className}`}>
-      <div className="flex items-center justify-between gap-4">
-        <div className="flex items-start gap-4 flex-1 min-w-0">
-          <div className="w-12 h-12 rounded-xl bg-indigo-50 dark:bg-indigo-900/20 flex flex-col items-center justify-center shrink-0 border border-indigo-100/50 dark:border-indigo-500/20">
-            <span className="text-[10px] font-bold text-indigo-400 uppercase tracking-wider">
-              {new Date(consultation.date).toLocaleDateString('es-ES', { month: 'short' })}
-            </span>
-            <span className="text-lg font-bold text-indigo-600 dark:text-indigo-400 -mt-1">
-              {new Date(consultation.date).getDate()}
-            </span>
-          </div>
-
-          <div className="space-y-1 flex-1 min-w-0">
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider ${typeStyles[consultation.type]}`}>
-                {typeLabels[consultation.type]}
-              </span>
-              <span className="text-xs text-gray-400 dark:text-gray-500 font-medium whitespace-nowrap">
-                • {new Date(consultation.date).getFullYear()}
-              </span>
-            </div>
-            <h3 className="text-base font-bold text-gray-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors truncate">
-              {consultation.reason}
-            </h3>
-            <p className="text-sm text-gray-500 dark:text-gray-400 truncate">
-              {consultation.diagnosis}
-            </p>
-          </div>
-        </div>
-
-        <button
-          type="button"
-          onClick={() => onViewSOAP(consultation.id)}
-          className="flex items-center justify-center gap-2 px-4 py-2 bg-gray-50 hover:bg-indigo-50 dark:bg-gray-800 dark:hover:bg-indigo-900/40 text-gray-700 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-300 rounded-xl text-sm font-semibold transition-all border border-gray-100 dark:border-gray-700 hover:border-indigo-200 dark:hover:border-indigo-500/30"
-        >
-          <span className="material-symbols-outlined text-[20px]">description</span>
-          Ver SOAP
-          <span className="material-symbols-outlined text-[18px]">chevron_right</span>
-        </button>
+    <article className={`${CARD_STYLES} ${className}`}>
+      <div className={DATE_BLOCK_STYLES} aria-hidden="true">
+        <span className="text-[9px] font-semibold uppercase tracking-[0.12em] text-text-muted">
+          {hasValidDate ? cleanMonth(monthFormatter.format(date)) : '—'}
+        </span>
+        <span className="text-base font-semibold tracking-tight text-text-primary tabular-nums leading-none mt-0.5">
+          {hasValidDate ? dayFormatter.format(date) : '—'}
+        </span>
       </div>
-    </div>
+
+      <div className="min-w-0 flex-1">
+        <div className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.1em] text-text-muted">
+          <span className="truncate">{TYPE_LABELS[consultation.type]}</span>
+          <span aria-hidden="true" className="w-1 h-1 rounded-full bg-border-strong" />
+          <time dateTime={consultation.date} className="font-mono tracking-tight">
+            {hasValidDate ? yearFormatter.format(date) : ''}
+          </time>
+        </div>
+        <h3 className="mt-0.5 text-sm font-semibold tracking-tight text-text-primary truncate">
+          {consultation.reason}
+        </h3>
+        <p className="text-xs text-text-muted truncate leading-snug">
+          {consultation.diagnosis}
+        </p>
+      </div>
+
+      <button
+        type="button"
+        onClick={() => onViewSOAP(consultation.id)}
+        className="shrink-0 inline-flex items-center gap-1.5 h-8 px-3 rounded-lg border border-border-subtle bg-surface text-xs font-medium text-text-primary hover:bg-primary-subtle hover:text-primary hover:border-primary/30 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
+        aria-label={`Ver SOAP de ${consultation.reason}`}
+      >
+        <FileText size={13} strokeWidth={2} aria-hidden="true" />
+        <span className="hidden sm:inline">Ver SOAP</span>
+        <ChevronRight
+          size={13}
+          strokeWidth={2}
+          aria-hidden="true"
+          className="transition-transform group-hover:translate-x-0.5"
+        />
+      </button>
+    </article>
   );
 };

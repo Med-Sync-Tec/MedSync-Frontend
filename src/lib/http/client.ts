@@ -1,3 +1,4 @@
+import axios, { AxiosError, type AxiosInstance, type AxiosRequestConfig } from 'axios';
 import { env } from '@config/env';
 import { auth } from '@lib/firebase/client';
 import { ApiError, BackendErrorSchema } from './errors';
@@ -19,48 +20,58 @@ async function getIdTokenOrNull(): Promise<string | null> {
   return user.getIdToken();
 }
 
-async function buildHeaders(needsAuth: boolean, hasBody: boolean): Promise<Headers> {
-  const headers = new Headers();
-  if (hasBody) headers.set('Content-Type', 'application/json');
-  headers.set('Accept', 'application/json');
-  if (needsAuth) {
-    const token = await getIdTokenOrNull();
-    if (token) headers.set('Authorization', `Bearer ${token}`);
-  }
-  return headers;
-}
+export const http: AxiosInstance = axios.create({
+  baseURL: BASE_URL,
+  headers: { Accept: 'application/json' },
+});
 
-async function parseError(response: Response): Promise<ApiError> {
-  let body: unknown = null;
-  try {
-    body = await response.json();
-  } catch {
-    return new ApiError(response.status, response.statusText || 'Request failed');
+http.interceptors.request.use(async (config) => {
+  const needsAuth = config.headers?.['X-Auth-Skip'] !== '1';
+  if (!needsAuth) {
+    config.headers?.delete?.('X-Auth-Skip');
+    return config;
   }
-  const parsed = BackendErrorSchema.safeParse(body);
-  if (!parsed.success) {
-    return new ApiError(response.status, response.statusText || 'Request failed');
-  }
-  return new ApiError(parsed.data.status, parsed.data.message, parsed.data.details ?? []);
-}
+  const token = await getIdTokenOrNull();
+  if (token) config.headers.set('Authorization', `Bearer ${token}`);
+  return config;
+});
+
+http.interceptors.response.use(
+  (response) => response,
+  (error: unknown) => {
+    if (error instanceof AxiosError) {
+      if (error.response) {
+        const parsed = BackendErrorSchema.safeParse(error.response.data);
+        if (parsed.success) {
+          const { status, message, details, ...rest } = parsed.data;
+          return Promise.reject(
+            new ApiError(status, message, details ?? [], rest as Record<string, unknown>),
+          );
+        }
+        return Promise.reject(
+          new ApiError(
+            error.response.status,
+            error.response.statusText || error.message || 'Request failed',
+          ),
+        );
+      }
+      return Promise.reject(new ApiError(0, error.message || 'Network error'));
+    }
+    return Promise.reject(error);
+  },
+);
 
 export async function apiFetch<T>(path: string, options: RequestOptions = {}): Promise<T> {
   const { method = 'GET', body, signal, auth: needsAuth = true } = options;
-  const url = `${BASE_URL}${path.startsWith('/') ? path : `/${path}`}`;
-  const headers = await buildHeaders(needsAuth, body !== undefined);
-
-  const response = await fetch(url, {
+  const config: AxiosRequestConfig = {
+    url: path.startsWith('/') ? path : `/${path}`,
     method,
-    headers,
-    body: body !== undefined ? JSON.stringify(body) : undefined,
+    data: body,
     signal,
-  });
+    headers: needsAuth ? undefined : { 'X-Auth-Skip': '1' },
+  };
 
-  if (!response.ok) {
-    throw await parseError(response);
-  }
-  if (response.status === 204) {
-    return undefined as T;
-  }
-  return (await response.json()) as T;
+  const response = await http.request<T>(config);
+  if (response.status === 204) return undefined as T;
+  return response.data;
 }

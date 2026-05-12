@@ -1,8 +1,6 @@
 export type {
-  MedicalHistory,
+  Expediente,
+  Patient,
+  PatientConsultaLite,
   PatientDetail,
-  PatientStatus,
-  PersonalInfo,
-  Treatment,
-  VitalStats,
 } from './types';
