@@ -3,16 +3,13 @@ import { StatCard } from '@ui/cards/StatCard';
 import { ArticleCard } from '@ui/cards/ArticleCard';
 import { ChatCard } from '@ui/cards/ChatCard';
 import { FAB } from '@ui/buttons/FAB';
-import { useRecentArticles, useSyncArticles } from '@features/news/queries';
+import { useSyncArticles } from '@features/news/queries';
 import type { Article } from '@features/news/types';
+import { useDashboardData } from '@features/dashboard/queries';
+import type { DashboardData } from '@features/dashboard/types';
 import { RefreshCw } from 'lucide-react';
+import { Pagination } from '@ui/buttons/Pagination';
 
-const mockStats = {
-  alertasCriticas: { value: 3, badge: '+2 nuevos' },
-  coincidenciasMedia: { value: 12 },
-  coincidenciasBaja: { value: 8 },
-  totalCoincidencias: { value: 28 },
-};
 
 // Mapeo de tipos de tags de backend a categorías visuales del frontend
 const CATEGORY_MAP: Record<string, string> = {
@@ -25,9 +22,12 @@ const CATEGORY_MAP: Record<string, string> = {
 export const DoctorDashboardPage: React.FC = () => {
   const [chatOpen, setChatOpen] = useState(false);
   const [savedArticles, setSavedArticles] = useState<Set<string>>(new Set());
+  const [selectedCategory, setSelectedCategory] = useState<keyof DashboardData>('novedades_48h');
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 10;
 
-  // Consumir el endpoint de noticias recientes
-  const { data, isLoading, isError } = useRecentArticles(0, 5);
+  // Consumir el endpoint de KPIs del dashboard
+  const { data: dashboardData, isLoading, isError } = useDashboardData();
   const syncMutation = useSyncArticles();
 
   const handleSync = () => {
@@ -92,36 +92,42 @@ export const DoctorDashboardPage: React.FC = () => {
           </div>
 
           <div className="grid grid-cols-2 gap-3 sm:gap-4">
-            <StatCard
-              label="Alertas Críticas"
-              value={mockStats.alertasCriticas.value}
-              icon={<span className="material-symbols-outlined text-xl">emergency</span>}
-              badge={mockStats.alertasCriticas.badge}
-              badgeVariant="warning"
-              iconBg="var(--color-danger-subtle)"
-              iconColor="var(--color-danger)"
-            />
-            <StatCard
-              label="Coincidencias Media"
-              value={mockStats.coincidenciasMedia.value}
-              icon={<span className="material-symbols-outlined text-xl">warning</span>}
-              iconBg="var(--color-info-subtle)"
-              iconColor="var(--color-info)"
-            />
-            <StatCard
-              label="Coincidencias Baja"
-              value={mockStats.coincidenciasBaja.value}
-              icon={<span className="material-symbols-outlined text-xl">info</span>}
-              iconBg="var(--color-caution-subtle)"
-              iconColor="var(--color-caution)"
-            />
-            <StatCard
-              label="Total Coincidencias"
-              value={mockStats.totalCoincidencias.value}
-              icon={<span className="material-symbols-outlined text-xl">analytics</span>}
-              iconBg="var(--color-success-subtle)"
-              iconColor="var(--color-success-strong)"
-            />
+            <div onClick={() => { setSelectedCategory('novedades_48h'); setCurrentPage(1); }} className={`cursor-pointer transition-all ${selectedCategory === 'novedades_48h' ? 'ring-2 ring-primary rounded-xl' : 'opacity-80 hover:opacity-100'}`}>
+              <StatCard
+                label="Novedades 48h"
+                value={dashboardData?.novedades_48h?.length || 0}
+                icon={<span className="material-symbols-outlined text-xl">bolt</span>}
+                iconBg="var(--color-info-subtle)"
+                iconColor="var(--color-info)"
+              />
+            </div>
+            <div onClick={() => { setSelectedCategory('por_especialidad'); setCurrentPage(1); }} className={`cursor-pointer transition-all ${selectedCategory === 'por_especialidad' ? 'ring-2 ring-primary rounded-xl' : 'opacity-80 hover:opacity-100'}`}>
+              <StatCard
+                label="Por Especialidad"
+                value={dashboardData?.por_especialidad?.length || 0}
+                icon={<span className="material-symbols-outlined text-xl">assignment</span>}
+                iconBg="var(--color-success-subtle)"
+                iconColor="var(--color-success-strong)"
+              />
+            </div>
+            <div onClick={() => { setSelectedCategory('alta_evidencia'); setCurrentPage(1); }} className={`cursor-pointer transition-all ${selectedCategory === 'alta_evidencia' ? 'ring-2 ring-primary rounded-xl' : 'opacity-80 hover:opacity-100'}`}>
+              <StatCard
+                label="Alta Evidencia"
+                value={dashboardData?.alta_evidencia?.length || 0}
+                icon={<span className="material-symbols-outlined text-xl">verified</span>}
+                iconBg="var(--color-caution-subtle)"
+                iconColor="var(--color-caution)"
+              />
+            </div>
+            <div onClick={() => { setSelectedCategory('no_leidos'); setCurrentPage(1); }} className={`cursor-pointer transition-all ${selectedCategory === 'no_leidos' ? 'ring-2 ring-primary rounded-xl' : 'opacity-80 hover:opacity-100'}`}>
+              <StatCard
+                label="No Leídos"
+                value={dashboardData?.no_leidos?.length || 0}
+                icon={<span className="material-symbols-outlined text-xl">mark_as_unread</span>}
+                iconBg="var(--color-danger-subtle)"
+                iconColor="var(--color-danger)"
+              />
+            </div>
           </div>
 
         </div>
@@ -156,34 +162,54 @@ export const DoctorDashboardPage: React.FC = () => {
               <div className="p-8 text-center bg-danger-subtle rounded-2xl border border-danger/20 text-danger text-sm">
                 Error al cargar las noticias médicas. Por favor, intenta de nuevo más tarde.
               </div>
-            ) : data?.items.length === 0 ? (
+            ) : !dashboardData || !dashboardData[selectedCategory] || dashboardData[selectedCategory].length === 0 ? (
               <div className="p-8 text-center bg-surface-subtle rounded-2xl border border-border-strong text-text-muted text-sm">
-                No hay noticias recientes disponibles.
+                No hay noticias disponibles en esta categoría.
               </div>
             ) : (
-              data?.items.map((article: Article) => {
-                const mainTag = article.tags?.[0];
-                const category = mainTag?.valor || article.tipoPublicacion || 'General';
-                const categoryType = (CATEGORY_MAP[mainTag?.tipo] || 'default') as any;
-                const timeAgo = article.updatedAt ? formatTimeAgo(article.updatedAt) : 'Reciente';
+              (() => {
+                const articles = dashboardData[selectedCategory];
+                const totalPages = Math.ceil(articles.length / ITEMS_PER_PAGE);
+                const paginatedArticles = articles.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
 
                 return (
-                  <ArticleCard
-                    key={article.id}
-                    category={category}
-                    categoryType={categoryType}
-                    timestamp={timeAgo}
-                    title={article.titulo}
-                    excerpt={article.abstractText}
-                    source={article.revista}
-                    matchText="PubMed"
-                    matchVariant="normal"
-                    saved={savedArticles.has(article.id)}
-                    onSave={() => toggleSave(article.id)}
-                    url={article.url}
-                  />
+                  <>
+                    {paginatedArticles.map((article: Article) => {
+                      const mainTag = article.tags?.[0];
+                      const category = mainTag?.valor || article.tipoPublicacion || 'General';
+                      const categoryType = (CATEGORY_MAP[mainTag?.tipo] || 'default') as any;
+                      const timeAgo = article.updatedAt ? formatTimeAgo(article.updatedAt) : 'Reciente';
+
+                      return (
+                        <ArticleCard
+                          key={article.id}
+                          category={category}
+                          categoryType={categoryType}
+                          timestamp={timeAgo}
+                          title={article.titulo}
+                          excerpt={article.abstractText}
+                          source={article.revista}
+                          matchText="PubMed"
+                          matchVariant="normal"
+                          saved={savedArticles.has(article.id)}
+                          onSave={() => toggleSave(article.id)}
+                          url={article.url}
+                        />
+                      );
+                    })}
+                    
+                    {totalPages > 1 && (
+                      <div className="mt-6 mb-2 flex justify-center">
+                        <Pagination
+                          currentPage={currentPage}
+                          totalPages={totalPages}
+                          onPageChange={setCurrentPage}
+                        />
+                      </div>
+                    )}
+                  </>
                 );
-              })
+              })()
             )}
           </div>
         </div>

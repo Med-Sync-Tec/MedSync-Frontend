@@ -35,6 +35,7 @@ interface ArticleCardProps {
   matchVariant?: 'normal' | 'alert';
   saved?: boolean;
   onSave?: () => void;
+  url?: string;
   variant?: ArticleCardVariant;
   className?: string;
 }
@@ -50,6 +51,7 @@ export const ArticleCard: React.FC<ArticleCardProps> = ({
   matchVariant = 'normal',
   saved = false,
   onSave,
+  url,
   variant = 'full',
   className = '',
 }) => {
@@ -61,7 +63,15 @@ export const ArticleCard: React.FC<ArticleCardProps> = ({
             <CategoryTag label={category} category={categoryType} />
             <span className="text-xs text-gray-400">{timestamp}</span>
           </div>
-          <h3 className="text-sm font-semibold text-gray-900 dark:text-white line-clamp-2">{title}</h3>
+          <h3 className="text-sm font-semibold text-gray-900 dark:text-white line-clamp-2">
+            {url ? (
+              <a href={url} target="_blank" rel="noopener noreferrer" className="hover:underline">
+                {title}
+              </a>
+            ) : (
+              title
+            )}
+          </h3>
           <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 line-clamp-1">{source}</p>
         </div>
         <button
@@ -92,7 +102,15 @@ export const ArticleCard: React.FC<ArticleCardProps> = ({
           </div>
           {matchText && <MatchTag text={matchText} variant={matchVariant} />}
         </div>
-        <h3 className="text-sm sm:text-base font-bold text-gray-900 dark:text-white leading-snug line-clamp-1">{title}</h3>
+        <h3 className="text-sm sm:text-base font-bold text-gray-900 dark:text-white leading-snug line-clamp-1">
+          {url ? (
+            <a href={url} target="_blank" rel="noopener noreferrer" className="hover:underline">
+              {title}
+            </a>
+          ) : (
+            title
+          )}
+        </h3>
         <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-1">{excerpt}</p>
         <div className="flex items-center justify-between gap-2 mt-0.5">
           <span className="text-xs text-gray-400 font-medium truncate">{source}</span>
