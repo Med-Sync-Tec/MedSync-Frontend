@@ -70,6 +70,5 @@ serviceAccount: projects/$PROJECT_ID/serviceAccounts/medsync-build@$PROJECT_ID.i
 
 options:
   logging: CLOUD_LOGGING_ONLY
-  machineType: E2_HIGHCPU_8
 
 timeout: 1200s
