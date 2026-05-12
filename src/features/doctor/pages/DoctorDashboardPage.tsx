@@ -3,75 +3,36 @@ import { StatCard } from '@ui/cards/StatCard';
 import { ArticleCard } from '@ui/cards/ArticleCard';
 import { ChatCard } from '@ui/cards/ChatCard';
 import { FAB } from '@ui/buttons/FAB';
+import { useRecentArticles, useSyncArticles } from '@features/news/queries';
+import type { Article } from '@features/news/types';
+import { RefreshCw } from 'lucide-react';
 
 const mockStats = {
-  alertasCriticas:    { value: 3, badge: '+2 nuevos' },
+  alertasCriticas: { value: 3, badge: '+2 nuevos' },
   coincidenciasMedia: { value: 12 },
-  coincidenciasBaja:  { value: 8 },
+  coincidenciasBaja: { value: 8 },
   totalCoincidencias: { value: 28 },
 };
 
-const mockArticles = [
-  {
-    id: '1',
-    category: 'Farmacología',
-    categoryType: 'farmacologia' as const,
-    timestamp: 'Hace 2 horas',
-    title: 'Nueva interacción descubierta entre metformina y estatinas en pacientes diabéticos',
-    excerpt: 'Un estudio reciente publicado en NEJM revela una interacción significativa entre metformina y rosuvastatina que puede aumentar el riesgo de miopatía en pacientes con DM2.',
-    source: 'NEJM',
-    matchText: '3 coincidencias',
-    matchVariant: 'alert' as const,
-  },
-  {
-    id: '2',
-    category: 'Cardiología',
-    categoryType: 'cardiologia' as const,
-    timestamp: 'Hace 5 horas',
-    title: 'Actualización en guías de manejo de hipertensión arterial 2025',
-    excerpt: 'La Sociedad Europea de Cardiología actualiza sus guías de práctica clínica para el manejo de HTA, con nuevos umbrales de tratamiento y algoritmos simplificados.',
-    source: 'ESC Guidelines',
-    matchText: '5 coincidencias',
-    matchVariant: 'normal' as const,
-  },
-  {
-    id: '3',
-    category: 'Endocrinología',
-    categoryType: 'endocrinologia' as const,
-    timestamp: 'Hace 1 día',
-    title: 'Inhibidores SGLT-2 muestran beneficio adicional en insuficiencia cardíaca con FEr',
-    excerpt: 'Los resultados del ensayo EMPEROR-Reduced confirman la reducción del 25% en eventos cardiovasculares mayores con empagliflozina independientemente del estado diabético.',
-    source: 'Lancet',
-    matchText: '2 coincidencias',
-    matchVariant: 'normal' as const,
-  },
-  {
-    id: '4',
-    category: 'Infectología',
-    categoryType: 'infecciosas' as const,
-    timestamp: 'Hace 2 días',
-    title: 'Resistencia antimicrobiana: nuevas estrategias de desescalada en UTI',
-    excerpt: 'Revisión sistemática de estrategias de desescalada antibiótica en UCI que demuestra reducción de resistencia sin impacto negativo en mortalidad a 30 días.',
-    source: 'Clin Infect Dis',
-    matchText: '1 coincidencia',
-    matchVariant: 'normal' as const,
-  },
-  {
-    id: '5',
-    category: 'Neurología',
-    categoryType: 'neurologia' as const,
-    timestamp: 'Hace 3 días',
-    title: 'Terapia anticoagulante en fibrilación auricular: cuándo y cómo revertir',
-    excerpt: 'Guía práctica actualizada para el manejo de sangrado en pacientes anticoagulados con FA, incluyendo el uso de agentes reversores de nueva generación.',
-    source: 'Stroke Journal',
-    matchText: '4 coincidencias',
-    matchVariant: 'alert' as const,
-  },
-];
+// Mapeo de tipos de tags de backend a categorías visuales del frontend
+const CATEGORY_MAP: Record<string, string> = {
+  enfermedad: 'cardiologia',
+  sintoma: 'neurologia',
+  tratamiento: 'endocrinologia',
+  medicamento: 'farmacologia',
+};
 
 export const DoctorDashboardPage: React.FC = () => {
   const [chatOpen, setChatOpen] = useState(false);
   const [savedArticles, setSavedArticles] = useState<Set<string>>(new Set());
+
+  // Consumir el endpoint de noticias recientes
+  const { data, isLoading, isError } = useRecentArticles(0, 5);
+  const syncMutation = useSyncArticles();
+
+  const handleSync = () => {
+    syncMutation.mutate();
+  };
 
   const toggleSave = (id: string) => {
     setSavedArticles((prev) => {
@@ -83,6 +44,19 @@ export const DoctorDashboardPage: React.FC = () => {
       }
       return next;
     });
+  };
+
+  const formatTimeAgo = (dateStr: string) => {
+    const date = new Date(dateStr);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffHrs = Math.floor(diffMs / (1000 * 60 * 60));
+
+    if (diffHrs < 1) return 'Hace un momento';
+    if (diffHrs < 24) return `Hace ${diffHrs} horas`;
+    const diffDays = Math.floor(diffHrs / 24);
+    if (diffDays === 1) return 'Ayer';
+    return `Hace ${diffDays} días`;
   };
 
   const doctorName = 'Dr. García';
@@ -155,26 +129,62 @@ export const DoctorDashboardPage: React.FC = () => {
         <div>
           <div className="flex items-center justify-between mb-4 gap-2">
             <h2 className="text-base sm:text-lg font-bold text-text-primary">Noticias Médicas Relevantes</h2>
-            <button type="button" className="text-sm text-primary font-medium hover:underline shrink-0">
-              Ver todas
-            </button>
+            <div className="flex items-center gap-3">
+              <button 
+                onClick={handleSync}
+                disabled={syncMutation.isPending}
+                className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold transition-all shadow-sm border
+                  ${syncMutation.isPending 
+                    ? 'bg-surface-subtle text-text-muted cursor-not-allowed border-border-strong' 
+                    : 'bg-white text-primary border-primary/20 hover:bg-primary/5 active:scale-95'}`}
+              >
+                <RefreshCw className={`w-3 h-3 ${syncMutation.isPending ? 'animate-spin' : ''}`} />
+                {syncMutation.isPending ? 'Sincronizando...' : 'Sincronizar PubMed'}
+              </button>
+              <button type="button" className="text-sm text-primary font-medium hover:underline shrink-0">
+                Ver todas
+              </button>
+            </div>
           </div>
           <div className="flex flex-col gap-3">
-            {mockArticles.map((article) => (
-              <ArticleCard
-                key={article.id}
-                category={article.category}
-                categoryType={article.categoryType}
-                timestamp={article.timestamp}
-                title={article.title}
-                excerpt={article.excerpt}
-                source={article.source}
-                matchText={article.matchText}
-                matchVariant={article.matchVariant}
-                saved={savedArticles.has(article.id)}
-                onSave={() => toggleSave(article.id)}
-              />
-            ))}
+            {isLoading ? (
+              // Esqueleto de carga simple
+              [...Array(3)].map((_, i) => (
+                <div key={i} className="h-32 bg-surface-subtle animate-pulse rounded-2xl border border-border-strong" />
+              ))
+            ) : isError ? (
+              <div className="p-8 text-center bg-danger-subtle rounded-2xl border border-danger/20 text-danger text-sm">
+                Error al cargar las noticias médicas. Por favor, intenta de nuevo más tarde.
+              </div>
+            ) : data?.items.length === 0 ? (
+              <div className="p-8 text-center bg-surface-subtle rounded-2xl border border-border-strong text-text-muted text-sm">
+                No hay noticias recientes disponibles.
+              </div>
+            ) : (
+              data?.items.map((article: Article) => {
+                const mainTag = article.tags?.[0];
+                const category = mainTag?.valor || article.tipoPublicacion || 'General';
+                const categoryType = (CATEGORY_MAP[mainTag?.tipo] || 'default') as any;
+                const timeAgo = article.updatedAt ? formatTimeAgo(article.updatedAt) : 'Reciente';
+
+                return (
+                  <ArticleCard
+                    key={article.id}
+                    category={category}
+                    categoryType={categoryType}
+                    timestamp={timeAgo}
+                    title={article.titulo}
+                    excerpt={article.abstractText}
+                    source={article.revista}
+                    matchText="PubMed"
+                    matchVariant="normal"
+                    saved={savedArticles.has(article.id)}
+                    onSave={() => toggleSave(article.id)}
+                    url={article.url}
+                  />
+                );
+              })
+            )}
           </div>
         </div>
 
