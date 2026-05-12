@@ -2,13 +2,22 @@ import { useMutation, useQueries, useQuery, useQueryClient } from '@tanstack/rea
 import { ApiError } from '@lib/http/errors';
 import type { Consulta } from '@features/consultations/schemas';
 import {
+  createPacienteContexto,
   createPatient,
+  deletePacienteContexto,
   getConsultasByPatient,
   getExpediente,
   getPatient,
+  listPacienteContextos,
   listPatients,
 } from './api';
-import type { CreatePatientInput, Expediente, Patient } from './schemas';
+import type {
+  CreatePacienteContextoInput,
+  CreatePatientInput,
+  Expediente,
+  PacienteContexto,
+  Patient,
+} from './schemas';
 
 export const patientKeys = {
   all: ['patients'] as const,
@@ -16,6 +25,7 @@ export const patientKeys = {
   detail: (id: string) => [...patientKeys.all, 'detail', id] as const,
   expediente: (id: string) => [...patientKeys.all, 'expediente', id] as const,
   consultas: (id: string) => [...patientKeys.all, 'consultas', id] as const,
+  contextos: (id: string) => [...patientKeys.all, 'contextos', id] as const,
 };
 
 export function useCreatePatient() {
@@ -57,6 +67,55 @@ export function useConsultasByPatient(patientId: string | undefined) {
     queryKey: patientKeys.consultas(patientId ?? ''),
     queryFn: () => getConsultasByPatient(patientId as string),
     enabled: Boolean(patientId),
+  });
+}
+
+export function usePacienteContextos(patientId: string | undefined) {
+  return useQuery<PacienteContexto[]>({
+    queryKey: patientKeys.contextos(patientId ?? ''),
+    queryFn: () => listPacienteContextos(patientId as string),
+    enabled: Boolean(patientId),
+  });
+}
+
+export function useCreatePacienteContexto(patientId: string) {
+  const qc = useQueryClient();
+  return useMutation<PacienteContexto, Error, CreatePacienteContextoInput>({
+    mutationFn: (input) => createPacienteContexto(patientId, input),
+    onSuccess: (created) => {
+      qc.setQueryData<PacienteContexto[]>(
+        patientKeys.contextos(patientId),
+        (prev) => (prev ? [created, ...prev] : [created]),
+      );
+    },
+  });
+}
+
+export function useDeletePacienteContexto(patientId: string) {
+  const qc = useQueryClient();
+  return useMutation<void, Error, string, { previous?: PacienteContexto[] }>({
+    mutationFn: (contextoId) => deletePacienteContexto(patientId, contextoId),
+    onMutate: async (contextoId) => {
+      await qc.cancelQueries({ queryKey: patientKeys.contextos(patientId) });
+      const previous = qc.getQueryData<PacienteContexto[]>(
+        patientKeys.contextos(patientId),
+      );
+      if (previous) {
+        qc.setQueryData<PacienteContexto[]>(
+          patientKeys.contextos(patientId),
+          previous.filter((c) => c.id !== contextoId),
+        );
+      }
+      return { previous };
+    },
+    onError: (_err, _contextoId, ctx) => {
+      if (ctx?.previous) {
+        qc.setQueryData(patientKeys.contextos(patientId), ctx.previous);
+      }
+    },
+    onSettled: () => {
+      void qc.invalidateQueries({ queryKey: patientKeys.contextos(patientId) });
+    },
   });
 }
 

@@ -20,6 +20,7 @@ import {
   PatientDetailCardSkeleton,
   ConsultationTimelineSkeleton,
 } from '@features/patients/components/PatientDetailCardSkeleton';
+import { PatientContextosPanel } from '@features/patients/components/PatientContextosPanel';
 import type { Consulta, ConsultationSummary } from '@features/consultations/schemas';
 
 type TabId = 'historial' | 'resumen' | 'documentos' | 'vitales';
@@ -162,7 +163,7 @@ export const ConsultationHistoryPage: React.FC = () => {
       ) : (
         <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
           <aside className="w-full lg:w-[320px] xl:w-[340px] shrink-0">
-            <div className="lg:sticky lg:top-20">
+            <div className="lg:sticky lg:top-20 space-y-4">
               {isLoading || !data ? (
                 <PatientDetailCardSkeleton />
               ) : (
@@ -173,6 +174,7 @@ export const ConsultationHistoryPage: React.FC = () => {
                   lastActivityAt={data.patient.updatedAt}
                 />
               )}
+              {patientId && <PatientContextosPanel patientId={patientId} />}
             </div>
           </aside>
 

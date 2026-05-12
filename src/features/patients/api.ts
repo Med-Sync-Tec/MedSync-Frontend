@@ -4,9 +4,12 @@ import { ApiError } from '@lib/http/errors';
 import { ConsultaSchema, type Consulta } from '@features/consultations/schemas';
 import {
   ExpedienteSchema,
+  PacienteContextoSchema,
   PatientSchema,
+  type CreatePacienteContextoInput,
   type CreatePatientInput,
   type Expediente,
+  type PacienteContexto,
   type Patient,
 } from './schemas';
 
@@ -54,4 +57,38 @@ export async function getConsultasByPatient(patientId: string): Promise<Consulta
     `/api/patients/${encodeURIComponent(patientId)}/consultas`,
   );
   return z.array(ConsultaSchema).parse(raw);
+}
+
+export async function listPacienteContextos(patientId: string): Promise<PacienteContexto[]> {
+  const raw = await apiFetch<unknown>(
+    `/api/patients/${encodeURIComponent(patientId)}/contextos`,
+  );
+  return z.array(PacienteContextoSchema).parse(raw);
+}
+
+export async function createPacienteContexto(
+  patientId: string,
+  input: CreatePacienteContextoInput,
+): Promise<PacienteContexto> {
+  const raw = await apiFetch<unknown>(
+    `/api/patients/${encodeURIComponent(patientId)}/contextos`,
+    {
+      method: 'POST',
+      body: {
+        tipo: input.tipo,
+        valor: input.valor,
+      },
+    },
+  );
+  return PacienteContextoSchema.parse(raw);
+}
+
+export async function deletePacienteContexto(
+  patientId: string,
+  contextoId: string,
+): Promise<void> {
+  await apiFetch<void>(
+    `/api/patients/${encodeURIComponent(patientId)}/contextos/${encodeURIComponent(contextoId)}`,
+    { method: 'DELETE' },
+  );
 }
