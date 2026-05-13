@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { auth } from '@lib/firebase/client';
 import { apiFetch } from '@lib/http/client';
 import { ApiError } from '@lib/http/errors';
-import { UserRoleSchema, type AuthUser, type UserRole } from './schemas';
+import { UserRoleSchema, type AuthUser, type UserRole, type RegisterInput } from './schemas';
 import { RoleMismatchError } from './errors';
 
 const MeResponseSchema = z.object({
@@ -71,4 +71,12 @@ export async function signInWithEmail(
 
 export async function signOutCurrentUser(): Promise<void> {
   await signOut(auth);
+}
+
+export async function registerUser(data: RegisterInput): Promise<void> {
+  await apiFetch<unknown>('/api/auth/register', {
+    method: 'POST',
+    body: { nombre: data.nombre, correo: data.correo, password: data.password, rol: data.rol },
+    auth: false,
+  });
 }

@@ -23,6 +23,11 @@ interface NavLink {
   href: string;
 }
 
+const HOME_BY_ROLE: Record<HeaderRole, string> = {
+  doctor: '/doctor/dashboard',
+  coo: '/coo/dashboard',
+};
+
 const NAV_LINKS: Record<HeaderRole, NavLink[]> = {
   doctor: [
     { label: 'Inicio', href: '/doctor/dashboard' },
@@ -119,7 +124,7 @@ export const Header: React.FC<HeaderProps> = ({
     <header className={SHELL_STYLES}>
       <div className={INNER_STYLES}>
         <Link
-          to="/doctor/dashboard"
+          to={HOME_BY_ROLE[role]}
           className="flex items-center gap-2 shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring rounded-md px-1"
           aria-label="MedSync — Inicio"
         >
