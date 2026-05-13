@@ -1,7 +1,6 @@
 import React from 'react';
 import { CategoryTag } from '../badges/CategoryTag';
 import { MatchTag } from '../badges/MatchTag';
-import { IconButton } from '../buttons/IconButton';
 
 type CategoryType = 'cardiologia' | 'farmacologia' | 'endocrinologia' | 'infecciosas' | 'neurologia' | 'default';
 type ArticleCardVariant = 'full' | 'compact';
@@ -40,6 +39,65 @@ interface ArticleCardProps {
   className?: string;
 }
 
+/** Botón de guardado con animación bounce + color */
+const BookmarkButton: React.FC<{
+  saved: boolean;
+  onSave?: (e?: React.MouseEvent) => void;
+  size?: 'sm' | 'md';
+}> = ({ saved, onSave, size = 'md' }) => {
+  const textSize = size === 'sm' ? 'text-xl' : 'text-[22px]';
+
+  return (
+    <button
+      type="button"
+      onClick={(e) => { e.stopPropagation(); onSave?.(e); }}
+      aria-label={saved ? 'Quitar de guardados' : 'Guardar artículo'}
+      className={`
+        relative shrink-0 flex items-center justify-center rounded-full w-8 h-8
+        transition-colors duration-200 group
+        ${saved
+          ? 'text-amber-500 bg-amber-50 dark:bg-amber-900/20 hover:bg-amber-100 dark:hover:bg-amber-900/40'
+          : 'text-gray-400 bg-transparent hover:text-amber-500 hover:bg-amber-50 dark:hover:bg-amber-900/20'
+        }
+      `}
+      style={{ WebkitTapHighlightColor: 'transparent' }}
+    >
+      {/* Ripple ring on save */}
+      {saved && (
+        <span
+          className="absolute inset-0 rounded-full border-2 border-amber-400 opacity-0"
+          style={{ animation: 'bookmarkRipple 0.5s ease-out forwards' }}
+        />
+      )}
+
+      <span
+        className={`material-symbols-outlined ${textSize} select-none transition-transform duration-200`}
+        style={{
+          animation: saved ? 'bookmarkBounce 0.4s cubic-bezier(0.36,0.07,0.19,0.97)' : undefined,
+          fontVariationSettings: saved ? "'FILL' 1" : "'FILL' 0",
+          color: saved ? '#f59e0b' : undefined,
+        }}
+      >
+        bookmark
+      </span>
+
+      <style>{`
+        @keyframes bookmarkBounce {
+          0%   { transform: scale(1); }
+          30%  { transform: scale(1.45); }
+          55%  { transform: scale(0.88); }
+          75%  { transform: scale(1.15); }
+          100% { transform: scale(1); }
+        }
+        @keyframes bookmarkRipple {
+          0%   { transform: scale(0.7); opacity: 0.6; }
+          100% { transform: scale(1.8); opacity: 0; }
+        }
+      `}</style>
+    </button>
+  );
+};
+
 export const ArticleCard: React.FC<ArticleCardProps> = ({
   category,
   categoryType = 'default',
@@ -68,14 +126,7 @@ export const ArticleCard: React.FC<ArticleCardProps> = ({
           </h3>
           <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 line-clamp-1">{source}</p>
         </div>
-        <button
-          type="button"
-          onClick={(e) => onSave?.(e)}
-          className="shrink-0 text-gray-400 hover:text-primary transition-colors"
-          aria-label={saved ? 'Quitar de guardados' : 'Guardar artículo'}
-        >
-          <span className="material-symbols-outlined text-xl">{saved ? 'bookmark' : 'bookmark_border'}</span>
-        </button>
+        <BookmarkButton saved={saved} onSave={onSave} size="sm" />
       </div>
     );
   }
@@ -102,12 +153,7 @@ export const ArticleCard: React.FC<ArticleCardProps> = ({
         <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-1">{excerpt}</p>
         <div className="flex items-center justify-between gap-2 mt-0.5">
           <span className="text-xs text-gray-400 font-medium truncate">{source}</span>
-          <IconButton
-            icon={<span className="material-symbols-outlined text-xl">{saved ? 'bookmark' : 'bookmark_border'}</span>}
-            onClick={(e) => onSave?.(e)}
-            title={saved ? 'Quitar de guardados' : 'Guardar'}
-            className="w-7 h-7 shrink-0"
-          />
+          <BookmarkButton saved={saved} onSave={onSave} />
         </div>
       </div>
     </div>

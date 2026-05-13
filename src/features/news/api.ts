@@ -12,3 +12,16 @@ export const syncRecentArticles = async (): Promise<{ articulosProcesados: numbe
 export const markArticleAsRead = async (articleId: string): Promise<void> => {
   return apiFetch<void>(`/api/articles/${articleId}/read`, { method: 'POST' });
 };
+
+export const getSavedArticles = async (page = 0, size = 20): Promise<PagedArticlesResponse> => {
+  return apiFetch<PagedArticlesResponse>(`/api/articles/saved?page=${page}&size=${size}`);
+};
+
+export const saveArticle = async (articleId: string): Promise<void> => {
+  return apiFetch<void>(`/api/articles/${articleId}/save`, { method: 'POST' });
+};
+
+export const unsaveArticle = async (articleId: string): Promise<void> => {
+  return apiFetch<void>(`/api/articles/${articleId}/save`, { method: 'DELETE' });
+};
+

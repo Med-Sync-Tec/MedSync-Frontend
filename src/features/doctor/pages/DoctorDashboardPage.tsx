@@ -9,6 +9,7 @@ import type { Article } from '@features/news/types';
 import { useDashboardData } from '@features/dashboard/queries';
 import type { DashboardData } from '@features/dashboard/types';
 import { useAuthStore } from '@features/auth/store';
+import { useSaveArticle, useUnsaveArticle } from '@features/news/queries';
 import { RefreshCw } from 'lucide-react';
 import { Pagination } from '@ui/buttons/Pagination';
 
@@ -44,6 +45,8 @@ export const DoctorDashboardPage: React.FC = () => {
   const { data: dashboardData, isLoading, isError } = useDashboardData();
   const syncMutation = useSyncArticles();
   const markAsReadMutation = useMarkArticleAsRead();
+  const saveMutation = useSaveArticle();
+  const unsaveMutation = useUnsaveArticle();
 
   // IDs de artículos de alta evidencia para confianza dinámica
   const altaEvidenciaIds = useMemo(
@@ -77,8 +80,10 @@ export const DoctorDashboardPage: React.FC = () => {
       const next = new Set(prev);
       if (next.has(id)) {
         next.delete(id);
+        unsaveMutation.mutate(id);
       } else {
         next.add(id);
+        saveMutation.mutate(id);
       }
       return next;
     });

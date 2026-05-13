@@ -1,9 +1,10 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getRecentArticles, syncRecentArticles, markArticleAsRead } from './api';
+import { getRecentArticles, syncRecentArticles, markArticleAsRead, getSavedArticles, saveArticle, unsaveArticle } from './api';
 
 export const newsKeys = {
   all: ['news'] as const,
   recent: () => [...newsKeys.all, 'recent'] as const,
+  saved: () => [...newsKeys.all, 'saved'] as const,
 };
 
 export const useRecentArticles = (page = 0, size = 5) => {
@@ -33,3 +34,31 @@ export const useMarkArticleAsRead = () => {
     },
   });
 };
+
+export const useSavedArticles = (page = 0, size = 10) => {
+  return useQuery({
+    queryKey: [...newsKeys.saved(), { page, size }],
+    queryFn: () => getSavedArticles(page, size),
+  });
+};
+
+export const useSaveArticle = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (articleId: string) => saveArticle(articleId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: newsKeys.saved() });
+    },
+  });
+};
+
+export const useUnsaveArticle = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (articleId: string) => unsaveArticle(articleId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: newsKeys.saved() });
+    },
+  });
+};
+
