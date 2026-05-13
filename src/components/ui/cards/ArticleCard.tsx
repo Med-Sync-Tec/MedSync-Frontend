@@ -34,7 +34,7 @@ interface ArticleCardProps {
   matchText?: string;
   matchVariant?: 'normal' | 'alert';
   saved?: boolean;
-  onSave?: () => void;
+  onSave?: (e?: React.MouseEvent) => void;
   url?: string;
   variant?: ArticleCardVariant;
   className?: string;
@@ -64,19 +64,13 @@ export const ArticleCard: React.FC<ArticleCardProps> = ({
             <span className="text-xs text-gray-400">{timestamp}</span>
           </div>
           <h3 className="text-sm font-semibold text-gray-900 dark:text-white line-clamp-2">
-            {url ? (
-              <a href={url} target="_blank" rel="noopener noreferrer" className="hover:underline">
-                {title}
-              </a>
-            ) : (
-              title
-            )}
+            {title}
           </h3>
           <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 line-clamp-1">{source}</p>
         </div>
         <button
           type="button"
-          onClick={onSave}
+          onClick={(e) => onSave?.(e)}
           className="shrink-0 text-gray-400 hover:text-primary transition-colors"
           aria-label={saved ? 'Quitar de guardados' : 'Guardar artículo'}
         >
@@ -103,20 +97,14 @@ export const ArticleCard: React.FC<ArticleCardProps> = ({
           {matchText && <MatchTag text={matchText} variant={matchVariant} />}
         </div>
         <h3 className="text-sm sm:text-base font-bold text-gray-900 dark:text-white leading-snug line-clamp-1">
-          {url ? (
-            <a href={url} target="_blank" rel="noopener noreferrer" className="hover:underline">
-              {title}
-            </a>
-          ) : (
-            title
-          )}
+          {title}
         </h3>
         <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-1">{excerpt}</p>
         <div className="flex items-center justify-between gap-2 mt-0.5">
           <span className="text-xs text-gray-400 font-medium truncate">{source}</span>
           <IconButton
             icon={<span className="material-symbols-outlined text-xl">{saved ? 'bookmark' : 'bookmark_border'}</span>}
-            onClick={onSave}
+            onClick={(e) => onSave?.(e)}
             title={saved ? 'Quitar de guardados' : 'Guardar'}
             className="w-7 h-7 shrink-0"
           />

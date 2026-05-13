@@ -1,12 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { StatCard } from '@ui/cards/StatCard';
 import { ArticleCard } from '@ui/cards/ArticleCard';
+import { ArticleDetailDrawer } from '@ui/cards/ArticleDetailDrawer';
 import { ChatCard } from '@ui/cards/ChatCard';
 import { FAB } from '@ui/buttons/FAB';
-import { useSyncArticles } from '@features/news/queries';
+import { useSyncArticles, useMarkArticleAsRead } from '@features/news/queries';
 import type { Article } from '@features/news/types';
 import { useDashboardData } from '@features/dashboard/queries';
 import type { DashboardData } from '@features/dashboard/types';
+import { useAuthStore } from '@features/auth/store';
 import { RefreshCw } from 'lucide-react';
 import { Pagination } from '@ui/buttons/Pagination';
 
@@ -23,15 +25,51 @@ export const DoctorDashboardPage: React.FC = () => {
   const [chatOpen, setChatOpen] = useState(false);
   const [savedArticles, setSavedArticles] = useState<Set<string>>(new Set());
   const [selectedCategory, setSelectedCategory] = useState<keyof DashboardData>('novedades_48h');
+  const [showAll, setShowAll] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+  const [selectedArticle, setSelectedArticle] = useState<Article | null>(null);
   const ITEMS_PER_PAGE = 10;
+
+  // Usuario autenticado
+  const currentUser = useAuthStore((s) => s.user);
+  const greeting = (() => {
+    const hour = new Date().getHours();
+    if (hour < 12) return 'Buenos días';
+    if (hour < 19) return 'Buenas tardes';
+    return 'Buenas noches';
+  })();
+  const doctorName = currentUser?.name ?? 'Doctor';
 
   // Consumir el endpoint de KPIs del dashboard
   const { data: dashboardData, isLoading, isError } = useDashboardData();
   const syncMutation = useSyncArticles();
+  const markAsReadMutation = useMarkArticleAsRead();
+
+  // IDs de artículos de alta evidencia para confianza dinámica
+  const altaEvidenciaIds = useMemo(
+    () => new Set((dashboardData?.alta_evidencia ?? []).map((a) => a.id)),
+    [dashboardData]
+  );
 
   const handleSync = () => {
     syncMutation.mutate();
+  };
+
+  const handleSelectCategory = (cat: keyof DashboardData) => {
+    setSelectedCategory(cat);
+    setShowAll(false);
+    setCurrentPage(1);
+  };
+
+  const handleShowAll = () => {
+    setShowAll(true);
+    setCurrentPage(1);
+  };
+
+  const handleOpenArticle = (article: Article) => {
+    setSelectedArticle(article);
+    // Disparar marcar como leído en segundo plano (fire & forget)
+    markAsReadMutation.mutate(article.id);
   };
 
   const toggleSave = (id: string) => {
@@ -59,7 +97,22 @@ export const DoctorDashboardPage: React.FC = () => {
     return `Hace ${diffDays} días`;
   };
 
-  const doctorName = 'Dr. García';
+  // Artículos a mostrar según selección o "ver todas"
+  const activeArticles = (() => {
+    if (!dashboardData) return [];
+    if (showAll) {
+      // Unificar todos los artículos sin duplicados
+      const seen = new Set<string>();
+      const all: Article[] = [];
+      for (const cat of Object.values(dashboardData) as Article[][]) {
+        for (const a of cat) {
+          if (!seen.has(a.id)) { seen.add(a.id); all.push(a); }
+        }
+      }
+      return all;
+    }
+    return dashboardData[selectedCategory] ?? [];
+  })();
 
   return (
     <>
@@ -80,7 +133,7 @@ export const DoctorDashboardPage: React.FC = () => {
                 <span className="material-symbols-outlined text-[14px]">local_hospital</span>
                 PANEL MÉDICO
               </span>
-              <h1 className="text-xl sm:text-2xl font-bold">Buenos días, {doctorName}</h1>
+          <h1 className="text-xl sm:text-2xl font-bold">{greeting}, {doctorName}</h1>
               <p className="text-blue-100 text-sm mt-1">
                 {new Date().toLocaleDateString('es-MX', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
               </p>
@@ -92,7 +145,7 @@ export const DoctorDashboardPage: React.FC = () => {
           </div>
 
           <div className="grid grid-cols-2 gap-3 sm:gap-4">
-            <div onClick={() => { setSelectedCategory('novedades_48h'); setCurrentPage(1); }} className={`cursor-pointer transition-all ${selectedCategory === 'novedades_48h' ? 'ring-2 ring-primary rounded-xl' : 'opacity-80 hover:opacity-100'}`}>
+            <div onClick={() => handleSelectCategory('novedades_48h')} className={`cursor-pointer transition-all ${!showAll && selectedCategory === 'novedades_48h' ? 'ring-2 ring-primary rounded-xl' : 'opacity-80 hover:opacity-100'}`}>
               <StatCard
                 label="Novedades 48h"
                 value={dashboardData?.novedades_48h?.length || 0}
@@ -101,7 +154,7 @@ export const DoctorDashboardPage: React.FC = () => {
                 iconColor="var(--color-info)"
               />
             </div>
-            <div onClick={() => { setSelectedCategory('por_especialidad'); setCurrentPage(1); }} className={`cursor-pointer transition-all ${selectedCategory === 'por_especialidad' ? 'ring-2 ring-primary rounded-xl' : 'opacity-80 hover:opacity-100'}`}>
+            <div onClick={() => handleSelectCategory('por_especialidad')} className={`cursor-pointer transition-all ${!showAll && selectedCategory === 'por_especialidad' ? 'ring-2 ring-primary rounded-xl' : 'opacity-80 hover:opacity-100'}`}>
               <StatCard
                 label="Por Especialidad"
                 value={dashboardData?.por_especialidad?.length || 0}
@@ -110,7 +163,7 @@ export const DoctorDashboardPage: React.FC = () => {
                 iconColor="var(--color-success-strong)"
               />
             </div>
-            <div onClick={() => { setSelectedCategory('alta_evidencia'); setCurrentPage(1); }} className={`cursor-pointer transition-all ${selectedCategory === 'alta_evidencia' ? 'ring-2 ring-primary rounded-xl' : 'opacity-80 hover:opacity-100'}`}>
+            <div onClick={() => handleSelectCategory('alta_evidencia')} className={`cursor-pointer transition-all ${!showAll && selectedCategory === 'alta_evidencia' ? 'ring-2 ring-primary rounded-xl' : 'opacity-80 hover:opacity-100'}`}>
               <StatCard
                 label="Alta Evidencia"
                 value={dashboardData?.alta_evidencia?.length || 0}
@@ -119,7 +172,7 @@ export const DoctorDashboardPage: React.FC = () => {
                 iconColor="var(--color-caution)"
               />
             </div>
-            <div onClick={() => { setSelectedCategory('no_leidos'); setCurrentPage(1); }} className={`cursor-pointer transition-all ${selectedCategory === 'no_leidos' ? 'ring-2 ring-primary rounded-xl' : 'opacity-80 hover:opacity-100'}`}>
+            <div onClick={() => handleSelectCategory('no_leidos')} className={`cursor-pointer transition-all ${!showAll && selectedCategory === 'no_leidos' ? 'ring-2 ring-primary rounded-xl' : 'opacity-80 hover:opacity-100'}`}>
               <StatCard
                 label="No Leídos"
                 value={dashboardData?.no_leidos?.length || 0}
@@ -134,7 +187,9 @@ export const DoctorDashboardPage: React.FC = () => {
 
         <div>
           <div className="flex items-center justify-between mb-4 gap-2">
-            <h2 className="text-base sm:text-lg font-bold text-text-primary">Noticias Médicas Relevantes</h2>
+              <h2 className="text-base sm:text-lg font-bold text-text-primary">
+                {showAll ? 'Todas las Noticias Médicas' : 'Noticias Médicas Relevantes'}
+              </h2>
             <div className="flex items-center gap-3">
               <button 
                 onClick={handleSync}
@@ -147,8 +202,14 @@ export const DoctorDashboardPage: React.FC = () => {
                 <RefreshCw className={`w-3 h-3 ${syncMutation.isPending ? 'animate-spin' : ''}`} />
                 {syncMutation.isPending ? 'Sincronizando...' : 'Sincronizar PubMed'}
               </button>
-              <button type="button" className="text-sm text-primary font-medium hover:underline shrink-0">
-                Ver todas
+              <button
+                type="button"
+                onClick={handleShowAll}
+                className={`text-sm font-medium hover:underline shrink-0 transition-colors ${
+                  showAll ? 'text-primary font-bold' : 'text-primary'
+                }`}
+              >
+                {showAll ? '✓ Viendo todas' : 'Ver todas'}
               </button>
             </div>
           </div>
@@ -162,15 +223,14 @@ export const DoctorDashboardPage: React.FC = () => {
               <div className="p-8 text-center bg-danger-subtle rounded-2xl border border-danger/20 text-danger text-sm">
                 Error al cargar las noticias médicas. Por favor, intenta de nuevo más tarde.
               </div>
-            ) : !dashboardData || !dashboardData[selectedCategory] || dashboardData[selectedCategory].length === 0 ? (
+            ) : activeArticles.length === 0 ? (
               <div className="p-8 text-center bg-surface-subtle rounded-2xl border border-border-strong text-text-muted text-sm">
                 No hay noticias disponibles en esta categoría.
               </div>
             ) : (
               (() => {
-                const articles = dashboardData[selectedCategory];
-                const totalPages = Math.ceil(articles.length / ITEMS_PER_PAGE);
-                const paginatedArticles = articles.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
+                const totalPages = Math.ceil(activeArticles.length / ITEMS_PER_PAGE);
+                const paginatedArticles = activeArticles.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
 
                 return (
                   <>
@@ -181,20 +241,25 @@ export const DoctorDashboardPage: React.FC = () => {
                       const timeAgo = article.updatedAt ? formatTimeAgo(article.updatedAt) : 'Reciente';
 
                       return (
-                        <ArticleCard
+                        <div
                           key={article.id}
-                          category={category}
-                          categoryType={categoryType}
-                          timestamp={timeAgo}
-                          title={article.titulo}
-                          excerpt={article.abstractText}
-                          source={article.revista}
-                          matchText="PubMed"
-                          matchVariant="normal"
-                          saved={savedArticles.has(article.id)}
-                          onSave={() => toggleSave(article.id)}
-                          url={article.url}
-                        />
+                          onClick={() => handleOpenArticle(article)}
+                          className="cursor-pointer"
+                        >
+                          <ArticleCard
+                            category={category}
+                            categoryType={categoryType}
+                            timestamp={timeAgo}
+                            title={article.titulo}
+                            excerpt={article.abstractText}
+                            source={article.revista}
+                            matchText="PubMed"
+                            matchVariant="normal"
+                            saved={savedArticles.has(article.id)}
+                            onSave={(e?: React.MouseEvent) => { e?.stopPropagation(); toggleSave(article.id); }}
+                            url={article.url}
+                          />
+                        </div>
                       );
                     })}
                     
@@ -216,7 +281,7 @@ export const DoctorDashboardPage: React.FC = () => {
 
       </main>
 
-      <div className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-50 flex flex-col items-end gap-3">
+      <div className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-30 flex flex-col items-end gap-3">
         {chatOpen && (
           <ChatCard onClose={() => setChatOpen(false)} />
         )}
@@ -231,6 +296,13 @@ export const DoctorDashboardPage: React.FC = () => {
           aria-label={chatOpen ? 'Cerrar MediBot' : 'Abrir MediBot'}
         />
       </div>
+
+      {/* Drawer de detalle de artículo */}
+      <ArticleDetailDrawer
+        article={selectedArticle}
+        onClose={() => setSelectedArticle(null)}
+        isHighEvidence={selectedArticle ? altaEvidenciaIds.has(selectedArticle.id) : false}
+      />
     </>
   );
 };
