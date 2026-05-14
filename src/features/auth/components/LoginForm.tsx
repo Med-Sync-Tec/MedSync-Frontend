@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Input, PasswordInput } from '@ui/inputs/Input';
-import { Checkbox } from '@ui/inputs/Checkbox';
 import { Button } from '@ui/buttons/Button';
 import { Alert } from '@ui/feedback/Alert';
 import type { RoleType } from '@ui/selectors/RoleSelector';
@@ -10,6 +9,7 @@ import type { LoginCredentials, UserRole } from '@features/auth/schemas';
 import { useAuthStore } from '@features/auth/store';
 import { signInWithEmail } from '@features/auth/api';
 import { describeAuthError } from '@features/auth/errors';
+import { RegisterModal } from './RegisterModal';
 
 const LANDING_BY_ROLE: Record<UserRole, string> = {
   DOCTOR: '/doctor/dashboard',
@@ -38,18 +38,18 @@ export const LoginForm: React.FC<LoginFormProps> = ({ role }) => {
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [rememberMe, setRememberMe] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [globalError, setGlobalError] = useState('');
   const [success, setSuccess] = useState('');
   const [errors, setErrors] = useState<FieldErrors>({});
+  const [showRegister, setShowRegister] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setGlobalError('');
     setSuccess('');
 
-    const parsed = LoginCredentialsSchema.safeParse({ email, password, rememberMe });
+    const parsed = LoginCredentialsSchema.safeParse({ email, password });
     if (!parsed.success) {
       const fieldErrors: FieldErrors = {};
       for (const issue of parsed.error.issues) {
@@ -115,22 +115,6 @@ export const LoginForm: React.FC<LoginFormProps> = ({ role }) => {
           error={errors.password}
         />
 
-        <div className="flex items-center justify-between">
-          <Checkbox
-            label="Recordarme"
-            id="remember-me"
-            name="remember-me"
-            checked={rememberMe}
-            onChange={(e) => setRememberMe(e.target.checked)}
-          />
-          <a
-            href="#"
-            className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 transition-colors"
-          >
-            ¿Olvidaste tu contraseña?
-          </a>
-        </div>
-
         <Button
           type="submit"
           fullWidth
@@ -143,15 +127,18 @@ export const LoginForm: React.FC<LoginFormProps> = ({ role }) => {
         <div className="text-center">
           <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
             ¿No tienes cuenta?{' '}
-            <a
-              href="#"
+            <button
+              type="button"
+              onClick={() => setShowRegister(true)}
               className="font-bold text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 transition-colors"
             >
               Solicitar acceso
-            </a>
+            </button>
           </p>
         </div>
       </form>
+
+      {showRegister && <RegisterModal onClose={() => setShowRegister(false)} />}
     </>
   );
 };

@@ -22,6 +22,7 @@ import {
 } from '@features/patients/components/PatientDetailCardSkeleton';
 import { PatientContextosPanel } from '@features/patients/components/PatientContextosPanel';
 import type { Consulta, ConsultationSummary } from '@features/consultations/schemas';
+import { AnalyzeConsultaButton } from '@features/consultations/components/AnalyzeConsultaButton';
 
 type TabId = 'historial' | 'resumen' | 'documentos' | 'vitales';
 
@@ -266,7 +267,11 @@ export const ConsultationHistoryPage: React.FC = () => {
                   ) : sortedConsultations.length === 0 ? (
                     <EmptyState />
                   ) : (
-                    <Timeline groups={grouped} onViewSOAP={setSelectedConsultationId} />
+                    <Timeline
+                      groups={grouped}
+                      onViewSOAP={setSelectedConsultationId}
+                      patientId={patientId ?? ''}
+                    />
                   )}
                 </>
               )}
@@ -310,9 +315,10 @@ function currentTabLabel(id: TabId, tabs: TabDef[]): string {
 interface TimelineProps {
   groups: Array<[string, Consulta[]]>;
   onViewSOAP: (id: string) => void;
+  patientId: string;
 }
 
-const Timeline: React.FC<TimelineProps> = ({ groups, onViewSOAP }) => {
+const Timeline: React.FC<TimelineProps> = ({ groups, onViewSOAP, patientId }) => {
   return (
     <div className="relative">
       <span
@@ -341,10 +347,20 @@ const Timeline: React.FC<TimelineProps> = ({ groups, onViewSOAP }) => {
                     aria-hidden="true"
                     className="absolute -left-[29px] top-5 w-2 h-2 rounded-full bg-surface border-2 border-border-strong"
                   />
-                  <ConsultationCard
-                    consultation={toConsultationSummary(consulta)}
-                    onViewSOAP={onViewSOAP}
-                  />
+                  <div className="flex flex-col gap-2">
+                    <ConsultationCard
+                      consultation={toConsultationSummary(consulta)}
+                      onViewSOAP={onViewSOAP}
+                    />
+                    {patientId && (
+                      <div className="flex justify-end">
+                        <AnalyzeConsultaButton
+                          consultaId={consulta.id}
+                          patientId={patientId}
+                        />
+                      </div>
+                    )}
+                  </div>
                 </li>
               ))}
             </ol>

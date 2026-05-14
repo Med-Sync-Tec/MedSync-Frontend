@@ -6,6 +6,7 @@ import {
   ExpedienteSchema,
   PacienteContextoSchema,
   PatientSchema,
+  type BulkAddPacienteContextoInput,
   type CreatePacienteContextoInput,
   type CreatePatientInput,
   type Expediente,
@@ -91,4 +92,24 @@ export async function deletePacienteContexto(
     `/api/patients/${encodeURIComponent(patientId)}/contextos/${encodeURIComponent(contextoId)}`,
     { method: 'DELETE' },
   );
+}
+
+/**
+ * Atomically inserts a batch of paciente_contexto rows. The backend is
+ * transactional: any validation failure rolls back the entire batch.
+ * Used by the consulta-AI review-then-save flow to persist accepted
+ * suggestions in one round-trip.
+ */
+export async function bulkAddPacienteContextos(
+  patientId: string,
+  input: BulkAddPacienteContextoInput,
+): Promise<PacienteContexto[]> {
+  const raw = await apiFetch<unknown>(
+    `/api/patients/${encodeURIComponent(patientId)}/contextos/bulk`,
+    {
+      method: 'POST',
+      body: { entries: input.entries },
+    },
+  );
+  return z.array(PacienteContextoSchema).parse(raw);
 }

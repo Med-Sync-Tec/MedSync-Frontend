@@ -1,91 +1,124 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { StatCard } from '@ui/cards/StatCard';
 import { ArticleCard } from '@ui/cards/ArticleCard';
+import { ArticleDetailDrawer } from '@ui/cards/ArticleDetailDrawer';
 import { ChatCard } from '@ui/cards/ChatCard';
 import { FAB } from '@ui/buttons/FAB';
+import { useSyncArticles, useMarkArticleAsRead } from '@features/news/queries';
+import type { Article } from '@features/news/types';
+import { AnalyzeArticleButton } from '@features/news/components/AnalyzeArticleButton';
+import { useDashboardData } from '@features/dashboard/queries';
+import type { DashboardData } from '@features/dashboard/types';
+import { useAuthStore } from '@features/auth/store';
+import { useSaveArticle, useUnsaveArticle } from '@features/news/queries';
+import { RefreshCw } from 'lucide-react';
+import { Pagination } from '@ui/buttons/Pagination';
 
-const mockStats = {
-  alertasCriticas:    { value: 3, badge: '+2 nuevos' },
-  coincidenciasMedia: { value: 12 },
-  coincidenciasBaja:  { value: 8 },
-  totalCoincidencias: { value: 28 },
+
+// Mapeo de tipos de tags de backend a categorías visuales del frontend
+const CATEGORY_MAP: Record<string, string> = {
+  enfermedad: 'cardiologia',
+  sintoma: 'neurologia',
+  tratamiento: 'endocrinologia',
+  medicamento: 'farmacologia',
 };
-
-const mockArticles = [
-  {
-    id: '1',
-    category: 'Farmacología',
-    categoryType: 'farmacologia' as const,
-    timestamp: 'Hace 2 horas',
-    title: 'Nueva interacción descubierta entre metformina y estatinas en pacientes diabéticos',
-    excerpt: 'Un estudio reciente publicado en NEJM revela una interacción significativa entre metformina y rosuvastatina que puede aumentar el riesgo de miopatía en pacientes con DM2.',
-    source: 'NEJM',
-    matchText: '3 coincidencias',
-    matchVariant: 'alert' as const,
-  },
-  {
-    id: '2',
-    category: 'Cardiología',
-    categoryType: 'cardiologia' as const,
-    timestamp: 'Hace 5 horas',
-    title: 'Actualización en guías de manejo de hipertensión arterial 2025',
-    excerpt: 'La Sociedad Europea de Cardiología actualiza sus guías de práctica clínica para el manejo de HTA, con nuevos umbrales de tratamiento y algoritmos simplificados.',
-    source: 'ESC Guidelines',
-    matchText: '5 coincidencias',
-    matchVariant: 'normal' as const,
-  },
-  {
-    id: '3',
-    category: 'Endocrinología',
-    categoryType: 'endocrinologia' as const,
-    timestamp: 'Hace 1 día',
-    title: 'Inhibidores SGLT-2 muestran beneficio adicional en insuficiencia cardíaca con FEr',
-    excerpt: 'Los resultados del ensayo EMPEROR-Reduced confirman la reducción del 25% en eventos cardiovasculares mayores con empagliflozina independientemente del estado diabético.',
-    source: 'Lancet',
-    matchText: '2 coincidencias',
-    matchVariant: 'normal' as const,
-  },
-  {
-    id: '4',
-    category: 'Infectología',
-    categoryType: 'infecciosas' as const,
-    timestamp: 'Hace 2 días',
-    title: 'Resistencia antimicrobiana: nuevas estrategias de desescalada en UTI',
-    excerpt: 'Revisión sistemática de estrategias de desescalada antibiótica en UCI que demuestra reducción de resistencia sin impacto negativo en mortalidad a 30 días.',
-    source: 'Clin Infect Dis',
-    matchText: '1 coincidencia',
-    matchVariant: 'normal' as const,
-  },
-  {
-    id: '5',
-    category: 'Neurología',
-    categoryType: 'neurologia' as const,
-    timestamp: 'Hace 3 días',
-    title: 'Terapia anticoagulante en fibrilación auricular: cuándo y cómo revertir',
-    excerpt: 'Guía práctica actualizada para el manejo de sangrado en pacientes anticoagulados con FA, incluyendo el uso de agentes reversores de nueva generación.',
-    source: 'Stroke Journal',
-    matchText: '4 coincidencias',
-    matchVariant: 'alert' as const,
-  },
-];
 
 export const DoctorDashboardPage: React.FC = () => {
   const [chatOpen, setChatOpen] = useState(false);
   const [savedArticles, setSavedArticles] = useState<Set<string>>(new Set());
+  const [selectedCategory, setSelectedCategory] = useState<keyof DashboardData>('novedades_48h');
+  const [showAll, setShowAll] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [selectedArticle, setSelectedArticle] = useState<Article | null>(null);
+  const ITEMS_PER_PAGE = 10;
+
+  // Usuario autenticado
+  const currentUser = useAuthStore((s) => s.user);
+  const greeting = (() => {
+    const hour = new Date().getHours();
+    if (hour < 12) return 'Buenos días';
+    if (hour < 19) return 'Buenas tardes';
+    return 'Buenas noches';
+  })();
+  const doctorName = currentUser?.name ?? 'Doctor';
+
+  // Consumir el endpoint de KPIs del dashboard
+  const { data: dashboardData, isLoading, isError } = useDashboardData();
+  const syncMutation = useSyncArticles();
+  const markAsReadMutation = useMarkArticleAsRead();
+  const saveMutation = useSaveArticle();
+  const unsaveMutation = useUnsaveArticle();
+
+  // IDs de artículos de alta evidencia para confianza dinámica
+  const altaEvidenciaIds = useMemo(
+    () => new Set((dashboardData?.alta_evidencia ?? []).map((a) => a.id)),
+    [dashboardData]
+  );
+
+  const handleSync = () => {
+    syncMutation.mutate();
+  };
+
+  const handleSelectCategory = (cat: keyof DashboardData) => {
+    setSelectedCategory(cat);
+    setShowAll(false);
+    setCurrentPage(1);
+  };
+
+  const handleShowAll = () => {
+    setShowAll(true);
+    setCurrentPage(1);
+  };
+
+  const handleOpenArticle = (article: Article) => {
+    setSelectedArticle(article);
+    // Disparar marcar como leído en segundo plano (fire & forget)
+    markAsReadMutation.mutate(article.id);
+  };
 
   const toggleSave = (id: string) => {
     setSavedArticles((prev) => {
       const next = new Set(prev);
       if (next.has(id)) {
         next.delete(id);
+        unsaveMutation.mutate(id);
       } else {
         next.add(id);
+        saveMutation.mutate(id);
       }
       return next;
     });
   };
 
-  const doctorName = 'Dr. García';
+  const formatTimeAgo = (dateStr: string) => {
+    const date = new Date(dateStr);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffHrs = Math.floor(diffMs / (1000 * 60 * 60));
+
+    if (diffHrs < 1) return 'Hace un momento';
+    if (diffHrs < 24) return `Hace ${diffHrs} horas`;
+    const diffDays = Math.floor(diffHrs / 24);
+    if (diffDays === 1) return 'Ayer';
+    return `Hace ${diffDays} días`;
+  };
+
+  // Artículos a mostrar según selección o "ver todas"
+  const activeArticles = (() => {
+    if (!dashboardData) return [];
+    if (showAll) {
+      // Unificar todos los artículos sin duplicados
+      const seen = new Set<string>();
+      const all: Article[] = [];
+      for (const cat of Object.values(dashboardData) as Article[][]) {
+        for (const a of cat) {
+          if (!seen.has(a.id)) { seen.add(a.id); all.push(a); }
+        }
+      }
+      return all;
+    }
+    return dashboardData[selectedCategory] ?? [];
+  })();
 
   return (
     <>
@@ -106,7 +139,7 @@ export const DoctorDashboardPage: React.FC = () => {
                 <span className="material-symbols-outlined text-[14px]">local_hospital</span>
                 PANEL MÉDICO
               </span>
-              <h1 className="text-xl sm:text-2xl font-bold">Buenos días, {doctorName}</h1>
+          <h1 className="text-xl sm:text-2xl font-bold">{greeting}, {doctorName}</h1>
               <p className="text-blue-100 text-sm mt-1">
                 {new Date().toLocaleDateString('es-MX', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
               </p>
@@ -118,69 +151,154 @@ export const DoctorDashboardPage: React.FC = () => {
           </div>
 
           <div className="grid grid-cols-2 gap-3 sm:gap-4">
-            <StatCard
-              label="Alertas Críticas"
-              value={mockStats.alertasCriticas.value}
-              icon={<span className="material-symbols-outlined text-xl">emergency</span>}
-              badge={mockStats.alertasCriticas.badge}
-              badgeVariant="warning"
-              iconBg="var(--color-danger-subtle)"
-              iconColor="var(--color-danger)"
-            />
-            <StatCard
-              label="Coincidencias Media"
-              value={mockStats.coincidenciasMedia.value}
-              icon={<span className="material-symbols-outlined text-xl">warning</span>}
-              iconBg="var(--color-info-subtle)"
-              iconColor="var(--color-info)"
-            />
-            <StatCard
-              label="Coincidencias Baja"
-              value={mockStats.coincidenciasBaja.value}
-              icon={<span className="material-symbols-outlined text-xl">info</span>}
-              iconBg="var(--color-caution-subtle)"
-              iconColor="var(--color-caution)"
-            />
-            <StatCard
-              label="Total Coincidencias"
-              value={mockStats.totalCoincidencias.value}
-              icon={<span className="material-symbols-outlined text-xl">analytics</span>}
-              iconBg="var(--color-success-subtle)"
-              iconColor="var(--color-success-strong)"
-            />
+            <div onClick={() => handleSelectCategory('novedades_48h')} className={`cursor-pointer transition-all ${!showAll && selectedCategory === 'novedades_48h' ? 'ring-2 ring-primary rounded-xl' : 'opacity-80 hover:opacity-100'}`}>
+              <StatCard
+                label="Novedades 48h"
+                value={dashboardData?.novedades_48h?.length || 0}
+                icon={<span className="material-symbols-outlined text-xl">bolt</span>}
+                iconBg="var(--color-info-subtle)"
+                iconColor="var(--color-info)"
+              />
+            </div>
+            <div onClick={() => handleSelectCategory('por_especialidad')} className={`cursor-pointer transition-all ${!showAll && selectedCategory === 'por_especialidad' ? 'ring-2 ring-primary rounded-xl' : 'opacity-80 hover:opacity-100'}`}>
+              <StatCard
+                label="Por Especialidad"
+                value={dashboardData?.por_especialidad?.length || 0}
+                icon={<span className="material-symbols-outlined text-xl">assignment</span>}
+                iconBg="var(--color-success-subtle)"
+                iconColor="var(--color-success-strong)"
+              />
+            </div>
+            <div onClick={() => handleSelectCategory('alta_evidencia')} className={`cursor-pointer transition-all ${!showAll && selectedCategory === 'alta_evidencia' ? 'ring-2 ring-primary rounded-xl' : 'opacity-80 hover:opacity-100'}`}>
+              <StatCard
+                label="Alta Evidencia"
+                value={dashboardData?.alta_evidencia?.length || 0}
+                icon={<span className="material-symbols-outlined text-xl">verified</span>}
+                iconBg="var(--color-caution-subtle)"
+                iconColor="var(--color-caution)"
+              />
+            </div>
+            <div onClick={() => handleSelectCategory('no_leidos')} className={`cursor-pointer transition-all ${!showAll && selectedCategory === 'no_leidos' ? 'ring-2 ring-primary rounded-xl' : 'opacity-80 hover:opacity-100'}`}>
+              <StatCard
+                label="No Leídos"
+                value={dashboardData?.no_leidos?.length || 0}
+                icon={<span className="material-symbols-outlined text-xl">mark_as_unread</span>}
+                iconBg="var(--color-danger-subtle)"
+                iconColor="var(--color-danger)"
+              />
+            </div>
           </div>
 
         </div>
 
         <div>
           <div className="flex items-center justify-between mb-4 gap-2">
-            <h2 className="text-base sm:text-lg font-bold text-text-primary">Noticias Médicas Relevantes</h2>
-            <button type="button" className="text-sm text-primary font-medium hover:underline shrink-0">
-              Ver todas
-            </button>
+              <h2 className="text-base sm:text-lg font-bold text-text-primary">
+                {showAll ? 'Todas las Noticias Médicas' : 'Noticias Médicas Relevantes'}
+              </h2>
+            <div className="flex items-center gap-3">
+              <button 
+                onClick={handleSync}
+                disabled={syncMutation.isPending}
+                className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold transition-all shadow-sm border
+                  ${syncMutation.isPending 
+                    ? 'bg-surface-subtle text-text-muted cursor-not-allowed border-border-strong' 
+                    : 'bg-white text-primary border-primary/20 hover:bg-primary/5 active:scale-95'}`}
+              >
+                <RefreshCw className={`w-3 h-3 ${syncMutation.isPending ? 'animate-spin' : ''}`} />
+                {syncMutation.isPending ? 'Sincronizando...' : 'Sincronizar PubMed'}
+              </button>
+              <button
+                type="button"
+                onClick={handleShowAll}
+                className={`text-sm font-medium hover:underline shrink-0 transition-colors ${
+                  showAll ? 'text-primary font-bold' : 'text-primary'
+                }`}
+              >
+                {showAll ? '✓ Viendo todas' : 'Ver todas'}
+              </button>
+            </div>
           </div>
           <div className="flex flex-col gap-3">
-            {mockArticles.map((article) => (
-              <ArticleCard
-                key={article.id}
-                category={article.category}
-                categoryType={article.categoryType}
-                timestamp={article.timestamp}
-                title={article.title}
-                excerpt={article.excerpt}
-                source={article.source}
-                matchText={article.matchText}
-                matchVariant={article.matchVariant}
-                saved={savedArticles.has(article.id)}
-                onSave={() => toggleSave(article.id)}
-              />
-            ))}
+            {isLoading ? (
+              // Esqueleto de carga simple
+              [...Array(3)].map((_, i) => (
+                <div key={i} className="h-32 bg-surface-subtle animate-pulse rounded-2xl border border-border-strong" />
+              ))
+            ) : isError ? (
+              <div className="p-8 text-center bg-danger-subtle rounded-2xl border border-danger/20 text-danger text-sm">
+                Error al cargar las noticias médicas. Por favor, intenta de nuevo más tarde.
+              </div>
+            ) : activeArticles.length === 0 ? (
+              <div className="p-8 text-center bg-surface-subtle rounded-2xl border border-border-strong text-text-muted text-sm">
+                No hay noticias disponibles en esta categoría.
+              </div>
+            ) : (
+              (() => {
+                const totalPages = Math.ceil(activeArticles.length / ITEMS_PER_PAGE);
+                const paginatedArticles = activeArticles.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
+
+                return (
+                  <>
+                    {paginatedArticles.map((article: Article) => {
+                      const mainTag = article.tags?.[0];
+                      const category = mainTag?.valor || article.tipoPublicacion || 'General';
+                      const categoryType = (CATEGORY_MAP[mainTag?.tipo] || 'default') as any;
+                      const timeAgo = article.updatedAt ? formatTimeAgo(article.updatedAt) : 'Reciente';
+
+                      return (
+                        <div
+                          key={article.id}
+                          onClick={() => handleOpenArticle(article)}
+                          className="cursor-pointer"
+                        >
+                          <ArticleCard
+                            category={category}
+                            categoryType={categoryType}
+                            timestamp={timeAgo}
+                            title={article.titulo}
+                            excerpt={article.abstractText}
+                            source={article.revista}
+                            matchText="PubMed"
+                            matchVariant="normal"
+                            saved={savedArticles.has(article.id)}
+                            onSave={(e?: React.MouseEvent) => { e?.stopPropagation(); toggleSave(article.id); }}
+                            url={article.url}
+                            extraActions={
+                              // Wrapped in a span that stops propagation so
+                              // clicking "Analizar con IA" does NOT also
+                              // trigger the drawer-open on the parent div.
+                              <span onClick={(e) => e.stopPropagation()}>
+                                <AnalyzeArticleButton
+                                  articleId={article.id}
+                                  articleTitle={article.titulo}
+                                />
+                              </span>
+                            }
+                          />
+                        </div>
+                      );
+                    })}
+                    
+                    {totalPages > 1 && (
+                      <div className="mt-6 mb-2 flex justify-center">
+                        <Pagination
+                          currentPage={currentPage}
+                          totalPages={totalPages}
+                          onPageChange={setCurrentPage}
+                        />
+                      </div>
+                    )}
+                  </>
+                );
+              })()
+            )}
           </div>
         </div>
 
       </main>
 
-      <div className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-50 flex flex-col items-end gap-3">
+      <div className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-30 flex flex-col items-end gap-3">
         {chatOpen && (
           <ChatCard onClose={() => setChatOpen(false)} />
         )}
@@ -195,6 +313,13 @@ export const DoctorDashboardPage: React.FC = () => {
           aria-label={chatOpen ? 'Cerrar MediBot' : 'Abrir MediBot'}
         />
       </div>
+
+      {/* Drawer de detalle de artículo */}
+      <ArticleDetailDrawer
+        article={selectedArticle}
+        onClose={() => setSelectedArticle(null)}
+        isHighEvidence={selectedArticle ? altaEvidenciaIds.has(selectedArticle.id) : false}
+      />
     </>
   );
 };

@@ -13,7 +13,7 @@ const meta: Meta<typeof StatCard> = {
   },
   decorators: [
     (Story) => (
-      <div className="w-52 p-4 bg-background rounded-2xl">
+      <div className="w-72 p-4 bg-background rounded-2xl">
         <Story />
       </div>
     ),
@@ -25,7 +25,52 @@ type Story = StoryObj<typeof StatCard>;
 
 export const Default: Story = {};
 
-export const AlertasCriticas: Story = {
+export const NovedadesKpi: Story = {
+  name: 'Novedades 48h (KPI)',
+  args: {
+    label: 'Novedades 48h',
+    value: 100,
+    icon: <span className="material-symbols-outlined text-xl">bolt</span>,
+    iconBg: 'var(--color-info-subtle)',
+    iconColor: 'var(--color-info)',
+  },
+};
+
+export const PorEspecialidadKpi: Story = {
+  name: 'Por Especialidad (KPI)',
+  args: {
+    label: 'Por Especialidad',
+    value: 42,
+    icon: <span className="material-symbols-outlined text-xl">assignment</span>,
+    iconBg: 'var(--color-success-subtle)',
+    iconColor: 'var(--color-success-strong)',
+  },
+};
+
+export const AltaEvidenciaKpi: Story = {
+  name: 'Alta Evidencia (KPI)',
+  args: {
+    label: 'Alta Evidencia',
+    value: 94,
+    icon: <span className="material-symbols-outlined text-xl">verified</span>,
+    iconBg: 'var(--color-caution-subtle)',
+    iconColor: 'var(--color-caution)',
+  },
+};
+
+export const NoLeidosKpi: Story = {
+  name: 'No Leídos (KPI)',
+  args: {
+    label: 'No Leídos',
+    value: 100,
+    icon: <span className="material-symbols-outlined text-xl">mark_as_unread</span>,
+    iconBg: 'var(--color-danger-subtle)',
+    iconColor: 'var(--color-danger)',
+  },
+};
+
+export const ConBadge: Story = {
+  name: 'Con Badge de alerta',
   args: {
     label: 'Alertas Críticas',
     value: 3,
@@ -35,58 +80,48 @@ export const AlertasCriticas: Story = {
   },
 };
 
-export const Coincidencias: Story = {
+export const ValorCero: Story = {
+  name: 'Valor en cero',
   args: {
-    label: 'Coincidencias',
-    value: 28,
-    icon: <span className="material-symbols-outlined text-xl">people</span>,
+    label: 'Por Especialidad',
+    value: 0,
+    icon: <span className="material-symbols-outlined text-xl">assignment</span>,
+    iconBg: 'var(--color-success-subtle)',
+    iconColor: 'var(--color-success-strong)',
   },
 };
 
-export const CitasConBadge: Story = {
-  args: {
-    label: 'Citas de Hoy',
-    value: 8,
-    badge: 'Prox: 10:00 AM',
-    badgeVariant: 'success',
-    icon: <span className="material-symbols-outlined text-xl">calendar_today</span>,
-  },
-};
-
-export const Pendientes: Story = {
-  args: {
-    label: 'Pendientes',
-    value: 5,
-    icon: <span className="material-symbols-outlined text-xl">pending_actions</span>,
-  },
-};
-
-export const DashboardRow: Story = {
+export const DashboardGrid: Story = {
+  name: 'Grid de Dashboard (2×2)',
   render: () => (
-    <div className="grid grid-cols-4 gap-4 p-4 bg-background rounded-2xl">
+    <div className="grid grid-cols-2 gap-3 p-4 bg-background rounded-2xl w-[520px]">
       <StatCard
-        label="Alertas Críticas"
-        value={3}
-        badge="+2 nuevos"
-        badgeVariant="warning"
-        icon={<span className="material-symbols-outlined text-xl">warning</span>}
+        label="Novedades 48h"
+        value={100}
+        icon={<span className="material-symbols-outlined text-xl">bolt</span>}
+        iconBg="var(--color-info-subtle)"
+        iconColor="var(--color-info)"
       />
       <StatCard
-        label="Coincidencias"
-        value={28}
-        icon={<span className="material-symbols-outlined text-xl">people</span>}
+        label="Por Especialidad"
+        value={0}
+        icon={<span className="material-symbols-outlined text-xl">assignment</span>}
+        iconBg="var(--color-success-subtle)"
+        iconColor="var(--color-success-strong)"
       />
       <StatCard
-        label="Citas de Hoy"
-        value={8}
-        badge="Prox: 10:00 AM"
-        badgeVariant="success"
-        icon={<span className="material-symbols-outlined text-xl">calendar_today</span>}
+        label="Alta Evidencia"
+        value={94}
+        icon={<span className="material-symbols-outlined text-xl">verified</span>}
+        iconBg="var(--color-caution-subtle)"
+        iconColor="var(--color-caution)"
       />
       <StatCard
-        label="Pendientes"
-        value={5}
-        icon={<span className="material-symbols-outlined text-xl">pending_actions</span>}
+        label="No Leídos"
+        value={100}
+        icon={<span className="material-symbols-outlined text-xl">mark_as_unread</span>}
+        iconBg="var(--color-danger-subtle)"
+        iconColor="var(--color-danger)"
       />
     </div>
   ),

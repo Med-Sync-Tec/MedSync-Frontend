@@ -2,6 +2,7 @@ import { useMutation, useQueries, useQuery, useQueryClient } from '@tanstack/rea
 import { ApiError } from '@lib/http/errors';
 import type { Consulta } from '@features/consultations/schemas';
 import {
+  bulkAddPacienteContextos,
   createPacienteContexto,
   createPatient,
   deletePacienteContexto,
@@ -12,6 +13,7 @@ import {
   listPatients,
 } from './api';
 import type {
+  BulkAddPacienteContextoInput,
   CreatePacienteContextoInput,
   CreatePatientInput,
   Expediente,
@@ -86,6 +88,24 @@ export function useCreatePacienteContexto(patientId: string) {
       qc.setQueryData<PacienteContexto[]>(
         patientKeys.contextos(patientId),
         (prev) => (prev ? [created, ...prev] : [created]),
+      );
+    },
+  });
+}
+
+/**
+ * Bulk-add hook used by the consulta-AI review-then-save flow. On success
+ * we prepend the persisted batch into the contextos cache so the panel
+ * updates without a refetch round-trip.
+ */
+export function useBulkAddPacienteContextos(patientId: string) {
+  const qc = useQueryClient();
+  return useMutation<PacienteContexto[], Error, BulkAddPacienteContextoInput>({
+    mutationFn: (input) => bulkAddPacienteContextos(patientId, input),
+    onSuccess: (created) => {
+      qc.setQueryData<PacienteContexto[]>(
+        patientKeys.contextos(patientId),
+        (prev) => (prev ? [...created, ...prev] : created),
       );
     },
   });

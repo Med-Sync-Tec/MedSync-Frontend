@@ -69,9 +69,11 @@ export const LoginPage: React.FC = () => {
   }, []);
 
   return (
-    <div className="bg-gradient-to-br from-slate-50 via-white to-indigo-50/40 dark:bg-background dark:bg-none min-h-[100dvh] sm:h-[100dvh] w-full overflow-hidden flex items-center justify-center p-4 sm:p-6 lg:p-8 transition-colors duration-300">
-      <main className="w-full max-w-[1200px] flex flex-col lg:flex-row bg-surface rounded-3xl sm:rounded-[2.5rem] overflow-hidden shadow-2xl shadow-indigo-200/40 dark:shadow-black/40 h-full max-h-[900px] relative">
-        <div className="w-full lg:w-[58%] flex flex-col p-6 sm:p-8 lg:p-10 xl:px-14 xl:py-6 relative z-10 overflow-hidden">
+    <div className="w-full h-[100dvh] overflow-hidden bg-surface dark:bg-background transition-colors duration-300">
+      <main className="w-full h-full flex flex-col lg:flex-row">
+
+        {/* ── Panel izquierdo: formulario ── */}
+        <div className="w-full lg:w-[58%] h-full flex flex-col p-6 sm:p-8 lg:p-10 xl:px-14 xl:py-6 bg-surface border-r border-border-subtle overflow-hidden">
           <div className="w-full flex items-center justify-between shrink-0 mb-4">
             <div className="flex items-center gap-2.5">
               <div className="w-9 h-9 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center text-white shrink-0 shadow-md shadow-indigo-400/40">
@@ -113,25 +115,26 @@ export const LoginPage: React.FC = () => {
           </div>
         </div>
 
-        <div className="hidden lg:block w-[42%] p-4 pl-0 bg-surface">
-          <div className="h-full w-full rounded-[2.2rem] overflow-hidden relative bg-black flex flex-col justify-end p-10 xl:p-12">
-            <div className="absolute inset-0 z-0">
-              <div className="absolute top-0 right-0 w-[120%] h-[120%] bg-gradient-to-br from-indigo-900 via-blue-900 to-black opacity-90 z-10 pointer-events-none" />
-              <div className="absolute top-[-20%] right-[-20%] w-[80%] h-[80%] bg-blue-600 rounded-full blur-[120px] opacity-40 mix-blend-screen animate-pulse z-10 pointer-events-none" />
-              <div className="absolute bottom-[-10%] left-[-10%] w-[60%] h-[60%] bg-purple-600 rounded-full blur-[100px] opacity-30 mix-blend-screen z-10 pointer-events-none" />
+        {/* ── Panel derecho: carrusel ── */}
+        <div className="hidden lg:block lg:w-[42%] h-full overflow-hidden relative bg-black">
+          <div className="absolute inset-0 z-0">
+            <div className="absolute top-0 right-0 w-[120%] h-[120%] bg-gradient-to-br from-indigo-900 via-blue-900 to-black opacity-90 z-10 pointer-events-none" />
+            <div className="absolute top-[-20%] right-[-20%] w-[80%] h-[80%] bg-blue-600 rounded-full blur-[120px] opacity-40 mix-blend-screen animate-pulse z-10 pointer-events-none" />
+            <div className="absolute bottom-[-10%] left-[-10%] w-[60%] h-[60%] bg-purple-600 rounded-full blur-[100px] opacity-30 mix-blend-screen z-10 pointer-events-none" />
 
-              {SLIDES.map((slide, idx) => (
-                <div
-                  key={`img-${idx}`}
-                  className={`absolute inset-0 bg-cover bg-center transition-opacity duration-1000 ease-in-out ${
-                    currentSlide === idx ? 'opacity-40 z-0' : 'opacity-0 -z-10'
-                  }`}
-                  style={{ backgroundImage: `url('${slide.image}')`, mixBlendMode: 'overlay' }}
-                />
-              ))}
-            </div>
+            {SLIDES.map((slide, idx) => (
+              <div
+                key={`img-${idx}`}
+                className={`absolute inset-0 bg-cover bg-center transition-opacity duration-1000 ease-in-out ${
+                  currentSlide === idx ? 'opacity-40 z-0' : 'opacity-0 -z-10'
+                }`}
+                style={{ backgroundImage: `url('${slide.image}')`, mixBlendMode: 'overlay' }}
+              />
+            ))}
+          </div>
 
-            <div className="relative z-20 w-full mb-5" style={{ height: '185px' }}>
+          <div className="absolute inset-0 z-20 flex flex-col justify-end p-10 xl:p-12">
+            <div className="relative w-full mb-5" style={{ height: '185px' }}>
               {SLIDES.map((slide, idx) => (
                 <div
                   key={`text-${idx}`}
@@ -151,7 +154,7 @@ export const LoginPage: React.FC = () => {
               ))}
             </div>
 
-            <div className="relative z-20 flex gap-2 h-6 items-center">
+            <div className="flex gap-2 h-6 items-center">
               {SLIDES.map((_, idx) => (
                 <button
                   key={`dot-${idx}`}
@@ -166,6 +169,7 @@ export const LoginPage: React.FC = () => {
             </div>
           </div>
         </div>
+
       </main>
     </div>
   );

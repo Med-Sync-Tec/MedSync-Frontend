@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { auth } from '@lib/firebase/client';
 import { apiFetch } from '@lib/http/client';
 import { ApiError } from '@lib/http/errors';
-import { UserRoleSchema, type AuthUser, type UserRole } from './schemas';
+import { UserRoleSchema, type AuthUser, type UserRole, type RegisterInput } from './schemas';
 import { RoleMismatchError } from './errors';
 
 const MeResponseSchema = z.object({
@@ -11,6 +11,7 @@ const MeResponseSchema = z.object({
   nombre: z.string(),
   correo: z.string().email(),
   role: UserRoleSchema,
+  especialidadId: z.string().uuid().nullable().optional(),
   activo: z.boolean(),
   createdAt: z.string().nullable().optional(),
 });
@@ -23,6 +24,7 @@ function toAuthUser(me: MeResponse): AuthUser {
     name: me.nombre,
     email: me.correo,
     role: me.role,
+    especialidadId: me.especialidadId ?? null,
   };
 }
 
@@ -71,4 +73,12 @@ export async function signInWithEmail(
 
 export async function signOutCurrentUser(): Promise<void> {
   await signOut(auth);
+}
+
+export async function registerUser(data: RegisterInput): Promise<void> {
+  await apiFetch<unknown>('/api/auth/register', {
+    method: 'POST',
+    body: { nombre: data.nombre, correo: data.correo, rol: data.rol },
+    auth: false,
+  });
 }
