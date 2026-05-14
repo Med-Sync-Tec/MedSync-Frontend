@@ -18,6 +18,9 @@ export const AuthUserSchema = z.object({
   email: z.string().email(),
   name: z.string(),
   role: UserRoleSchema,
+  // Optional: present once the COO assigns a specialty. Feature 4
+  // (consulta AI) gates analysis on this being non-null.
+  especialidadId: z.string().nullable().optional(),
 });
 
 export type UserRole = z.infer<typeof UserRoleSchema>;

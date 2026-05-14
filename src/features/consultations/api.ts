@@ -1,5 +1,11 @@
 import { apiFetch } from '@lib/http/client';
-import { ConsultaSchema, type Consulta, type CreateConsultaInput } from './schemas';
+import {
+  ConsultaAnalysisResponseSchema,
+  ConsultaSchema,
+  type Consulta,
+  type ConsultaAnalysisResponse,
+  type CreateConsultaInput,
+} from './schemas';
 
 export async function createConsulta(
   patientId: string,
@@ -19,4 +25,18 @@ export async function createConsulta(
     { method: 'POST', body },
   );
   return ConsultaSchema.parse(raw);
+}
+
+/**
+ * Trigger Groq-backed extraction of clinical-context suggestions for a
+ * consulta. Read-only on the backend — nothing is persisted. The caller
+ * surfaces the suggestions in a review panel and uses the bulk
+ * patient-context endpoint to persist the accepted subset.
+ */
+export async function analyzeConsulta(consultaId: string): Promise<ConsultaAnalysisResponse> {
+  const raw = await apiFetch<unknown>(
+    `/api/consultas/${encodeURIComponent(consultaId)}/analyze`,
+    { method: 'POST' },
+  );
+  return ConsultaAnalysisResponseSchema.parse(raw);
 }

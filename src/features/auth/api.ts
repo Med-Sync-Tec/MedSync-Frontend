@@ -11,6 +11,7 @@ const MeResponseSchema = z.object({
   nombre: z.string(),
   correo: z.string().email(),
   role: UserRoleSchema,
+  especialidadId: z.string().uuid().nullable().optional(),
   activo: z.boolean(),
   createdAt: z.string().nullable().optional(),
 });
@@ -23,6 +24,7 @@ function toAuthUser(me: MeResponse): AuthUser {
     name: me.nombre,
     email: me.correo,
     role: me.role,
+    especialidadId: me.especialidadId ?? null,
   };
 }
 

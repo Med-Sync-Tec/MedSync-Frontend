@@ -37,6 +37,12 @@ interface ArticleCardProps {
   url?: string;
   variant?: ArticleCardVariant;
   className?: string;
+  /**
+   * Optional extra action rendered inline with the save bookmark — used by
+   * the dashboard to drop in an "Analyze with AI" button without coupling
+   * this design-system component to the news feature.
+   */
+  extraActions?: React.ReactNode;
 }
 
 /** Botón de guardado con animación bounce + color */
@@ -109,9 +115,12 @@ export const ArticleCard: React.FC<ArticleCardProps> = ({
   matchVariant = 'normal',
   saved = false,
   onSave,
-  url,
+  // `url` stays in the prop type for caller compatibility but is no longer
+  // consumed inside the card — the dashboard's drawer handles opening the
+  // article. Not destructured here to avoid an unused-locals warning.
   variant = 'full',
   className = '',
+  extraActions,
 }) => {
   if (variant === 'compact') {
     return (
@@ -153,7 +162,10 @@ export const ArticleCard: React.FC<ArticleCardProps> = ({
         <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-1">{excerpt}</p>
         <div className="flex items-center justify-between gap-2 mt-0.5">
           <span className="text-xs text-gray-400 font-medium truncate">{source}</span>
-          <BookmarkButton saved={saved} onSave={onSave} />
+          <div className="flex items-center gap-1.5 shrink-0">
+            {extraActions}
+            <BookmarkButton saved={saved} onSave={onSave} />
+          </div>
         </div>
       </div>
     </div>

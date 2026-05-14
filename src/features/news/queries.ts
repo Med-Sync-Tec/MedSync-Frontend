@@ -1,5 +1,14 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getRecentArticles, syncRecentArticles, markArticleAsRead, getSavedArticles, saveArticle, unsaveArticle } from './api';
+import {
+  analyzeArticle,
+  getRecentArticles,
+  getSavedArticles,
+  markArticleAsRead,
+  saveArticle,
+  syncRecentArticles,
+  unsaveArticle,
+} from './api';
+import type { AnalyzeArticleResponse } from './schemas';
 
 export const newsKeys = {
   all: ['news'] as const,
@@ -62,3 +71,18 @@ export const useUnsaveArticle = () => {
   });
 };
 
+/**
+ * Mutation hook for {@code POST /api/articles/{id}/analyze}.
+ *
+ * Invalidates the recent-articles cache on success so the updated tag list
+ * and especialidad are picked up the next time the list refetches.
+ */
+export const useAnalyzeArticle = () => {
+  const queryClient = useQueryClient();
+  return useMutation<AnalyzeArticleResponse, Error, string>({
+    mutationFn: analyzeArticle,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: newsKeys.all });
+    },
+  });
+};
