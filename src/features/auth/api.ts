@@ -76,7 +76,7 @@ export async function signOutCurrentUser(): Promise<void> {
 export async function registerUser(data: RegisterInput): Promise<void> {
   await apiFetch<unknown>('/api/auth/register', {
     method: 'POST',
-    body: { nombre: data.nombre, correo: data.correo, password: data.password, rol: data.rol },
+    body: { nombre: data.nombre, correo: data.correo, rol: data.rol },
     auth: false,
   });
 }
