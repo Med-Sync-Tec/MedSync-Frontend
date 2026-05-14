@@ -6,6 +6,7 @@ import { ChatCard } from '@ui/cards/ChatCard';
 import { FAB } from '@ui/buttons/FAB';
 import { useSyncArticles, useMarkArticleAsRead } from '@features/news/queries';
 import type { Article } from '@features/news/types';
+import { AnalyzeArticleButton } from '@features/news/components/AnalyzeArticleButton';
 import { useDashboardData } from '@features/dashboard/queries';
 import type { DashboardData } from '@features/dashboard/types';
 import { useAuthStore } from '@features/auth/store';
@@ -263,6 +264,17 @@ export const DoctorDashboardPage: React.FC = () => {
                             saved={savedArticles.has(article.id)}
                             onSave={(e?: React.MouseEvent) => { e?.stopPropagation(); toggleSave(article.id); }}
                             url={article.url}
+                            extraActions={
+                              // Wrapped in a span that stops propagation so
+                              // clicking "Analizar con IA" does NOT also
+                              // trigger the drawer-open on the parent div.
+                              <span onClick={(e) => e.stopPropagation()}>
+                                <AnalyzeArticleButton
+                                  articleId={article.id}
+                                  articleTitle={article.titulo}
+                                />
+                              </span>
+                            }
                           />
                         </div>
                       );

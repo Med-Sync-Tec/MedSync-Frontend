@@ -91,6 +91,18 @@ export const CreatePacienteContextoInputSchema = z.object({
     .max(500, 'Máximo 500 caracteres'),
 });
 
+/**
+ * Batch input for {@code POST /api/patients/{id}/contextos/bulk}. The
+ * backend caps {@code entries} at 50 — the frontend mirrors that limit so
+ * users see the validation message client-side instead of a generic 400.
+ */
+export const BulkAddPacienteContextoInputSchema = z.object({
+  entries: z
+    .array(CreatePacienteContextoInputSchema)
+    .min(1, 'Debes seleccionar al menos una entrada')
+    .max(50, 'Máximo 50 entradas por llamada'),
+});
+
 export type Patient = z.infer<typeof PatientSchema>;
 export type Expediente = z.infer<typeof ExpedienteSchema>;
 export type PatientConsultaLite = z.infer<typeof PatientConsultaLiteSchema>;
@@ -99,3 +111,4 @@ export type CreatePatientInput = z.infer<typeof CreatePatientInputSchema>;
 export type ContextoTipo = z.infer<typeof ContextoTipoSchema>;
 export type PacienteContexto = z.infer<typeof PacienteContextoSchema>;
 export type CreatePacienteContextoInput = z.infer<typeof CreatePacienteContextoInputSchema>;
+export type BulkAddPacienteContextoInput = z.infer<typeof BulkAddPacienteContextoInputSchema>;

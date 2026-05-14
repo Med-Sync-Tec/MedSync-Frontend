@@ -87,3 +87,37 @@ export type ConsultationSummary = z.infer<typeof ConsultationSummarySchema>;
 export type Consultation = z.infer<typeof ConsultationSchema>;
 export type Consulta = z.infer<typeof ConsultaSchema>;
 export type CreateConsultaInput = z.infer<typeof CreateConsultaInputSchema>;
+
+/**
+ * Response envelope from {@code POST /api/consultas/{id}/analyze}.
+ *
+ * Mirrors the backend's {@code ConsultaAnalysisResponse}:
+ * - {@code vocabularyStatus === 'EMPTY'} means the doctor's specialty has
+ *   no controlled vocabulary loaded; the LLM was NOT called and
+ *   {@code suggestions} is empty. The frontend renders a guidance card
+ *   ("ask your COO to load a vocabulary").
+ * - {@code suggestions[].tipo} is lowercase ("enfermedad" / "sintoma" / …),
+ *   matching the existing patient-context shape so accepted suggestions
+ *   can be piped straight into the bulk-add endpoint.
+ */
+export const VocabularyStatusSchema = z.enum(['POPULATED', 'EMPTY']);
+
+export const ConsultaSuggestionSchema = z.object({
+  tipo: z.string(),
+  valor: z.string(),
+});
+
+export const ConsultaAnalysisResponseSchema = z.object({
+  consultaId: z.string(),
+  especialidadId: z.string(),
+  especialidadSlug: z.string(),
+  vocabularyStatus: VocabularyStatusSchema,
+  suggestions: z.array(ConsultaSuggestionSchema),
+  modelUsed: z.string(),
+  promptTokens: z.number().int(),
+  completionTokens: z.number().int(),
+});
+
+export type VocabularyStatus = z.infer<typeof VocabularyStatusSchema>;
+export type ConsultaSuggestion = z.infer<typeof ConsultaSuggestionSchema>;
+export type ConsultaAnalysisResponse = z.infer<typeof ConsultaAnalysisResponseSchema>;

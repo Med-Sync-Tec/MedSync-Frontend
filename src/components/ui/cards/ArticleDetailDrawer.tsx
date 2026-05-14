@@ -15,14 +15,6 @@ const CATEGORY_MAP: Record<string, string> = {
   medicamento: 'farmacologia',
 };
 
-const ACCENT_COLOR: Record<string, string> = {
-  cardiologia: '#ef4444',
-  farmacologia: '#a855f7',
-  endocrinologia: '#f97316',
-  infecciosas: '#14b8a6',
-  neurologia: '#6366f1',
-  default: '#6b7280',
-};
 
 const ACCENT_ICON: Record<string, string> = {
   cardiologia: 'favorite',
@@ -64,8 +56,7 @@ export const ArticleDetailDrawer: React.FC<ArticleDetailDrawerProps> = ({ articl
 
   const mainTag    = article.tags?.[0];
   const catKey     = CATEGORY_MAP[mainTag?.tipo ?? ''] || 'default';
-  const accentColor = ACCENT_COLOR[catKey] ?? ACCENT_COLOR.default;
-  const accentIcon  = ACCENT_ICON[catKey]  ?? ACCENT_ICON.default;
+  const accentIcon = ACCENT_ICON[catKey]  ?? ACCENT_ICON.default;
   // Confianza: Alta si el backend lo marcó como alta evidencia,
   // Media si tiene tags clínicos, Baja en otro caso
   const confidenceScore = isHighEvidence ? 3 : (article.tags?.length ?? 0) > 0 ? 1 : 0;
