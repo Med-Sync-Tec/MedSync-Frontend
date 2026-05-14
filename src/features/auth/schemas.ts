@@ -10,8 +10,7 @@ export const LoginCredentialsSchema = z.object({
 export const RegisterSchema = z.object({
   nombre: z.string().min(1, 'El nombre es obligatorio').max(100),
   correo: z.string().min(1, 'Este campo es obligatorio').email('Formato de correo inválido'),
-  password: z.string().min(6, 'Mínimo 6 caracteres').max(100),
-  rol: UserRoleSchema,
+  rol: z.enum(['DOCTOR', 'COO'], { message: 'Selecciona un rol válido' }),
 });
 
 export const AuthUserSchema = z.object({

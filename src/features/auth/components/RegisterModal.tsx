@@ -1,13 +1,15 @@
 import React, { useState } from 'react';
-import { Input, PasswordInput } from '@ui/inputs/Input';
+import { Input } from '@ui/inputs/Input';
 import { Button } from '@ui/buttons/Button';
 import { Alert } from '@ui/feedback/Alert';
 import { RegisterSchema } from '@features/auth/schemas';
-import type { RegisterInput, UserRole } from '@features/auth/schemas';
+import type { RegisterInput } from '@features/auth/schemas';
 import { registerUser } from '@features/auth/api';
 import { describeAuthError } from '@features/auth/errors';
 
-const ROLES: { value: UserRole; label: string }[] = [
+type RegisterRole = 'DOCTOR' | 'COO';
+
+const ROLES: { value: RegisterRole; label: string }[] = [
   { value: 'DOCTOR', label: 'Doctor' },
   { value: 'COO', label: 'COO' },
 ];
@@ -21,8 +23,7 @@ interface RegisterModalProps {
 export const RegisterModal: React.FC<RegisterModalProps> = ({ onClose }) => {
   const [nombre, setNombre] = useState('');
   const [correo, setCorreo] = useState('');
-  const [password, setPassword] = useState('');
-  const [rol, setRol] = useState<UserRole>('DOCTOR');
+  const [rol, setRol] = useState<RegisterRole>('DOCTOR');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
@@ -35,7 +36,7 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({ onClose }) => {
     e.preventDefault();
     setError('');
 
-    const parsed = RegisterSchema.safeParse({ nombre, correo, password, rol });
+    const parsed = RegisterSchema.safeParse({ nombre, correo, rol });
     if (!parsed.success) {
       const fieldErrors: FieldErrors = {};
       for (const issue of parsed.error.issues) {
@@ -75,20 +76,20 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({ onClose }) => {
         <div className="mb-6">
           <h2 className="text-xl font-bold text-gray-900 dark:text-white">Solicitar acceso</h2>
           <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">
-            Completa los datos para crear tu cuenta.
+            Completa los datos para enviar tu solicitud.
           </p>
         </div>
 
         {success ? (
           <div className="text-center space-y-4">
             <div className="w-14 h-14 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center mx-auto">
-              <span className="material-symbols-outlined text-[32px] text-green-600 dark:text-green-400">check_circle</span>
+              <span className="material-symbols-outlined text-[32px] text-green-600 dark:text-green-400">mark_email_read</span>
             </div>
             <p className="text-gray-700 dark:text-gray-300 font-medium">
-              Cuenta creada exitosamente.
+              Solicitud enviada correctamente.
             </p>
             <p className="text-sm text-gray-400 dark:text-gray-500">
-              Ya puedes iniciar sesión con tus credenciales.
+              Un administrador revisará tu solicitud. Si es aprobada, recibirás un correo con un enlace para establecer tu contraseña.
             </p>
             <Button fullWidth onClick={onClose} className="mt-2">
               Cerrar
@@ -118,15 +119,6 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({ onClose }) => {
                 onChange={(e) => { setCorreo(e.target.value); clearFieldError('correo'); }}
                 error={errors.correo}
               />
-              <PasswordInput
-                label="Contraseña"
-                id="reg-password"
-                name="password"
-                placeholder="Mínimo 6 caracteres"
-                value={password}
-                onChange={(e) => { setPassword(e.target.value); clearFieldError('password'); }}
-                error={errors.password}
-              />
               <div className="space-y-1.5">
                 <label htmlFor="reg-rol" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                   Rol
@@ -134,7 +126,7 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({ onClose }) => {
                 <select
                   id="reg-rol"
                   value={rol}
-                  onChange={(e) => { setRol(e.target.value as UserRole); clearFieldError('rol'); }}
+                  onChange={(e) => { setRol(e.target.value as RegisterRole); clearFieldError('rol'); }}
                   className="w-full rounded-lg border border-border-subtle bg-surface px-3 py-2.5 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/30 transition-colors"
                 >
                   {ROLES.map((r) => (
@@ -149,7 +141,7 @@ export const RegisterModal: React.FC<RegisterModalProps> = ({ onClose }) => {
                 isLoading={isLoading}
                 className="py-3 text-sm bg-gradient-to-r from-indigo-600 to-blue-500 hover:from-indigo-700 hover:to-blue-600 shadow-lg shadow-indigo-500/30 border-0 mt-1"
               >
-                {isLoading ? 'Creando cuenta...' : 'Crear cuenta'}
+                {isLoading ? 'Enviando solicitud...' : 'Solicitar acceso'}
               </Button>
             </form>
           </>
