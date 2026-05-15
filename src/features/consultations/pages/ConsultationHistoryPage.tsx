@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
   AlertTriangle,
@@ -15,12 +15,15 @@ import { PatientDetailCard } from '@ui/cards/PatientDetailCard';
 import { ConsultationCard } from '@ui/cards/ConsultationCard';
 import { SOAPModal } from '@ui/feedback/SOAPModal';
 import { ApiError } from '@lib/http/errors';
-import { usePatientDetail } from '@features/patients/queries';
+import { usePatientDetail, usePacienteContextos } from '@features/patients/queries';
 import {
   PatientDetailCardSkeleton,
   ConsultationTimelineSkeleton,
 } from '@features/patients/components/PatientDetailCardSkeleton';
 import { PatientContextosPanel } from '@features/patients/components/PatientContextosPanel';
+import { MatchingArticlesPanel } from '@features/matching/components/MatchingArticlesPanel';
+import { useMatchingArticles } from '@features/matching/queries';
+import { useMatchIntersection } from '@features/matching/useMatchIntersection';
 import type { Consulta, ConsultationSummary } from '@features/consultations/schemas';
 import { AnalyzeConsultaButton } from '@features/consultations/components/AnalyzeConsultaButton';
 
@@ -64,6 +67,38 @@ export const ConsultationHistoryPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<TabId>('historial');
 
   const { data, isLoading, error, refetch } = usePatientDetail(patientId);
+
+  // Parallel reads driving the match indicator system. Kept here (not deeper
+  // down) so the contextos panel and the matching-articles panel consume the
+  // same query results and the derived intersection is computed once.
+  const contextosQ = usePacienteContextos(patientId);
+  const matchingQ = useMatchingArticles(patientId);
+  const intersection = useMatchIntersection(contextosQ.data, matchingQ.data);
+
+  const [selectedTagKeys, setSelectedTagKeys] = useState<ReadonlySet<string>>(
+    () => new Set<string>(),
+  );
+
+  const toggleTagFilter = useCallback((key: string) => {
+    setSelectedTagKeys((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) {
+        next.delete(key);
+      } else {
+        next.add(key);
+      }
+      return next;
+    });
+  }, []);
+
+  const clearTagFilter = useCallback(() => {
+    setSelectedTagKeys((prev) => (prev.size === 0 ? prev : new Set<string>()));
+  }, []);
+
+  const jumpToContextos = useCallback(() => {
+    const el = document.getElementById('patient-contextos');
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, []);
 
   const consultas = useMemo<Consulta[]>(() => data?.consultas ?? [], [data]);
   const sortedConsultations = useMemo(
@@ -175,7 +210,24 @@ export const ConsultationHistoryPage: React.FC = () => {
                   lastActivityAt={data.patient.updatedAt}
                 />
               )}
-              {patientId && <PatientContextosPanel patientId={patientId} />}
+              {patientId && (
+                <PatientContextosPanel
+                  patientId={patientId}
+                  contextoMatchCounts={intersection.contextoMatchCounts}
+                  selectedTagKeys={selectedTagKeys}
+                  onToggleFilter={toggleTagFilter}
+                />
+              )}
+              {patientId && (
+                <MatchingArticlesPanel
+                  patientId={patientId}
+                  contextos={contextosQ.data ?? []}
+                  hasContextoQueryError={Boolean(contextosQ.error)}
+                  selectedTagKeys={selectedTagKeys}
+                  onClearFilter={clearTagFilter}
+                  onJumpToContextos={jumpToContextos}
+                />
+              )}
             </div>
           </aside>
 

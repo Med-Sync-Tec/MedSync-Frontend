@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { matchingKeys } from '@features/matching/queries';
 import {
   analyzeArticle,
   getRecentArticles,
@@ -38,7 +39,6 @@ export const useMarkArticleAsRead = () => {
   return useMutation({
     mutationFn: (articleId: string) => markArticleAsRead(articleId),
     onSuccess: () => {
-      // Invalidar el dashboard para que los "no leídos" se actualicen
       queryClient.invalidateQueries({ queryKey: ['dashboardData'] });
     },
   });
@@ -83,6 +83,8 @@ export const useAnalyzeArticle = () => {
     mutationFn: analyzeArticle,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: newsKeys.all });
+      queryClient.invalidateQueries({ queryKey: ['dashboardData'] });
+      queryClient.invalidateQueries({ queryKey: matchingKeys.all });
     },
   });
 };

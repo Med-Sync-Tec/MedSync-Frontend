@@ -1,5 +1,6 @@
 import { useMutation, useQueries, useQuery, useQueryClient } from '@tanstack/react-query';
 import { ApiError } from '@lib/http/errors';
+import { matchingKeys } from '@features/matching/queries';
 import type { Consulta } from '@features/consultations/schemas';
 import {
   bulkAddPacienteContextos,
@@ -89,6 +90,7 @@ export function useCreatePacienteContexto(patientId: string) {
         patientKeys.contextos(patientId),
         (prev) => (prev ? [created, ...prev] : [created]),
       );
+      void qc.invalidateQueries({ queryKey: matchingKeys.articles(patientId) });
     },
   });
 }
@@ -107,6 +109,10 @@ export function useBulkAddPacienteContextos(patientId: string) {
         patientKeys.contextos(patientId),
         (prev) => (prev ? [...created, ...prev] : created),
       );
+      // Newly-accepted contextos may unlock previously-non-matching articles;
+      // refetch the matching feed so the patient detail panel lights up
+      // without a page reload.
+      void qc.invalidateQueries({ queryKey: matchingKeys.articles(patientId) });
     },
   });
 }
@@ -135,6 +141,7 @@ export function useDeletePacienteContexto(patientId: string) {
     },
     onSettled: () => {
       void qc.invalidateQueries({ queryKey: patientKeys.contextos(patientId) });
+      void qc.invalidateQueries({ queryKey: matchingKeys.articles(patientId) });
     },
   });
 }

@@ -11,6 +11,8 @@ import { useDashboardData } from '@features/dashboard/queries';
 import type { DashboardData } from '@features/dashboard/types';
 import { useAuthStore } from '@features/auth/store';
 import { useSaveArticle, useUnsaveArticle } from '@features/news/queries';
+import { useEspecialidades } from '@features/matching/queries';
+import { specialtyVisualById } from '@features/matching/specialtyVisuals';
 import { RefreshCw } from 'lucide-react';
 import { Pagination } from '@ui/buttons/Pagination';
 
@@ -32,7 +34,6 @@ export const DoctorDashboardPage: React.FC = () => {
   const [selectedArticle, setSelectedArticle] = useState<Article | null>(null);
   const ITEMS_PER_PAGE = 10;
 
-  // Usuario autenticado
   const currentUser = useAuthStore((s) => s.user);
   const greeting = (() => {
     const hour = new Date().getHours();
@@ -42,22 +43,19 @@ export const DoctorDashboardPage: React.FC = () => {
   })();
   const doctorName = currentUser?.name ?? 'Doctor';
 
-  // Consumir el endpoint de KPIs del dashboard
   const { data: dashboardData, isLoading, isError } = useDashboardData();
+  const { byId: especialidadesById } = useEspecialidades();
   const syncMutation = useSyncArticles();
   const markAsReadMutation = useMarkArticleAsRead();
   const saveMutation = useSaveArticle();
   const unsaveMutation = useUnsaveArticle();
 
-  // IDs de artículos de alta evidencia para confianza dinámica
   const altaEvidenciaIds = useMemo(
     () => new Set((dashboardData?.alta_evidencia ?? []).map((a) => a.id)),
     [dashboardData]
   );
 
-  const handleSync = () => {
-    syncMutation.mutate();
-  };
+  const handleSync = () => syncMutation.mutate();
 
   const handleSelectCategory = (cat: keyof DashboardData) => {
     setSelectedCategory(cat);
@@ -72,7 +70,6 @@ export const DoctorDashboardPage: React.FC = () => {
 
   const handleOpenArticle = (article: Article) => {
     setSelectedArticle(article);
-    // Disparar marcar como leído en segundo plano (fire & forget)
     markAsReadMutation.mutate(article.id);
   };
 
@@ -103,11 +100,9 @@ export const DoctorDashboardPage: React.FC = () => {
     return `Hace ${diffDays} días`;
   };
 
-  // Artículos a mostrar según selección o "ver todas"
   const activeArticles = (() => {
     if (!dashboardData) return [];
     if (showAll) {
-      // Unificar todos los artículos sin duplicados
       const seen = new Set<string>();
       const all: Article[] = [];
       for (const cat of Object.values(dashboardData) as Article[][]) {
@@ -139,7 +134,7 @@ export const DoctorDashboardPage: React.FC = () => {
                 <span className="material-symbols-outlined text-[14px]">local_hospital</span>
                 PANEL MÉDICO
               </span>
-          <h1 className="text-xl sm:text-2xl font-bold">{greeting}, {doctorName}</h1>
+              <h1 className="text-xl sm:text-2xl font-bold">{greeting}, {doctorName}</h1>
               <p className="text-blue-100 text-sm mt-1">
                 {new Date().toLocaleDateString('es-MX', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
               </p>
@@ -193,16 +188,16 @@ export const DoctorDashboardPage: React.FC = () => {
 
         <div>
           <div className="flex items-center justify-between mb-4 gap-2">
-              <h2 className="text-base sm:text-lg font-bold text-text-primary">
-                {showAll ? 'Todas las Noticias Médicas' : 'Noticias Médicas Relevantes'}
-              </h2>
+            <h2 className="text-base sm:text-lg font-bold text-text-primary">
+              {showAll ? 'Todas las Noticias Médicas' : 'Noticias Médicas Relevantes'}
+            </h2>
             <div className="flex items-center gap-3">
-              <button 
+              <button
                 onClick={handleSync}
                 disabled={syncMutation.isPending}
                 className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold transition-all shadow-sm border
-                  ${syncMutation.isPending 
-                    ? 'bg-surface-subtle text-text-muted cursor-not-allowed border-border-strong' 
+                  ${syncMutation.isPending
+                    ? 'bg-surface-subtle text-text-muted cursor-not-allowed border-border-strong'
                     : 'bg-white text-primary border-primary/20 hover:bg-primary/5 active:scale-95'}`}
               >
                 <RefreshCw className={`w-3 h-3 ${syncMutation.isPending ? 'animate-spin' : ''}`} />
@@ -221,7 +216,6 @@ export const DoctorDashboardPage: React.FC = () => {
           </div>
           <div className="flex flex-col gap-3">
             {isLoading ? (
-              // Esqueleto de carga simple
               [...Array(3)].map((_, i) => (
                 <div key={i} className="h-32 bg-surface-subtle animate-pulse rounded-2xl border border-border-strong" />
               ))
@@ -242,6 +236,10 @@ export const DoctorDashboardPage: React.FC = () => {
                   <>
                     {paginatedArticles.map((article: Article) => {
                       const mainTag = article.tags?.[0];
+                      const specialtyVisual = specialtyVisualById(
+                        article.especialidadId,
+                        especialidadesById,
+                      );
                       const category = mainTag?.valor || article.tipoPublicacion || 'General';
                       const categoryType = (CATEGORY_MAP[mainTag?.tipo] || 'default') as any;
                       const timeAgo = article.updatedAt ? formatTimeAgo(article.updatedAt) : 'Reciente';
@@ -255,6 +253,9 @@ export const DoctorDashboardPage: React.FC = () => {
                           <ArticleCard
                             category={category}
                             categoryType={categoryType}
+                            specialtyVisual={
+                              article.especialidadId ? specialtyVisual : null
+                            }
                             timestamp={timeAgo}
                             title={article.titulo}
                             excerpt={article.abstractText}
@@ -265,9 +266,6 @@ export const DoctorDashboardPage: React.FC = () => {
                             onSave={(e?: React.MouseEvent) => { e?.stopPropagation(); toggleSave(article.id); }}
                             url={article.url}
                             extraActions={
-                              // Wrapped in a span that stops propagation so
-                              // clicking "Analizar con IA" does NOT also
-                              // trigger the drawer-open on the parent div.
                               <span onClick={(e) => e.stopPropagation()}>
                                 <AnalyzeArticleButton
                                   articleId={article.id}
@@ -279,7 +277,7 @@ export const DoctorDashboardPage: React.FC = () => {
                         </div>
                       );
                     })}
-                    
+
                     {totalPages > 1 && (
                       <div className="mt-6 mb-2 flex justify-center">
                         <Pagination
@@ -314,7 +312,6 @@ export const DoctorDashboardPage: React.FC = () => {
         />
       </div>
 
-      {/* Drawer de detalle de artículo */}
       <ArticleDetailDrawer
         article={selectedArticle}
         onClose={() => setSelectedArticle(null)}
