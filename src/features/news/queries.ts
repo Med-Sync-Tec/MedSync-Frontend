@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { matchingKeys } from '@features/matching/queries';
 import {
   analyzeArticle,
   getRecentArticles,
@@ -83,6 +84,15 @@ export const useAnalyzeArticle = () => {
     mutationFn: analyzeArticle,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: newsKeys.all });
+      // Dashboard tiles read from a separate `dashboardData` query (see
+      // useDashboardData) and so are not covered by newsKeys — invalidate
+      // explicitly so the tile re-renders with the new especialidad/tags
+      // as soon as the analyze modal closes.
+      queryClient.invalidateQueries({ queryKey: ['dashboardData'] });
+      // The just-analyzed article may now match an open patient detail page;
+      // invalidate the whole matching scope so any currently-mounted
+      // matching-articles feed refetches with the fresh tag list.
+      queryClient.invalidateQueries({ queryKey: matchingKeys.all });
     },
   });
 };

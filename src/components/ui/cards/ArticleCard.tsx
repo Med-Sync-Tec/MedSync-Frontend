@@ -1,6 +1,7 @@
 import React from 'react';
 import { CategoryTag } from '../badges/CategoryTag';
 import { MatchTag } from '../badges/MatchTag';
+import type { SpecialtyVisual } from '@features/matching/specialtyVisuals';
 
 type CategoryType = 'cardiologia' | 'farmacologia' | 'endocrinologia' | 'infecciosas' | 'neurologia' | 'default';
 type ArticleCardVariant = 'full' | 'compact';
@@ -43,6 +44,13 @@ interface ArticleCardProps {
    * this design-system component to the news feature.
    */
   extraActions?: React.ReactNode;
+  /**
+   * Optional 16-color specialty palette. When provided it overrides
+   * {@code category}, {@code categoryType} and the sidebar icon so the tile
+   * reflects the article's {@code especialidadId} instead of the legacy
+   * tag-derived bucket.
+   */
+  specialtyVisual?: SpecialtyVisual | null;
 }
 
 /** Botón de guardado con animación bounce + color */
@@ -121,13 +129,28 @@ export const ArticleCard: React.FC<ArticleCardProps> = ({
   variant = 'full',
   className = '',
   extraActions,
+  specialtyVisual,
 }) => {
+  const SpecialtyIcon = specialtyVisual?.Icon ?? null;
+  const sidebarClass = specialtyVisual?.sidebar ?? sidebarColor[categoryType];
+  const headerBadge = specialtyVisual ? (
+    <span
+      className={`inline-flex items-center gap-1 h-6 px-2 rounded-full border text-[11px] font-semibold tracking-tight ${specialtyVisual.badgeBg} ${specialtyVisual.badgeText} ${specialtyVisual.badgeBorder}`}
+      title={specialtyVisual.name}
+    >
+      {SpecialtyIcon && <SpecialtyIcon size={12} strokeWidth={2.2} aria-hidden="true" />}
+      <span className="max-w-[160px] truncate">{specialtyVisual.name}</span>
+    </span>
+  ) : (
+    <CategoryTag label={category} category={categoryType} />
+  );
+
   if (variant === 'compact') {
     return (
       <div className={`flex gap-4 bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-4 shadow-sm hover:shadow-md transition-shadow ${className}`}>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1">
-            <CategoryTag label={category} category={categoryType} />
+            {headerBadge}
             <span className="text-xs text-gray-400">{timestamp}</span>
           </div>
           <h3 className="text-sm font-semibold text-gray-900 dark:text-white line-clamp-2">
@@ -143,15 +166,19 @@ export const ArticleCard: React.FC<ArticleCardProps> = ({
   return (
     <div className={`bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-md transition-shadow overflow-hidden flex items-stretch ${className}`}>
       {/* Colored left strip with icon */}
-      <div className={`shrink-0 w-20 sm:w-24 flex items-center justify-center ${sidebarColor[categoryType]}`}>
-        <span className="material-symbols-outlined text-[26px] text-white">{sidebarIcon[categoryType]}</span>
+      <div className={`shrink-0 w-20 sm:w-24 flex items-center justify-center ${sidebarClass}`}>
+        {SpecialtyIcon ? (
+          <SpecialtyIcon size={26} strokeWidth={2} className="text-white" aria-hidden="true" />
+        ) : (
+          <span className="material-symbols-outlined text-[26px] text-white">{sidebarIcon[categoryType]}</span>
+        )}
       </div>
 
       {/* Content */}
       <div className="flex-1 min-w-0 flex flex-col py-3 px-4 sm:py-3.5 sm:px-5 gap-1.5">
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-2 min-w-0">
-            <CategoryTag label={category} category={categoryType} />
+            {headerBadge}
             <span className="text-xs text-gray-400 shrink-0">{timestamp}</span>
           </div>
           {matchText && <MatchTag text={matchText} variant={matchVariant} />}

@@ -17,6 +17,7 @@ export interface Article {
   keywords: string;
   tipoPublicacion: string;
   url: string;
+  especialidadId: string | null;
   tags: ArticleTag[];
   createdAt: string;
   updatedAt: string;

@@ -11,6 +11,8 @@ import { useDashboardData } from '@features/dashboard/queries';
 import type { DashboardData } from '@features/dashboard/types';
 import { useAuthStore } from '@features/auth/store';
 import { useSaveArticle, useUnsaveArticle } from '@features/news/queries';
+import { useEspecialidades } from '@features/matching/queries';
+import { specialtyVisualById } from '@features/matching/specialtyVisuals';
 import { RefreshCw } from 'lucide-react';
 import { Pagination } from '@ui/buttons/Pagination';
 
@@ -44,6 +46,7 @@ export const DoctorDashboardPage: React.FC = () => {
 
   // Consumir el endpoint de KPIs del dashboard
   const { data: dashboardData, isLoading, isError } = useDashboardData();
+  const { byId: especialidadesById } = useEspecialidades();
   const syncMutation = useSyncArticles();
   const markAsReadMutation = useMarkArticleAsRead();
   const saveMutation = useSaveArticle();
@@ -242,6 +245,11 @@ export const DoctorDashboardPage: React.FC = () => {
                   <>
                     {paginatedArticles.map((article: Article) => {
                       const mainTag = article.tags?.[0];
+                      const specialtyVisual = specialtyVisualById(
+                        article.especialidadId,
+                        especialidadesById,
+                      );
+                      // Legacy fallback label (used only if the article has no especialidad).
                       const category = mainTag?.valor || article.tipoPublicacion || 'General';
                       const categoryType = (CATEGORY_MAP[mainTag?.tipo] || 'default') as any;
                       const timeAgo = article.updatedAt ? formatTimeAgo(article.updatedAt) : 'Reciente';
@@ -255,6 +263,9 @@ export const DoctorDashboardPage: React.FC = () => {
                           <ArticleCard
                             category={category}
                             categoryType={categoryType}
+                            specialtyVisual={
+                              article.especialidadId ? specialtyVisual : null
+                            }
                             timestamp={timeAgo}
                             title={article.titulo}
                             excerpt={article.abstractText}

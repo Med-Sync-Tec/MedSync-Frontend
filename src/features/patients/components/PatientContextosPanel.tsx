@@ -1,30 +1,24 @@
 import React, { useMemo, useState } from 'react';
-import { AlertTriangle, Plus, Stethoscope, X } from 'lucide-react';
+import { AlertTriangle, Link2, Plus, Stethoscope, X } from 'lucide-react';
 import { ApiError } from '@lib/http/errors';
 import {
   useDeletePacienteContexto,
   usePacienteContextos,
 } from '@features/patients/queries';
 import type { ContextoTipo, PacienteContexto } from '@features/patients/schemas';
+import { matchKey } from '@features/matching/useMatchIntersection';
+import { TIPO_PALETTES, TIPO_ORDER } from '@features/matching/palette';
 import { NewContextoModal } from './NewContextoModal';
 
 interface PatientContextosPanelProps {
   patientId: string;
+  /** Per-contexto count of matching articles (from {@code useMatchIntersection}). */
+  contextoMatchCounts?: Map<string, number>;
+  /** Active filter set keyed by `${tipo}::${valor.toLowerCase()}`. */
+  selectedTagKeys?: ReadonlySet<string>;
+  /** Toggle a contexto's tag key in the filter set (multi-select AND). */
+  onToggleFilter?: (key: string) => void;
 }
-
-const TIPO_LABELS: Record<ContextoTipo, string> = {
-  enfermedad: 'Enfermedad',
-  sintoma: 'Síntoma',
-  tratamiento: 'Tratamiento',
-  medicamento: 'Medicamento',
-};
-
-const TIPO_STYLES: Record<ContextoTipo, string> = {
-  enfermedad: 'bg-danger/10 text-danger border-danger/20',
-  sintoma: 'bg-amber-100 text-amber-700 border-amber-200',
-  tratamiento: 'bg-primary-subtle text-primary border-primary/20',
-  medicamento: 'bg-emerald-100 text-emerald-700 border-emerald-200',
-};
 
 type Grouped = Record<ContextoTipo, PacienteContexto[]>;
 
@@ -50,6 +44,9 @@ function groupByTipo(items: PacienteContexto[]): Grouped {
 
 export const PatientContextosPanel: React.FC<PatientContextosPanelProps> = ({
   patientId,
+  contextoMatchCounts,
+  selectedTagKeys,
+  onToggleFilter,
 }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { data, isLoading, error, refetch } = usePacienteContextos(patientId);
@@ -70,6 +67,7 @@ export const PatientContextosPanel: React.FC<PatientContextosPanelProps> = ({
     <section
       aria-labelledby="patient-contextos-title"
       className="rounded-2xl border border-border-subtle bg-surface shadow-card overflow-hidden"
+      id="patient-contextos"
     >
       <header className="px-5 pt-4 pb-3 border-b border-border-subtle flex items-center justify-between gap-2">
         <div className="flex items-center gap-2 min-w-0">
@@ -110,18 +108,27 @@ export const PatientContextosPanel: React.FC<PatientContextosPanelProps> = ({
           <EmptyState />
         ) : (
           <div className="space-y-3">
-            {(Object.keys(grouped) as ContextoTipo[])
-              .filter((tipo) => grouped[tipo].length > 0)
-              .map((tipo) => (
-                <div key={tipo}>
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-text-subtle mb-1.5">
-                    {TIPO_LABELS[tipo]}
-                  </p>
-                  <ul className="flex flex-wrap gap-1.5">
-                    {grouped[tipo].map((ctx) => (
+            {TIPO_ORDER.filter((tipo) => grouped[tipo].length > 0).map((tipo) => (
+              <div key={tipo}>
+                <p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-text-subtle mb-1.5 flex items-center gap-1.5">
+                  <span
+                    aria-hidden="true"
+                    className={`inline-block w-1.5 h-1.5 rounded-full ${TIPO_PALETTES[tipo].dot}`}
+                  />
+                  {TIPO_PALETTES[tipo].label}
+                </p>
+                <ul className="flex flex-wrap gap-1.5">
+                  {grouped[tipo].map((ctx) => {
+                    const key = matchKey(ctx.tipo, ctx.valor);
+                    const matchCount = contextoMatchCounts?.get(ctx.id) ?? 0;
+                    const selected = selectedTagKeys?.has(key) ?? false;
+                    return (
                       <li key={ctx.id}>
-                        <Chip
+                        <ContextoChip
                           contexto={ctx}
+                          matchCount={matchCount}
+                          selected={selected}
+                          onToggleFilter={onToggleFilter ? () => onToggleFilter(key) : undefined}
                           onDelete={() => handleDelete(ctx.id)}
                           isDeleting={
                             deleteMutation.isPending &&
@@ -129,10 +136,11 @@ export const PatientContextosPanel: React.FC<PatientContextosPanelProps> = ({
                           }
                         />
                       </li>
-                    ))}
-                  </ul>
-                </div>
-              ))}
+                    );
+                  })}
+                </ul>
+              </div>
+            ))}
           </div>
         )}
       </div>
@@ -146,32 +154,104 @@ export const PatientContextosPanel: React.FC<PatientContextosPanelProps> = ({
   );
 };
 
-interface ChipProps {
+interface ContextoChipProps {
   contexto: PacienteContexto;
+  matchCount: number;
+  selected: boolean;
+  onToggleFilter?: () => void;
   onDelete: () => void;
   isDeleting: boolean;
 }
 
-const Chip: React.FC<ChipProps> = ({ contexto, onDelete, isDeleting }) => (
-  <span
-    className={`inline-flex items-center gap-1 pl-2 pr-1 py-0.5 rounded-full border text-[11px] font-medium tracking-tight ${TIPO_STYLES[contexto.tipo]} ${
-      isDeleting ? 'opacity-50' : ''
-    }`}
-  >
-    <span className="max-w-[180px] truncate" title={contexto.valor}>
-      {contexto.valor}
-    </span>
-    <button
-      type="button"
-      onClick={onDelete}
-      disabled={isDeleting}
-      aria-label={`Eliminar ${TIPO_LABELS[contexto.tipo].toLowerCase()}: ${contexto.valor}`}
-      className="inline-flex items-center justify-center w-4 h-4 rounded-full hover:bg-text-primary/10 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring disabled:cursor-not-allowed"
+/**
+ * Compound chip: the body acts as a filter toggle when {@code onToggleFilter}
+ * is supplied, and the trailing X always deletes. We split click targets so
+ * a user filtering by tag does not accidentally delete a clinical record.
+ */
+const ContextoChip: React.FC<ContextoChipProps> = ({
+  contexto,
+  matchCount,
+  selected,
+  onToggleFilter,
+  onDelete,
+  isDeleting,
+}) => {
+  const palette = TIPO_PALETTES[contexto.tipo];
+  const hasMatches = matchCount > 0;
+  const colorClass = hasMatches ? palette.active : palette.muted;
+  const mutedExtra = hasMatches ? '' : 'opacity-70';
+  const ringClass = selected
+    ? 'ring-2 ring-offset-1 ring-offset-surface ring-text-primary/60'
+    : '';
+  const filterable = Boolean(onToggleFilter && hasMatches);
+
+  return (
+    <span
+      className={`group relative inline-flex items-center gap-1 pl-2 pr-1 py-0.5 rounded-full border text-[11px] font-medium tracking-tight ${colorClass} ${mutedExtra} ${ringClass} ${
+        isDeleting ? 'opacity-50' : ''
+      }`}
     >
-      <X size={10} strokeWidth={2.5} aria-hidden="true" />
-    </button>
-  </span>
-);
+      {hasMatches && (
+        <Link2
+          size={11}
+          strokeWidth={2.5}
+          aria-hidden="true"
+          className="shrink-0"
+        />
+      )}
+      {filterable ? (
+        <button
+          type="button"
+          onClick={onToggleFilter}
+          aria-pressed={selected}
+          aria-label={
+            selected
+              ? `Quitar filtro: ${contexto.valor}`
+              : `Filtrar artículos por: ${contexto.valor}`
+          }
+          className="max-w-[180px] truncate focus:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring rounded-sm"
+          title={`Aparece en ${matchCount} ${
+            matchCount === 1 ? 'artículo relevante' : 'artículos relevantes'
+          }.`}
+        >
+          {contexto.valor}
+        </button>
+      ) : (
+        <span
+          className="max-w-[180px] truncate"
+          title={
+            hasMatches
+              ? `Aparece en ${matchCount} ${
+                  matchCount === 1 ? 'artículo relevante' : 'artículos relevantes'
+                }.`
+              : contexto.valor
+          }
+        >
+          {contexto.valor}
+        </span>
+      )}
+      {hasMatches && (
+        <span
+          className={`shrink-0 inline-flex items-center gap-0.5 text-[10px] font-mono font-semibold tabular-nums ${
+            colorClass.includes('text-white') ? 'text-white/90' : 'text-text-muted'
+          }`}
+          aria-label={`Aparece en ${matchCount} artículos relevantes`}
+        >
+          ×{matchCount}
+        </span>
+      )}
+      <button
+        type="button"
+        onClick={onDelete}
+        disabled={isDeleting}
+        aria-label={`Eliminar ${palette.label.toLowerCase()}: ${contexto.valor}`}
+        className="inline-flex items-center justify-center w-4 h-4 rounded-full hover:bg-black/10 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring disabled:cursor-not-allowed"
+      >
+        <X size={10} strokeWidth={2.5} aria-hidden="true" />
+      </button>
+    </span>
+  );
+};
 
 const EmptyState: React.FC = () => (
   <div className="text-center py-2">
