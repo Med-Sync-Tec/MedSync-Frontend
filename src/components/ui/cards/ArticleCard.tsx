@@ -76,7 +76,6 @@ const BookmarkButton: React.FC<{
       `}
       style={{ WebkitTapHighlightColor: 'transparent' }}
     >
-      {/* Ripple ring on save */}
       {saved && (
         <span
           className="absolute inset-0 rounded-full border-2 border-amber-400 opacity-0"
@@ -165,7 +164,6 @@ export const ArticleCard: React.FC<ArticleCardProps> = ({
 
   return (
     <div className={`bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-md transition-shadow overflow-hidden flex items-stretch ${className}`}>
-      {/* Colored left strip with icon */}
       <div className={`shrink-0 w-20 sm:w-24 flex items-center justify-center ${sidebarClass}`}>
         {SpecialtyIcon ? (
           <SpecialtyIcon size={26} strokeWidth={2} className="text-white" aria-hidden="true" />
@@ -174,7 +172,6 @@ export const ArticleCard: React.FC<ArticleCardProps> = ({
         )}
       </div>
 
-      {/* Content */}
       <div className="flex-1 min-w-0 flex flex-col py-3 px-4 sm:py-3.5 sm:px-5 gap-1.5">
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-2 min-w-0">
