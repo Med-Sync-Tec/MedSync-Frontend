@@ -6,6 +6,7 @@ import { ErrorBoundary } from './ErrorBoundary';
 function resolveActiveNav(pathname: string): string | undefined {
   if (pathname.startsWith('/coo/dashboard')) return 'Inicio';
   if (pathname.startsWith('/coo/inventory')) return 'Inventario';
+  if (pathname.startsWith('/coo/doctors')) return 'Médicos';
   if (pathname.startsWith('/coo/reports')) return 'Reportes';
   return undefined;
 }

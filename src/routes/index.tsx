@@ -8,6 +8,7 @@ import { PatientsListPage } from '@features/patients/pages/PatientsListPage';
 import { SavedNewsPage } from '@features/news/pages/SavedNewsPage';
 import { CooDashboardPage } from '@features/coo/pages/CooDashboardPage';
 import { InventoryPage } from '@features/inventory/pages/InventoryPage';
+import { CreateDoctorPage } from '@features/admin';
 import { NotFoundPage } from './NotFoundPage';
 import { RequireAuth } from './RequireAuth';
 import { RedirectIfAuth } from './RedirectIfAuth';
@@ -49,6 +50,7 @@ export const routes: RouteObject[] = [
     children: [
       { path: '/coo/dashboard', element: <CooDashboardPage /> },
       { path: '/coo/inventory', element: <InventoryPage /> },
+      { path: '/coo/doctors/new', element: <CreateDoctorPage /> },
     ],
   },
   { path: '/404', element: <NotFoundPage /> },
