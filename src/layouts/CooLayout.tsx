@@ -5,9 +5,11 @@ import { ErrorBoundary } from './ErrorBoundary';
 
 function resolveActiveNav(pathname: string): string | undefined {
   if (pathname.startsWith('/coo/dashboard')) return 'Inicio';
+  if (pathname.startsWith('/coo/medication-news')) return 'Por Medicamento';
+  if (pathname.startsWith('/coo/saved-news')) return 'Guardadas';
+  if (pathname.startsWith('/coo/news')) return 'Noticias';
   if (pathname.startsWith('/coo/inventory')) return 'Inventario';
   if (pathname.startsWith('/coo/doctors')) return 'Médicos';
-  if (pathname.startsWith('/coo/reports')) return 'Reportes';
   return undefined;
 }
 

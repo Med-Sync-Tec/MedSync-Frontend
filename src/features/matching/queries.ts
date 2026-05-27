@@ -1,11 +1,12 @@
 import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { getMatchingArticles, listEspecialidades } from './api';
+import { getCooMatchingArticles, getMatchingArticles, listEspecialidades } from './api';
 import type { Especialidad, MatchingArticle } from './schemas';
 
 export const matchingKeys = {
   all: ['matching'] as const,
   articles: (patientId: string) => [...matchingKeys.all, 'articles', patientId] as const,
+  cooArticles: () => [...matchingKeys.all, 'coo-articles'] as const,
   especialidades: () => [...matchingKeys.all, 'especialidades'] as const,
 };
 
@@ -14,6 +15,18 @@ export function useMatchingArticles(patientId: string | undefined) {
     queryKey: matchingKeys.articles(patientId ?? ''),
     queryFn: () => getMatchingArticles(patientId as string),
     enabled: Boolean(patientId),
+  });
+}
+
+/**
+ * COO-scoped matching feed: articles whose MEDICAMENTO tag hits the catalog.
+ * Lives under {@code matchingKeys.all} so {@code useAnalyzeArticle} invalidates
+ * it too — analyzing an article lights up new medication matches without a reload.
+ */
+export function useCooMatchingArticles() {
+  return useQuery<MatchingArticle[]>({
+    queryKey: matchingKeys.cooArticles(),
+    queryFn: () => getCooMatchingArticles(),
   });
 }
 
