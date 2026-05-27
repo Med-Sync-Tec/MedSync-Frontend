@@ -7,6 +7,8 @@ import { DoctorDashboardPage } from '@features/doctor';
 import { PatientsListPage } from '@features/patients/pages/PatientsListPage';
 import { SavedNewsPage } from '@features/news/pages/SavedNewsPage';
 import { CooDashboardPage } from '@features/coo/pages/CooDashboardPage';
+import { CooNewsPage } from '@features/coo/pages/CooNewsPage';
+import { MedicationNewsPage } from '@features/coo/pages/MedicationNewsPage';
 import { InventoryPage } from '@features/inventory/pages/InventoryPage';
 import { CreateDoctorPage } from '@features/admin';
 import { NotFoundPage } from './NotFoundPage';
@@ -49,6 +51,9 @@ export const routes: RouteObject[] = [
     ),
     children: [
       { path: '/coo/dashboard', element: <CooDashboardPage /> },
+      { path: '/coo/news', element: <CooNewsPage /> },
+      { path: '/coo/medication-news', element: <MedicationNewsPage /> },
+      { path: '/coo/saved-news', element: <SavedNewsPage /> },
       { path: '/coo/inventory', element: <InventoryPage /> },
       { path: '/coo/doctors/new', element: <CreateDoctorPage /> },
     ],
