@@ -42,11 +42,20 @@ export const MatchingArticleCard: React.FC<MatchingArticleCardProps> = ({
   const SpecialtyIcon = specialtyVisual?.Icon ?? Sparkles;
 
   return (
-    <article className="rounded-xl border border-border-subtle bg-surface shadow-card overflow-hidden flex">
+    <article className="relative rounded-xl border border-border-subtle bg-surface shadow-card overflow-hidden flex transition-colors transition-shadow hover:border-primary/40 hover:shadow-md focus-within:border-primary/40">
+      {article.url && (
+        <a
+          href={article.url}
+          target="_blank"
+          rel="noreferrer noopener"
+          aria-label={`Abrir artículo: ${article.titulo}`}
+          className="absolute inset-0 z-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring rounded-xl"
+        />
+      )}
       {specialtyVisual && (
         <div
           aria-hidden="true"
-          className={`shrink-0 w-1.5 ${specialtyVisual.sidebar}`}
+          className={`relative z-[1] shrink-0 w-1.5 ${specialtyVisual.sidebar}`}
         />
       )}
       <div className="flex-1 min-w-0 flex flex-col">
@@ -78,7 +87,7 @@ export const MatchingArticleCard: React.FC<MatchingArticleCardProps> = ({
           <button
             type="button"
             onClick={() => onOpenExplain(article.id)}
-            className={`shrink-0 inline-flex items-center gap-1 rounded-full border px-2 h-6 text-[11px] font-semibold tracking-tight transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring ${
+            className={`relative z-10 shrink-0 inline-flex items-center gap-1 rounded-full border px-2 h-6 text-[11px] font-semibold tracking-tight transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring ${
               onlySpecialty
                 ? 'border-border-subtle bg-surface-muted text-text-muted hover:bg-surface'
                 : 'border-primary/30 bg-primary-subtle text-primary hover:bg-primary/15'
@@ -124,15 +133,13 @@ export const MatchingArticleCard: React.FC<MatchingArticleCardProps> = ({
           <span className="text-[11px] text-text-muted tracking-tight truncate">
             {article.doi ? `DOI ${article.doi}` : (article.tipoPublicacion ?? '')}
           </span>
-          <a
-            href={article.url}
-            target="_blank"
-            rel="noreferrer noopener"
-            className="inline-flex items-center gap-1 text-[11px] font-medium text-primary hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring rounded"
+          <span
+            aria-hidden="true"
+            className="inline-flex items-center gap-1 text-[11px] font-medium text-primary"
           >
             Abrir
             <ExternalLink size={11} strokeWidth={2} aria-hidden="true" />
-          </a>
+          </span>
         </footer>
       )}
       </div>
