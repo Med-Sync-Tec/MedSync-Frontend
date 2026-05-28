@@ -1,41 +1,28 @@
-import React, { useState } from 'react';
+import React from 'react';
+import type { MediBotMessage } from '@features/chat/hooks/useMediBot';
 import { ChatInput } from '../inputs/ChatInput';
 
-interface ChatMessage {
-  id: string;
-  role: 'user' | 'bot';
-  text: string;
-}
-
 interface ChatCardProps {
-  title?: string;
-  initialMessages?: ChatMessage[];
+  messages: MediBotMessage[];
+  isLoading?: boolean;
   onClose?: () => void;
-  onSend?: (message: string) => void;
+  onSend: (message: string) => void;
   className?: string;
 }
 
 export const ChatCard: React.FC<ChatCardProps> = ({
-  title = 'MediBot IA',
-  initialMessages = [],
+  messages,
+  isLoading = false,
   onClose,
   onSend,
   className = '',
 }) => {
-  const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
-
-  const handleSend = (text: string) => {
-    const userMsg: ChatMessage = { id: Date.now().toString(), role: 'user', text };
-    setMessages((prev) => [...prev, userMsg]);
-    onSend?.(text);
-  };
-
   return (
     <div className={`w-[calc(100vw-3rem)] max-w-[320px] sm:w-80 bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border border-gray-100 dark:border-gray-700 flex flex-col overflow-hidden ${className}`}>
       <div className="flex items-center justify-between px-4 py-3 bg-accent text-white">
         <div className="flex items-center gap-2">
           <span className="material-symbols-outlined text-lg">smart_toy</span>
-          <span className="text-sm font-bold">{title}</span>
+          <span className="text-sm font-bold">MediBot IA</span>
         </div>
         {onClose && (
           <button
@@ -50,7 +37,7 @@ export const ChatCard: React.FC<ChatCardProps> = ({
       </div>
 
       <div className="flex-1 overflow-y-auto p-4 space-y-3 min-h-[200px] max-h-72">
-        {messages.length === 0 && (
+        {messages.length === 0 && !isLoading && (
           <p className="text-xs text-gray-400 text-center mt-4">
             Hola, soy MediBot. ¿En qué puedo ayudarte?
           </p>
@@ -71,10 +58,21 @@ export const ChatCard: React.FC<ChatCardProps> = ({
             </div>
           </div>
         ))}
+        {isLoading && (
+          <div className="flex justify-start">
+            <div
+              role="status"
+              aria-label="MediBot está escribiendo"
+              className="bg-gray-100 dark:bg-gray-700 px-3 py-2 rounded-2xl rounded-bl-sm text-gray-500 dark:text-gray-400 text-sm"
+            >
+              ···
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="p-3 border-t border-gray-100 dark:border-gray-700">
-        <ChatInput onSend={handleSend} />
+        <ChatInput onSend={onSend} disabled={isLoading} />
       </div>
     </div>
   );
