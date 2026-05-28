@@ -2,8 +2,6 @@ import React, { useState, useMemo } from 'react';
 import { StatCard } from '@ui/cards/StatCard';
 import { ArticleCard } from '@ui/cards/ArticleCard';
 import { ArticleDetailDrawer } from '@ui/cards/ArticleDetailDrawer';
-import { ChatCard } from '@ui/cards/ChatCard';
-import { FAB } from '@ui/buttons/FAB';
 import { useSyncArticles, useMarkArticleAsRead } from '@features/news/queries';
 import type { Article } from '@features/news/types';
 import { AnalyzeArticleButton } from '@features/news/components/AnalyzeArticleButton';
@@ -26,7 +24,6 @@ const CATEGORY_MAP: Record<string, string> = {
 };
 
 export const DoctorDashboardPage: React.FC = () => {
-  const [chatOpen, setChatOpen] = useState(false);
   const [savedArticles, setSavedArticles] = useState<Set<string>>(new Set());
   const [selectedCategory, setSelectedCategory] = useState<keyof DashboardData>('novedades_48h');
   const [showAll, setShowAll] = useState(false);
@@ -295,22 +292,6 @@ export const DoctorDashboardPage: React.FC = () => {
         </div>
 
       </main>
-
-      <div className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-30 flex flex-col items-end gap-3">
-        {chatOpen && (
-          <ChatCard onClose={() => setChatOpen(false)} />
-        )}
-        <FAB
-          label={chatOpen ? '' : 'MediBot IA'}
-          icon={
-            chatOpen
-              ? <span className="material-symbols-outlined text-2xl">close</span>
-              : <span className="material-symbols-outlined text-2xl">smart_toy</span>
-          }
-          onClick={() => setChatOpen((prev) => !prev)}
-          aria-label={chatOpen ? 'Cerrar MediBot' : 'Abrir MediBot'}
-        />
-      </div>
 
       <ArticleDetailDrawer
         article={selectedArticle}
