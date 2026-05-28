@@ -7,12 +7,6 @@ export const LoginCredentialsSchema = z.object({
   password: z.string().min(1, 'Este campo es obligatorio'),
 });
 
-export const RegisterSchema = z.object({
-  nombre: z.string().min(1, 'El nombre es obligatorio').max(100),
-  correo: z.string().min(1, 'Este campo es obligatorio').email('Formato de correo inválido'),
-  rol: z.enum(['DOCTOR', 'COO'], { message: 'Selecciona un rol válido' }),
-});
-
 export const AuthUserSchema = z.object({
   id: z.string(),
   email: z.string().email(),
@@ -26,4 +20,3 @@ export const AuthUserSchema = z.object({
 export type UserRole = z.infer<typeof UserRoleSchema>;
 export type LoginCredentials = z.infer<typeof LoginCredentialsSchema>;
 export type AuthUser = z.infer<typeof AuthUserSchema>;
-export type RegisterInput = z.infer<typeof RegisterSchema>;
