@@ -36,7 +36,6 @@ const NAV_LINKS: Record<HeaderRole, NavLink[]> = {
   ],
   coo: [
     { label: 'Inicio', href: '/coo/dashboard' },
-    { label: 'Noticias', href: '/coo/news' },
     { label: 'Por Medicamento', href: '/coo/medication-news' },
     { label: 'Guardadas', href: '/coo/saved-news' },
     { label: 'Inventario', href: '/coo/inventory' },
