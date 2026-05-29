@@ -1,10 +1,13 @@
-import { apiFetch } from '@lib/http/client';
+import { apiFetch, http } from '@lib/http/client';
+import { auth } from '@lib/firebase/client';
 import {
   ConsultaAnalysisResponseSchema,
   ConsultaSchema,
+  SOAPDictationResultSchema,
   type Consulta,
   type ConsultaAnalysisResponse,
   type CreateConsultaInput,
+  type SOAPDictationResult,
 } from './schemas';
 
 export async function createConsulta(
@@ -33,6 +36,16 @@ export async function createConsulta(
  * surfaces the suggestions in a review panel and uses the bulk
  * patient-context endpoint to persist the accepted subset.
  */
+export async function sendDictation(audio: Blob): Promise<SOAPDictationResult> {
+  const formData = new FormData();
+  formData.append('audio', audio, 'dictation.webm');
+  const token = await auth.currentUser?.getIdToken();
+  const response = await http.post<unknown>('/api/soap/dictation', formData, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return SOAPDictationResultSchema.parse(response.data);
+}
+
 export async function analyzeConsulta(consultaId: string): Promise<ConsultaAnalysisResponse> {
   const raw = await apiFetch<unknown>(
     `/api/consultas/${encodeURIComponent(consultaId)}/analyze`,
