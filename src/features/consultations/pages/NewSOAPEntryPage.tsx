@@ -11,7 +11,9 @@ import { useCreateConsulta } from '@features/consultations/queries';
 import {
   CreateConsultaInputSchema,
   type CreateConsultaInput,
+  type SOAPDictationResult,
 } from '@features/consultations/schemas';
+import { DictationButton } from '@features/consultations/components/DictationButton';
 
 type FormState = {
   fecha: string;
@@ -208,6 +210,24 @@ export const NewSOAPEntryPage: React.FC = () => {
         </div>
 
         <div className="space-y-6">
+          <DictationButton
+            onResult={(fields: SOAPDictationResult) => {
+              const fieldMap: Array<[keyof SOAPDictationResult, keyof FormState]> = [
+                ['motivoConsulta', 'motivoConsulta'],
+                ['subjetivo', 'subjetivo'],
+                ['objetivo', 'objetivo'],
+                ['evaluacion', 'evaluacion'],
+                ['diagnostico', 'diagnostico'],
+                ['plan', 'plan'],
+                ['prescripcion', 'prescripcion'],
+              ];
+              fieldMap.forEach(([src, dest]) => {
+                const value = fields[src];
+                if (value) update(dest, value);
+              });
+            }}
+          />
+
           <SOAPSection letter="S" title="Subjetivo" subtitle="Motivo y sintomatología">
             <div className="space-y-4">
               <Input
