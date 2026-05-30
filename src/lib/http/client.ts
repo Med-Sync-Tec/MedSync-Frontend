@@ -15,6 +15,7 @@ interface RequestOptions {
 const BASE_URL = env.VITE_API_BASE_URL.replace(/\/$/, '');
 
 async function getIdTokenOrNull(): Promise<string | null> {
+  await auth.authStateReady();
   const user = auth.currentUser;
   if (!user) return null;
   return user.getIdToken();

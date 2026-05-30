@@ -183,7 +183,7 @@ export const CooDashboardPage: React.FC = () => {
                     <ArticleCard
                       category={category}
                       categoryType={categoryType}
-                      specialtyVisual={article.especialidadId ? specialtyVisual : null}
+                      specialtyVisual={specialtyVisual}
                       timestamp={timeAgo}
                       title={article.titulo}
                       excerpt={article.abstractText}
