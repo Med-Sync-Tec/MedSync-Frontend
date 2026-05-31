@@ -1,5 +1,7 @@
 import React, { useEffect } from 'react';
 import type { Article } from '@features/news/types';
+import { useEspecialidades } from '@features/matching/queries';
+import { specialtyVisualById } from '@features/matching/specialtyVisuals';
 
 interface ArticleDetailDrawerProps {
   article: Article | null;
@@ -39,6 +41,8 @@ function getConfidence(score: number): { label: string; color: string; bg: strin
 }
 
 export const ArticleDetailDrawer: React.FC<ArticleDetailDrawerProps> = ({ article, onClose, isHighEvidence = false }) => {
+  const { byId: especialidadesById } = useEspecialidades();
+
   // Cerrar con Escape
   useEffect(() => {
     const fn = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
@@ -54,9 +58,12 @@ export const ArticleDetailDrawer: React.FC<ArticleDetailDrawerProps> = ({ articl
 
   if (!article) return null;
 
+  const specialtyVisual = specialtyVisualById(article.especialidadId, especialidadesById);
+
   const mainTag    = article.tags?.[0];
   const catKey     = CATEGORY_MAP[mainTag?.tipo ?? ''] || 'default';
-  const accentIcon = ACCENT_ICON[catKey]  ?? ACCENT_ICON.default;
+  const accentIcon = ACCENT_ICON[catKey] ?? ACCENT_ICON.default;
+  
   // Confianza: Alta si el backend lo marcó como alta evidencia,
   // Media si tiene tags clínicos, Baja en otro caso
   const confidenceScore = isHighEvidence ? 3 : (article.tags?.length ?? 0) > 0 ? 1 : 0;
@@ -86,17 +93,16 @@ export const ArticleDetailDrawer: React.FC<ArticleDetailDrawerProps> = ({ articl
                    rounded-2xl shadow-2xl overflow-hidden"
         style={{ animation: 'slideInPanel 0.26s cubic-bezier(0.22,1,0.36,1)' }}
       >
-        {/* ── HEADER azul (igual al welcome card) ───────────────────────── */}
+        {/* ── HEADER de especialidad ───────────────────────── */}
         <div
-          className="relative flex-shrink-0 px-5 pt-5 pb-6 overflow-hidden"
-          style={{ background: 'linear-gradient(135deg, var(--color-welcome-from) 0%, var(--color-welcome-to) 100%)' }}
+          className={`relative flex-shrink-0 px-5 pt-5 pb-6 overflow-hidden ${specialtyVisual.sidebar}`}
         >
           {/* Watermark icon */}
           <span
             className="material-symbols-outlined absolute -right-5 -bottom-5 select-none pointer-events-none text-[120px]"
             style={{ color: 'rgba(255,255,255,0.07)' }}
           >
-            {accentIcon}
+            {specialtyVisual.Icon ? <specialtyVisual.Icon size={120} strokeWidth={1} /> : accentIcon}
           </span>
 
           {/* Botón cerrar */}
@@ -214,8 +220,7 @@ export const ArticleDetailDrawer: React.FC<ArticleDetailDrawerProps> = ({ articl
             <div className="px-6 pt-5">
               <div className="flex items-center gap-2 mb-2">
                 <span
-                  className="w-1 h-4 rounded-full inline-block shrink-0"
-                  style={{ backgroundColor: 'var(--color-welcome-to)' }}
+                  className={`w-1 h-4 rounded-full inline-block shrink-0 ${specialtyVisual.sidebar}`}
                 />
                 <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500">
                   Resumen del Estudio
@@ -260,9 +265,7 @@ export const ArticleDetailDrawer: React.FC<ArticleDetailDrawerProps> = ({ articl
               href={article.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl text-white font-semibold text-sm
-                         transition-opacity hover:opacity-90 active:scale-[0.98]"
-              style={{ background: 'linear-gradient(135deg, var(--color-welcome-from) 0%, var(--color-welcome-to) 100%)' }}
+              className={`flex items-center justify-center gap-2 w-full py-2.5 rounded-xl text-white font-semibold text-sm transition-opacity hover:opacity-90 active:scale-[0.98] ${specialtyVisual.sidebar}`}
             >
               <span className="material-symbols-outlined text-[18px]">open_in_new</span>
               Ver artículo original en PubMed

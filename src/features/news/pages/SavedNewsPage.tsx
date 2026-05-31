@@ -227,6 +227,7 @@ export const SavedNewsPage: React.FC = () => {
                       <ArticleCard
                         category={category}
                         categoryType={categoryType}
+                        specialtyVisual={specialtyVisual}
                         timestamp={timeAgo}
                         title={article.titulo}
                         excerpt={article.abstractText}
