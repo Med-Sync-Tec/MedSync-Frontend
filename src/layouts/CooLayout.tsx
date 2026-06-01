@@ -1,13 +1,15 @@
-import React, { Suspense } from 'react';
+import React, { Suspense, useState } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import { Header } from '@ui/navigation/Header';
+import { ChatCard } from '@ui/cards/ChatCard';
+import { FAB } from '@ui/buttons/FAB';
+import { useMediBot } from '@features/chat/hooks/useMediBot';
 import { ErrorBoundary } from './ErrorBoundary';
 
 function resolveActiveNav(pathname: string): string | undefined {
   if (pathname.startsWith('/coo/dashboard')) return 'Inicio';
   if (pathname.startsWith('/coo/medication-news')) return 'Por Medicamento';
   if (pathname.startsWith('/coo/saved-news')) return 'Guardadas';
-  if (pathname.startsWith('/coo/news')) return 'Noticias';
   if (pathname.startsWith('/coo/inventory')) return 'Inventario';
   if (pathname.startsWith('/coo/doctors')) return 'Médicos';
   return undefined;
@@ -16,6 +18,8 @@ function resolveActiveNav(pathname: string): string | undefined {
 export const CooLayout: React.FC = () => {
   const { pathname } = useLocation();
   const activeLink = resolveActiveNav(pathname);
+  const [chatOpen, setChatOpen] = useState(false);
+  const { messages, isLoading, send } = useMediBot();
 
   return (
     <div className="min-h-screen bg-background transition-colors duration-300">
@@ -25,6 +29,27 @@ export const CooLayout: React.FC = () => {
           <Outlet />
         </Suspense>
       </ErrorBoundary>
+
+      <div className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-30 flex flex-col items-end gap-3">
+        {chatOpen && (
+          <ChatCard
+            messages={messages}
+            isLoading={isLoading}
+            onClose={() => setChatOpen(false)}
+            onSend={send}
+          />
+        )}
+        <FAB
+          label={chatOpen ? '' : 'MediBot IA'}
+          icon={
+            chatOpen
+              ? <span className="material-symbols-outlined text-2xl">close</span>
+              : <span className="material-symbols-outlined text-2xl">smart_toy</span>
+          }
+          onClick={() => setChatOpen((prev) => !prev)}
+          aria-label={chatOpen ? 'Cerrar MediBot' : 'Abrir MediBot'}
+        />
+      </div>
     </div>
   );
 };

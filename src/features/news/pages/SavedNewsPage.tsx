@@ -2,13 +2,14 @@ import React, { useState, useMemo } from 'react';
 import { StatCard } from '@ui/cards/StatCard';
 import { ArticleCard } from '@ui/cards/ArticleCard';
 import { ArticleDetailDrawer } from '@ui/cards/ArticleDetailDrawer';
-import { ChatCard } from '@ui/cards/ChatCard';
-import { FAB } from '@ui/buttons/FAB';
 import { useSavedArticles, useUnsaveArticle, useMarkArticleAsRead } from '@features/news/queries';
 import type { Article } from '@features/news/types';
 import { useAuthStore } from '@features/auth/store';
 import { Pagination } from '@ui/buttons/Pagination';
 import { Bookmark } from 'lucide-react';
+import { useSearchStore } from '@features/search/store';
+import { useEspecialidades } from '@features/matching/queries';
+import { specialtyVisualById } from '@features/matching/specialtyVisuals';
 
 const CATEGORY_MAP: Record<string, string> = {
   enfermedad: 'cardiologia',
@@ -20,7 +21,6 @@ const CATEGORY_MAP: Record<string, string> = {
 type FilterKey = 'all' | 'alta_evidencia' | 'recientes';
 
 export const SavedNewsPage: React.FC = () => {
-  const [chatOpen, setChatOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedArticle, setSelectedArticle] = useState<Article | null>(null);
   const [activeFilter, setActiveFilter] = useState<FilterKey>('all');
@@ -28,6 +28,8 @@ export const SavedNewsPage: React.FC = () => {
 
   const currentUser = useAuthStore((s) => s.user);
   const doctorName = currentUser?.name ?? 'Doctor';
+
+  const { byId: especialidadesById } = useEspecialidades();
 
   // Fetch ALL saved articles (large page to filter client-side)
   const { data: savedData, isLoading, isError } = useSavedArticles(0, 200);
@@ -72,12 +74,35 @@ export const SavedNewsPage: React.FC = () => {
     [allArticles]
   );
 
-  // Filtered list based on active KPI
+  const query = useSearchStore((s) => s.query);
+
+  // Filtered list based on active KPI and search query
   const filteredArticles = useMemo(() => {
-    if (activeFilter === 'alta_evidencia') return highEvidenceArticles;
-    if (activeFilter === 'recientes') return recentArticles;
-    return allArticles;
-  }, [activeFilter, allArticles, highEvidenceArticles, recentArticles]);
+    let list = allArticles;
+    if (activeFilter === 'alta_evidencia') list = highEvidenceArticles;
+    if (activeFilter === 'recientes') list = recentArticles;
+
+    const normalize = (str?: string | null) => {
+      if (!str) return '';
+      return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+    };
+
+    const q = normalize(query.trim());
+    if (!q) return list;
+
+    return list.filter((a) => {
+      if (normalize(a.titulo).includes(q)) return true;
+      if (normalize(a.abstractText).includes(q)) return true;
+      if (a.tags?.some((t) => normalize(t.valor).includes(q))) return true;
+      
+      const specialty = a.especialidadId ? especialidadesById.get(a.especialidadId) : null;
+      if (specialty) {
+        if (normalize(specialty.nombre).includes(q)) return true;
+      }
+
+      return false;
+    });
+  }, [activeFilter, allArticles, highEvidenceArticles, recentArticles, query]);
 
   // Client-side pagination on filtered list
   const totalPages = Math.ceil(filteredArticles.length / ITEMS_PER_PAGE);
@@ -220,6 +245,10 @@ export const SavedNewsPage: React.FC = () => {
                   const category = mainTag?.valor || article.tipoPublicacion || 'General';
                   const categoryType = (CATEGORY_MAP[mainTag?.tipo] || 'default') as any;
                   const timeAgo = article.updatedAt ? formatTimeAgo(article.updatedAt) : 'Reciente';
+                  const specialtyVisual = specialtyVisualById(
+                    article.especialidadId,
+                    especialidadesById,
+                  );
 
                   return (
                     <div
@@ -230,6 +259,7 @@ export const SavedNewsPage: React.FC = () => {
                       <ArticleCard
                         category={category}
                         categoryType={categoryType}
+                        specialtyVisual={specialtyVisual}
                         timestamp={timeAgo}
                         title={article.titulo}
                         excerpt={article.abstractText}
@@ -259,22 +289,6 @@ export const SavedNewsPage: React.FC = () => {
         </div>
 
       </main>
-
-      <div className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-30 flex flex-col items-end gap-3">
-        {chatOpen && (
-          <ChatCard onClose={() => setChatOpen(false)} />
-        )}
-        <FAB
-          label={chatOpen ? '' : 'MediBot IA'}
-          icon={
-            chatOpen
-              ? <span className="material-symbols-outlined text-2xl">close</span>
-              : <span className="material-symbols-outlined text-2xl">smart_toy</span>
-          }
-          onClick={() => setChatOpen((prev) => !prev)}
-          aria-label={chatOpen ? 'Cerrar MediBot' : 'Abrir MediBot'}
-        />
-      </div>
 
       <ArticleDetailDrawer
         article={selectedArticle}

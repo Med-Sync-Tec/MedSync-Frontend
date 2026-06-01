@@ -121,3 +121,15 @@ export const ConsultaAnalysisResponseSchema = z.object({
 export type VocabularyStatus = z.infer<typeof VocabularyStatusSchema>;
 export type ConsultaSuggestion = z.infer<typeof ConsultaSuggestionSchema>;
 export type ConsultaAnalysisResponse = z.infer<typeof ConsultaAnalysisResponseSchema>;
+
+export const SOAPDictationResultSchema = z.object({
+  motivoConsulta: z.string().nullish(),
+  subjetivo:      z.string().nullish(),
+  objetivo:       z.string().nullish(),
+  evaluacion:     z.string().nullish(),
+  diagnostico:    z.string().nullish(),
+  plan:           z.string().nullish(),
+  prescripcion:   z.string().nullish(),
+});
+
+export type SOAPDictationResult = z.infer<typeof SOAPDictationResultSchema>;

@@ -2,8 +2,6 @@ import React, { useState, useMemo } from 'react';
 import { StatCard } from '@ui/cards/StatCard';
 import { ArticleCard } from '@ui/cards/ArticleCard';
 import { ArticleDetailDrawer } from '@ui/cards/ArticleDetailDrawer';
-import { ChatCard } from '@ui/cards/ChatCard';
-import { FAB } from '@ui/buttons/FAB';
 import { useSyncArticles, useMarkArticleAsRead } from '@features/news/queries';
 import type { Article } from '@features/news/types';
 import { AnalyzeArticleButton } from '@features/news/components/AnalyzeArticleButton';
@@ -15,6 +13,7 @@ import { useEspecialidades } from '@features/matching/queries';
 import { specialtyVisualById } from '@features/matching/specialtyVisuals';
 import { RefreshCw } from 'lucide-react';
 import { Pagination } from '@ui/buttons/Pagination';
+import { useSearchStore } from '@features/search/store';
 
 
 // Mapeo de tipos de tags de backend a categorías visuales del frontend
@@ -26,7 +25,6 @@ const CATEGORY_MAP: Record<string, string> = {
 };
 
 export const DoctorDashboardPage: React.FC = () => {
-  const [chatOpen, setChatOpen] = useState(false);
   const [savedArticles, setSavedArticles] = useState<Set<string>>(new Set());
   const [selectedCategory, setSelectedCategory] = useState<keyof DashboardData>('novedades_48h');
   const [showAll, setShowAll] = useState(false);
@@ -100,19 +98,42 @@ export const DoctorDashboardPage: React.FC = () => {
     return `Hace ${diffDays} días`;
   };
 
+  const query = useSearchStore((s) => s.query);
+
   const activeArticles = (() => {
     if (!dashboardData) return [];
+    let list: Article[] = [];
     if (showAll) {
       const seen = new Set<string>();
-      const all: Article[] = [];
       for (const cat of Object.values(dashboardData) as Article[][]) {
         for (const a of cat) {
-          if (!seen.has(a.id)) { seen.add(a.id); all.push(a); }
+          if (!seen.has(a.id)) { seen.add(a.id); list.push(a); }
         }
       }
-      return all;
+    } else {
+      list = dashboardData[selectedCategory] ?? [];
     }
-    return dashboardData[selectedCategory] ?? [];
+
+    const normalize = (str?: string | null) => {
+      if (!str) return '';
+      return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+    };
+
+    const q = normalize(query.trim());
+    if (!q) return list;
+
+    return list.filter((a) => {
+      if (normalize(a.titulo).includes(q)) return true;
+      if (normalize(a.abstractText).includes(q)) return true;
+      if (a.tags?.some((t) => normalize(t.valor).includes(q))) return true;
+      
+      const specialty = a.especialidadId ? especialidadesById.get(a.especialidadId) : null;
+      if (specialty) {
+        if (normalize(specialty.nombre).includes(q)) return true;
+      }
+      
+      return false;
+    });
   })();
 
   return (
@@ -253,9 +274,7 @@ export const DoctorDashboardPage: React.FC = () => {
                           <ArticleCard
                             category={category}
                             categoryType={categoryType}
-                            specialtyVisual={
-                              article.especialidadId ? specialtyVisual : null
-                            }
+                            specialtyVisual={specialtyVisual}
                             timestamp={timeAgo}
                             title={article.titulo}
                             excerpt={article.abstractText}
@@ -295,22 +314,6 @@ export const DoctorDashboardPage: React.FC = () => {
         </div>
 
       </main>
-
-      <div className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-30 flex flex-col items-end gap-3">
-        {chatOpen && (
-          <ChatCard onClose={() => setChatOpen(false)} />
-        )}
-        <FAB
-          label={chatOpen ? '' : 'MediBot IA'}
-          icon={
-            chatOpen
-              ? <span className="material-symbols-outlined text-2xl">close</span>
-              : <span className="material-symbols-outlined text-2xl">smart_toy</span>
-          }
-          onClick={() => setChatOpen((prev) => !prev)}
-          aria-label={chatOpen ? 'Cerrar MediBot' : 'Abrir MediBot'}
-        />
-      </div>
 
       <ArticleDetailDrawer
         article={selectedArticle}

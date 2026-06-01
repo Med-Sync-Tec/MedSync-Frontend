@@ -1,5 +1,9 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import type { Article } from '@features/news/types';
+import { useEspecialidades, useMatchingPatients } from '@features/matching/queries';
+import { specialtyVisualById } from '@features/matching/specialtyVisuals';
+import { useAuthStore } from '@features/auth/store';
 
 interface ArticleDetailDrawerProps {
   article: Article | null;
@@ -39,6 +43,12 @@ function getConfidence(score: number): { label: string; color: string; bg: strin
 }
 
 export const ArticleDetailDrawer: React.FC<ArticleDetailDrawerProps> = ({ article, onClose, isHighEvidence = false }) => {
+  const { byId: especialidadesById } = useEspecialidades();
+  const user = useAuthStore((s) => s.user);
+  const isDoctor = user?.role === 'DOCTOR';
+  const { data: patients } = useMatchingPatients(article?.id, isDoctor);
+  const [expanded, setExpanded] = useState(false);
+
   // Cerrar con Escape
   useEffect(() => {
     const fn = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
@@ -54,9 +64,12 @@ export const ArticleDetailDrawer: React.FC<ArticleDetailDrawerProps> = ({ articl
 
   if (!article) return null;
 
+  const specialtyVisual = specialtyVisualById(article.especialidadId, especialidadesById);
+
   const mainTag    = article.tags?.[0];
   const catKey     = CATEGORY_MAP[mainTag?.tipo ?? ''] || 'default';
-  const accentIcon = ACCENT_ICON[catKey]  ?? ACCENT_ICON.default;
+  const accentIcon = ACCENT_ICON[catKey] ?? ACCENT_ICON.default;
+  
   // Confianza: Alta si el backend lo marcó como alta evidencia,
   // Media si tiene tags clínicos, Baja en otro caso
   const confidenceScore = isHighEvidence ? 3 : (article.tags?.length ?? 0) > 0 ? 1 : 0;
@@ -86,17 +99,16 @@ export const ArticleDetailDrawer: React.FC<ArticleDetailDrawerProps> = ({ articl
                    rounded-2xl shadow-2xl overflow-hidden"
         style={{ animation: 'slideInPanel 0.26s cubic-bezier(0.22,1,0.36,1)' }}
       >
-        {/* ── HEADER azul (igual al welcome card) ───────────────────────── */}
+        {/* ── HEADER de especialidad ───────────────────────── */}
         <div
-          className="relative flex-shrink-0 px-5 pt-5 pb-6 overflow-hidden"
-          style={{ background: 'linear-gradient(135deg, var(--color-welcome-from) 0%, var(--color-welcome-to) 100%)' }}
+          className={`relative flex-shrink-0 px-5 pt-5 pb-6 overflow-hidden ${specialtyVisual.sidebar}`}
         >
           {/* Watermark icon */}
           <span
             className="material-symbols-outlined absolute -right-5 -bottom-5 select-none pointer-events-none text-[120px]"
             style={{ color: 'rgba(255,255,255,0.07)' }}
           >
-            {accentIcon}
+            {specialtyVisual.Icon ? <specialtyVisual.Icon size={120} strokeWidth={1} /> : accentIcon}
           </span>
 
           {/* Botón cerrar */}
@@ -189,7 +201,6 @@ export const ArticleDetailDrawer: React.FC<ArticleDetailDrawerProps> = ({ articl
               </div>
             </div>
 
-            {/* Tags */}
             {(article.tags?.length ?? 0) > 0 ? (
               <div>
                 <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500 mb-2">
@@ -209,13 +220,50 @@ export const ArticleDetailDrawer: React.FC<ArticleDetailDrawerProps> = ({ articl
             ) : <div />}
           </div>
 
+          {/* ── Pacientes Relacionados (sólo doctores) ── */}
+          {isDoctor && patients && patients.length > 0 && (
+            <div className="px-6 pt-5">
+              <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500 mb-2">
+                Pacientes Relacionados
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {(expanded ? patients : patients.slice(0, 5)).map((p) => {
+                  const initials = p.nombre
+                    .split(' ')
+                    .map((n) => n[0])
+                    .slice(0, 2)
+                    .join('')
+                    .toUpperCase();
+                  return (
+                    <Link
+                      key={p.id}
+                      to={`/patients/${p.id}/history`}
+                      title={p.nombre}
+                      className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary text-xs font-bold border border-primary/20 hover:bg-primary hover:text-white transition-colors"
+                    >
+                      {initials}
+                    </Link>
+                  );
+                })}
+                {!expanded && patients.length > 5 && (
+                  <button
+                    type="button"
+                    onClick={() => setExpanded(true)}
+                    className="flex items-center justify-center w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 text-xs font-bold border border-gray-200 dark:border-gray-700 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                  >
+                    +{patients.length - 5}
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
+
           {/* ── Abstract ── */}
           {article.abstractText && (
             <div className="px-6 pt-5">
               <div className="flex items-center gap-2 mb-2">
                 <span
-                  className="w-1 h-4 rounded-full inline-block shrink-0"
-                  style={{ backgroundColor: 'var(--color-welcome-to)' }}
+                  className={`w-1 h-4 rounded-full inline-block shrink-0 ${specialtyVisual.sidebar}`}
                 />
                 <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500">
                   Resumen del Estudio
@@ -260,9 +308,7 @@ export const ArticleDetailDrawer: React.FC<ArticleDetailDrawerProps> = ({ articl
               href={article.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl text-white font-semibold text-sm
-                         transition-opacity hover:opacity-90 active:scale-[0.98]"
-              style={{ background: 'linear-gradient(135deg, var(--color-welcome-from) 0%, var(--color-welcome-to) 100%)' }}
+              className={`flex items-center justify-center gap-2 w-full py-2.5 rounded-xl text-white font-semibold text-sm transition-opacity hover:opacity-90 active:scale-[0.98] ${specialtyVisual.sidebar}`}
             >
               <span className="material-symbols-outlined text-[18px]">open_in_new</span>
               Ver artículo original en PubMed

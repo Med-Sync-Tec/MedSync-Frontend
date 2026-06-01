@@ -6,6 +6,7 @@ import {
   type Especialidad,
   type MatchingArticle,
 } from './schemas';
+import { PatientSchema, type Patient } from '@features/patients/schemas';
 
 /**
  * {@code GET /api/patients/{patientId}/matching-articles}. The backend
@@ -31,6 +32,20 @@ export async function getMatchingArticles(
 export async function getCooMatchingArticles(limit = 50): Promise<MatchingArticle[]> {
   const raw = await apiFetch<unknown>(`/api/coo/matching-articles?limit=${limit}`);
   return z.array(MatchingArticleSchema).parse(raw);
+}
+
+/**
+ * {@code GET /api/articles/{articleId}/matching-patients}. Returns the patients
+ * whose clinical context matches the article's tags. Used in the article detail drawer.
+ */
+export async function getMatchingPatients(
+  articleId: string,
+  limit = 50,
+): Promise<Patient[]> {
+  const raw = await apiFetch<unknown>(
+    `/api/articles/${encodeURIComponent(articleId)}/matching-patients?limit=${limit}`,
+  );
+  return z.array(PatientSchema).parse(raw);
 }
 
 /**

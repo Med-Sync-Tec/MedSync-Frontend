@@ -1,5 +1,6 @@
 import React, { useContext, useEffect, useRef, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
+import { useSearchStore } from '@features/search/store';
 import {
   Activity,
   Bell,
@@ -36,7 +37,6 @@ const NAV_LINKS: Record<HeaderRole, NavLink[]> = {
   ],
   coo: [
     { label: 'Inicio', href: '/coo/dashboard' },
-    { label: 'Noticias', href: '/coo/news' },
     { label: 'Por Medicamento', href: '/coo/medication-news' },
     { label: 'Guardadas', href: '/coo/saved-news' },
     { label: 'Inventario', href: '/coo/inventory' },
@@ -97,6 +97,15 @@ export const Header: React.FC<HeaderProps> = ({
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const searchRef = useRef<HTMLInputElement>(null);
+
+  const setQuery = useSearchStore((s) => s.setQuery);
+  const clearQuery = useSearchStore((s) => s.clearQuery);
+  const query = useSearchStore((s) => s.query);
+  const location = useLocation();
+
+  useEffect(() => {
+    clearQuery();
+  }, [location.pathname, clearQuery]);
 
   useEffect(() => {
     const onDocClick = (e: MouseEvent) => {
@@ -168,8 +177,12 @@ export const Header: React.FC<HeaderProps> = ({
           <input
             ref={searchRef}
             type="search"
-            placeholder="Buscar pacientes, consultas..."
-            onChange={(e) => onSearch?.(e.target.value)}
+            value={query}
+            placeholder="Buscar pacientes, consultas, artículos..."
+            onChange={(e) => {
+              setQuery(e.target.value);
+              onSearch?.(e.target.value);
+            }}
             className="flex-1 min-w-0 bg-transparent border-0 text-sm text-text-primary placeholder-text-subtle px-2 focus:outline-none focus:ring-0"
           />
           <kbd
