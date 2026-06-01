@@ -6,7 +6,7 @@ import { useMatchingArticles, useEspecialidades } from '../queries';
 import { useMatchIntersection, matchKey } from '../useMatchIntersection';
 import type { MatchingArticle } from '../schemas';
 import { MatchingArticleCard } from './MatchingArticleCard';
-import { MatchExplainPanel } from './MatchExplainPanel';
+import { ArticleDetailDrawer } from '@ui/cards/ArticleDetailDrawer';
 import { TIPO_PALETTES } from '../palette';
 import { specialtyVisualById } from '../specialtyVisuals';
 
@@ -171,15 +171,10 @@ export const MatchingArticlesPanel: React.FC<MatchingArticlesPanelProps> = ({
         )}
       </div>
 
-      <MatchExplainPanel
-        open={Boolean(explainArticle)}
-        onClose={() => setExplainArticleId(null)}
+      <ArticleDetailDrawer
         article={explainArticle}
-        contextos={contextos}
-        matchedTagPairs={intersection.matchedTagPairs}
-        especialidadName={explainEspName}
-        specialtyVisual={explainVisual}
-        onJumpToContextos={onJumpToContextos}
+        isHighEvidence={explainArticle?.tipoPublicacion === 'Journal Article'}
+        onClose={() => setExplainArticleId(null)}
       />
     </section>
   );

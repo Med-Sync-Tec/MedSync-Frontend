@@ -43,15 +43,12 @@ export const MatchingArticleCard: React.FC<MatchingArticleCardProps> = ({
 
   return (
     <article className="relative rounded-xl border border-border-subtle bg-surface shadow-card overflow-hidden flex transition-colors transition-shadow hover:border-primary/40 hover:shadow-md focus-within:border-primary/40">
-      {article.url && (
-        <a
-          href={article.url}
-          target="_blank"
-          rel="noreferrer noopener"
-          aria-label={`Abrir artículo: ${article.titulo}`}
+        <button
+          type="button"
+          onClick={() => onOpenExplain(article.id)}
+          aria-label={`Ver detalles de: ${article.titulo}`}
           className="absolute inset-0 z-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring rounded-xl"
         />
-      )}
       {specialtyVisual && (
         <div
           aria-hidden="true"
@@ -128,20 +125,17 @@ export const MatchingArticleCard: React.FC<MatchingArticleCardProps> = ({
         </ul>
       )}
 
-      {article.url && (
-        <footer className="px-4 py-2 border-t border-border-subtle bg-surface-subtle flex items-center justify-between gap-2">
-          <span className="text-[11px] text-text-muted tracking-tight truncate">
-            {article.doi ? `DOI ${article.doi}` : (article.tipoPublicacion ?? '')}
-          </span>
-          <span
-            aria-hidden="true"
-            className="inline-flex items-center gap-1 text-[11px] font-medium text-primary"
-          >
-            Abrir
-            <ExternalLink size={11} strokeWidth={2} aria-hidden="true" />
-          </span>
-        </footer>
-      )}
+      <footer className="px-4 py-2 border-t border-border-subtle bg-surface-subtle flex items-center justify-between gap-2">
+        <span className="text-[11px] text-text-muted tracking-tight truncate">
+          {article.doi ? `DOI ${article.doi}` : (article.tipoPublicacion ?? '')}
+        </span>
+        <span
+          aria-hidden="true"
+          className="inline-flex items-center gap-1 text-[11px] font-medium text-primary"
+        >
+          Detalles
+        </span>
+      </footer>
       </div>
     </article>
   );

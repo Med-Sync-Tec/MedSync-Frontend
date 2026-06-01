@@ -1,7 +1,9 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import type { Article } from '@features/news/types';
-import { useEspecialidades } from '@features/matching/queries';
+import { useEspecialidades, useMatchingPatients } from '@features/matching/queries';
 import { specialtyVisualById } from '@features/matching/specialtyVisuals';
+import { useAuthStore } from '@features/auth/store';
 
 interface ArticleDetailDrawerProps {
   article: Article | null;
@@ -42,6 +44,10 @@ function getConfidence(score: number): { label: string; color: string; bg: strin
 
 export const ArticleDetailDrawer: React.FC<ArticleDetailDrawerProps> = ({ article, onClose, isHighEvidence = false }) => {
   const { byId: especialidadesById } = useEspecialidades();
+  const user = useAuthStore((s) => s.user);
+  const isDoctor = user?.role === 'DOCTOR';
+  const { data: patients } = useMatchingPatients(article?.id, isDoctor);
+  const [expanded, setExpanded] = useState(false);
 
   // Cerrar con Escape
   useEffect(() => {
@@ -195,7 +201,6 @@ export const ArticleDetailDrawer: React.FC<ArticleDetailDrawerProps> = ({ articl
               </div>
             </div>
 
-            {/* Tags */}
             {(article.tags?.length ?? 0) > 0 ? (
               <div>
                 <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500 mb-2">
@@ -214,6 +219,44 @@ export const ArticleDetailDrawer: React.FC<ArticleDetailDrawerProps> = ({ articl
               </div>
             ) : <div />}
           </div>
+
+          {/* ── Pacientes Relacionados (sólo doctores) ── */}
+          {isDoctor && patients && patients.length > 0 && (
+            <div className="px-6 pt-5">
+              <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500 mb-2">
+                Pacientes Relacionados
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {(expanded ? patients : patients.slice(0, 5)).map((p) => {
+                  const initials = p.nombre
+                    .split(' ')
+                    .map((n) => n[0])
+                    .slice(0, 2)
+                    .join('')
+                    .toUpperCase();
+                  return (
+                    <Link
+                      key={p.id}
+                      to={`/patients/${p.id}/history`}
+                      title={p.nombre}
+                      className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary text-xs font-bold border border-primary/20 hover:bg-primary hover:text-white transition-colors"
+                    >
+                      {initials}
+                    </Link>
+                  );
+                })}
+                {!expanded && patients.length > 5 && (
+                  <button
+                    type="button"
+                    onClick={() => setExpanded(true)}
+                    className="flex items-center justify-center w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 text-xs font-bold border border-gray-200 dark:border-gray-700 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                  >
+                    +{patients.length - 5}
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
 
           {/* ── Abstract ── */}
           {article.abstractText && (
