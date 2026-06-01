@@ -1,11 +1,13 @@
 import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { getCooMatchingArticles, getMatchingArticles, listEspecialidades } from './api';
+import { getCooMatchingArticles, getMatchingArticles, listEspecialidades, getMatchingPatients } from './api';
 import type { Especialidad, MatchingArticle } from './schemas';
+import type { Patient } from '@features/patients/schemas';
 
 export const matchingKeys = {
   all: ['matching'] as const,
   articles: (patientId: string) => [...matchingKeys.all, 'articles', patientId] as const,
+  patients: (articleId: string) => [...matchingKeys.all, 'patients', articleId] as const,
   cooArticles: () => [...matchingKeys.all, 'coo-articles'] as const,
   especialidades: () => [...matchingKeys.all, 'especialidades'] as const,
 };
@@ -15,6 +17,14 @@ export function useMatchingArticles(patientId: string | undefined) {
     queryKey: matchingKeys.articles(patientId ?? ''),
     queryFn: () => getMatchingArticles(patientId as string),
     enabled: Boolean(patientId),
+  });
+}
+
+export function useMatchingPatients(articleId: string | undefined, enabled = true) {
+  return useQuery<Patient[]>({
+    queryKey: matchingKeys.patients(articleId ?? ''),
+    queryFn: () => getMatchingPatients(articleId as string),
+    enabled: Boolean(articleId) && enabled,
   });
 }
 

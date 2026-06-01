@@ -13,6 +13,7 @@ import { useEspecialidades } from '@features/matching/queries';
 import { specialtyVisualById } from '@features/matching/specialtyVisuals';
 import { RefreshCw } from 'lucide-react';
 import { Pagination } from '@ui/buttons/Pagination';
+import { useSearchStore } from '@features/search/store';
 
 
 // Mapeo de tipos de tags de backend a categorías visuales del frontend
@@ -97,19 +98,42 @@ export const DoctorDashboardPage: React.FC = () => {
     return `Hace ${diffDays} días`;
   };
 
+  const query = useSearchStore((s) => s.query);
+
   const activeArticles = (() => {
     if (!dashboardData) return [];
+    let list: Article[] = [];
     if (showAll) {
       const seen = new Set<string>();
-      const all: Article[] = [];
       for (const cat of Object.values(dashboardData) as Article[][]) {
         for (const a of cat) {
-          if (!seen.has(a.id)) { seen.add(a.id); all.push(a); }
+          if (!seen.has(a.id)) { seen.add(a.id); list.push(a); }
         }
       }
-      return all;
+    } else {
+      list = dashboardData[selectedCategory] ?? [];
     }
-    return dashboardData[selectedCategory] ?? [];
+
+    const normalize = (str?: string | null) => {
+      if (!str) return '';
+      return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+    };
+
+    const q = normalize(query.trim());
+    if (!q) return list;
+
+    return list.filter((a) => {
+      if (normalize(a.titulo).includes(q)) return true;
+      if (normalize(a.abstractText).includes(q)) return true;
+      if (a.tags?.some((t) => normalize(t.valor).includes(q))) return true;
+      
+      const specialty = a.especialidadId ? especialidadesById.get(a.especialidadId) : null;
+      if (specialty) {
+        if (normalize(specialty.nombre).includes(q)) return true;
+      }
+      
+      return false;
+    });
   })();
 
   return (

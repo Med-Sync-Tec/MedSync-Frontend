@@ -198,7 +198,7 @@ export const ConsultationHistoryPage: React.FC = () => {
         />
       ) : (
         <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
-          <aside className="w-full lg:w-[320px] xl:w-[340px] shrink-0">
+          <aside className="w-full lg:w-[300px] xl:w-[320px] shrink-0">
             <div className="lg:sticky lg:top-20 space-y-4">
               {isLoading || !data ? (
                 <PatientDetailCardSkeleton />
@@ -210,6 +210,11 @@ export const ConsultationHistoryPage: React.FC = () => {
                   lastActivityAt={data.patient.updatedAt}
                 />
               )}
+            </div>
+          </aside>
+
+          <aside className="w-full lg:w-[300px] xl:w-[320px] shrink-0">
+            <div className="lg:sticky lg:top-20 flex flex-col gap-6 lg:gap-8">
               {patientId && (
                 <PatientContextosPanel
                   patientId={patientId}

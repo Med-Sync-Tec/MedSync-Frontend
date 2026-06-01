@@ -7,6 +7,7 @@ import { usePatients } from '@features/patients/queries';
 import { PatientListSkeleton } from '@features/patients/components/PatientListSkeleton';
 import { NewPatientModal } from '@features/patients/components/NewPatientModal';
 import type { Patient } from '@features/patients/schemas';
+import { useSearchStore } from '@features/search/store';
 
 function deriveStatus(patient: Patient): PatientCardStatus {
   return patient.activo ? 'estable' : 'alta';
@@ -14,7 +15,8 @@ function deriveStatus(patient: Patient): PatientCardStatus {
 
 export const PatientsListPage: React.FC = () => {
   const navigate = useNavigate();
-  const [query, setQuery] = useState('');
+  const query = useSearchStore((s) => s.query);
+  const setQuery = useSearchStore((s) => s.setQuery);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [isNewOpen, setIsNewOpen] = useState(false);
 
@@ -23,12 +25,17 @@ export const PatientsListPage: React.FC = () => {
   const patients = useMemo<Patient[]>(() => data ?? [], [data]);
 
   const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase();
+    const normalize = (str?: string | null) => {
+      if (!str) return '';
+      return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+    };
+
+    const q = normalize(query.trim());
     if (!q) return patients;
     return patients.filter(
       (p) =>
-        p.nombre.toLowerCase().includes(q) ||
-        p.expedienteExternoId.toLowerCase().includes(q),
+        normalize(p.nombre).includes(q) ||
+        normalize(p.expedienteExternoId).includes(q),
     );
   }, [patients, query]);
 
