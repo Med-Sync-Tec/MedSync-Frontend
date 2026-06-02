@@ -95,10 +95,6 @@ export const ConsultationHistoryPage: React.FC = () => {
     setSelectedTagKeys((prev) => (prev.size === 0 ? prev : new Set<string>()));
   }, []);
 
-  const jumpToContextos = useCallback(() => {
-    const el = document.getElementById('patient-contextos');
-    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }, []);
 
   const consultas = useMemo<Consulta[]>(() => data?.consultas ?? [], [data]);
   const sortedConsultations = useMemo(
