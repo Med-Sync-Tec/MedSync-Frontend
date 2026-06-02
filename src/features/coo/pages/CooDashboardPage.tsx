@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { StatCard } from '@ui/cards/StatCard';
 import { ArticleCard } from '@ui/cards/ArticleCard';
 import { ArticleDetailDrawer } from '@ui/cards/ArticleDetailDrawer';
@@ -14,6 +15,8 @@ import {
 import type { Article } from '@features/news/types';
 import { useEspecialidades } from '@features/matching/queries';
 import { specialtyVisualById } from '@features/matching/specialtyVisuals';
+import { useDashboardData } from '@features/dashboard/queries';
+import { fetchMedicamentos } from '@features/inventory/api';
 import { RefreshCw } from 'lucide-react';
 
 const CATEGORY_MAP: Record<string, string> = {
@@ -34,19 +37,22 @@ function formatTimeAgo(dateStr: string): string {
   return `Hace ${diffDays} días`;
 }
 
-const mockStats = {
-  totalProductos:    { value: 142 },
-  stockCritico:      { value: 7, badge: '3 urgentes' },
-  pedidosPendientes: { value: 4 },
-  valorInventario:   { value: 289 },
-};
-
 export const CooDashboardPage: React.FC = () => {
   const [page, setPage] = useState(0);
   const [savedIds, setSavedIds] = useState<Set<string>>(new Set());
   const [selectedArticle, setSelectedArticle] = useState<Article | null>(null);
 
   const { data, isLoading, isError } = useRecentArticles(page, PAGE_SIZE);
+  const { data: dashboardData } = useDashboardData();
+  const { data: medData } = useQuery({
+    queryKey: ['medicamentos-count'],
+    queryFn: () => fetchMedicamentos({ size: 1 }),
+  });
+
+  const totalArticulos = data?.total ?? 0;
+  const totalMedicamentos = medData?.totalElements ?? 0;
+  const sinLeer = dashboardData?.no_leidos?.length ?? 0;
+  const altaEvidencia = dashboardData?.alta_evidencia?.length ?? 0;
   const { byId: especialidadesById } = useEspecialidades();
   const syncMutation = useSyncArticles();
   const markAsReadMutation = useMarkArticleAsRead();
@@ -104,32 +110,30 @@ export const CooDashboardPage: React.FC = () => {
 
           <div className="grid grid-cols-2 gap-3 sm:gap-4">
             <StatCard
-              label="Total Productos"
-              value={mockStats.totalProductos.value}
-              icon={<span className="material-symbols-outlined text-xl">category</span>}
+              label="Artículos PubMed"
+              value={totalArticulos}
+              icon={<span className="material-symbols-outlined text-xl">library_books</span>}
               iconBg="var(--color-info-subtle)"
               iconColor="var(--color-info)"
             />
             <StatCard
-              label="Stock Crítico"
-              value={mockStats.stockCritico.value}
-              icon={<span className="material-symbols-outlined text-xl">emergency</span>}
-              badge={mockStats.stockCritico.badge}
-              badgeVariant="warning"
+              label="Sin leer"
+              value={sinLeer}
+              icon={<span className="material-symbols-outlined text-xl">mark_email_unread</span>}
               iconBg="var(--color-danger-subtle)"
               iconColor="var(--color-danger)"
             />
             <StatCard
-              label="Pedidos Pendientes"
-              value={mockStats.pedidosPendientes.value}
-              icon={<span className="material-symbols-outlined text-xl">local_shipping</span>}
+              label="Medicamentos"
+              value={totalMedicamentos}
+              icon={<span className="material-symbols-outlined text-xl">medication</span>}
               iconBg="var(--color-caution-subtle)"
               iconColor="var(--color-caution)"
             />
             <StatCard
-              label="Productos (miles)"
-              value={mockStats.valorInventario.value}
-              icon={<span className="material-symbols-outlined text-xl">analytics</span>}
+              label="Alta evidencia"
+              value={altaEvidencia}
+              icon={<span className="material-symbols-outlined text-xl">verified</span>}
               iconBg="var(--color-success-subtle)"
               iconColor="var(--color-success-strong)"
             />

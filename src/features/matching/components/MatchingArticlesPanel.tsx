@@ -17,7 +17,6 @@ interface MatchingArticlesPanelProps {
   /** Filter set, keyed by `${tipo}::${valor.toLowerCase()}`. */
   selectedTagKeys: ReadonlySet<string>;
   onClearFilter: () => void;
-  onJumpToContextos?: () => void;
 }
 
 /**
@@ -33,7 +32,6 @@ export const MatchingArticlesPanel: React.FC<MatchingArticlesPanelProps> = ({
   hasContextoQueryError,
   selectedTagKeys,
   onClearFilter,
-  onJumpToContextos,
 }) => {
   const articlesQ = useMatchingArticles(patientId);
   const especialidadesQ = useEspecialidades();
@@ -62,12 +60,6 @@ export const MatchingArticlesPanel: React.FC<MatchingArticlesPanelProps> = ({
     [articlesQ.data, explainArticleId],
   );
 
-  const explainVisual = explainArticle
-    ? specialtyVisualById(explainArticle.especialidadId, especialidadesQ.byId)
-    : null;
-  const explainEspName = explainArticle?.especialidadId
-    ? explainVisual?.name ?? null
-    : null;
 
   const selectedLabels = useMemo(() => {
     if (selectedTagKeys.size === 0) return [] as Array<{ key: string; tipo: ContextoTipo; valor: string }>;
@@ -172,7 +164,7 @@ export const MatchingArticlesPanel: React.FC<MatchingArticlesPanelProps> = ({
       </div>
 
       <ArticleDetailDrawer
-        article={explainArticle}
+        article={explainArticle as any}
         isHighEvidence={explainArticle?.tipoPublicacion === 'Journal Article'}
         onClose={() => setExplainArticleId(null)}
       />
