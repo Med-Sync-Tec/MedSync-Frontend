@@ -11,22 +11,19 @@ export const SpecialtySchema = z.object({
 
 export const SpecialtyListSchema = z.array(SpecialtySchema);
 
-export const CreateDoctorSchema = z.object({
-  nombre: z
-    .string()
-    .min(1, 'El nombre es obligatorio')
-    .max(100, 'Máximo 100 caracteres'),
-  correo: z
-    .string()
-    .min(1, 'El correo es obligatorio')
-    .email('Formato de correo inválido')
-    .max(100, 'Máximo 100 caracteres'),
-  password: z
-    .string()
-    .min(6, 'Mínimo 6 caracteres')
-    .max(100, 'Máximo 100 caracteres'),
-  especialidadId: z.string().uuid('Selecciona una especialidad'),
-});
+const baseUserFields = {
+  nombre: z.string().min(1, 'El nombre es obligatorio').max(100, 'Máximo 100 caracteres'),
+  correo: z.string().min(1, 'El correo es obligatorio').email('Formato de correo inválido').max(100, 'Máximo 100 caracteres'),
+  password: z.string().min(6, 'Mínimo 6 caracteres').max(100, 'Máximo 100 caracteres'),
+};
+
+export const CreateUserSchema = z.discriminatedUnion('rol', [
+  z.object({ ...baseUserFields, rol: z.literal('DOCTOR'), especialidadId: z.string().uuid('Selecciona una especialidad') }),
+  z.object({ ...baseUserFields, rol: z.literal('COO'), especialidadId: z.string().optional() }),
+]);
+
+// Keep backward compat alias
+export const CreateDoctorSchema = CreateUserSchema;
 
 export const CreatedUserSchema = z.object({
   id: z.string().uuid(),
@@ -40,5 +37,6 @@ export const CreatedUserSchema = z.object({
 });
 
 export type Specialty = z.infer<typeof SpecialtySchema>;
-export type CreateDoctorInput = z.infer<typeof CreateDoctorSchema>;
+export type CreateUserInput = z.infer<typeof CreateUserSchema>;
+export type CreateDoctorInput = CreateUserInput;
 export type CreatedUser = z.infer<typeof CreatedUserSchema>;
