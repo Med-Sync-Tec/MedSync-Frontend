@@ -1,5 +1,5 @@
 import React from 'react';
-import { ExternalLink, Link2, Sparkles } from 'lucide-react';
+import { Link2, Sparkles } from 'lucide-react';
 import type { ContextoTipo } from '@features/patients/schemas';
 import type { MatchingArticle } from '../schemas';
 import { tagMatchKey } from '../useMatchIntersection';
