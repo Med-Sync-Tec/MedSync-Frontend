@@ -60,9 +60,6 @@ export const MatchingArticlesPanel: React.FC<MatchingArticlesPanelProps> = ({
     [articlesQ.data, explainArticleId],
   );
 
-  const explainVisual = explainArticle
-    ? specialtyVisualById(explainArticle.especialidadId, especialidadesQ.byId)
-    : null;
 
   const selectedLabels = useMemo(() => {
     if (selectedTagKeys.size === 0) return [] as Array<{ key: string; tipo: ContextoTipo; valor: string }>;
