@@ -230,7 +230,6 @@ export const ConsultationHistoryPage: React.FC = () => {
                   hasContextoQueryError={Boolean(contextosQ.error)}
                   selectedTagKeys={selectedTagKeys}
                   onClearFilter={clearTagFilter}
-                  onJumpToContextos={jumpToContextos}
                 />
               )}
             </div>
