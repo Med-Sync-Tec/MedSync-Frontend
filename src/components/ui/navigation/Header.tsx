@@ -3,7 +3,6 @@ import { Link, useLocation } from 'react-router-dom';
 import { useSearchStore } from '@features/search/store';
 import {
   Activity,
-  Bell,
   ChevronDown,
   LogOut,
   Menu,
@@ -47,9 +46,6 @@ const NAV_LINKS: Record<HeaderRole, NavLink[]> = {
 interface HeaderProps {
   role: HeaderRole;
   activeLink?: string;
-  notificationCount?: number;
-  showNotifications?: boolean;
-  onNotificationsClick?: () => void;
   onSearch?: (value: string) => void;
 }
 
@@ -81,9 +77,6 @@ function getInitials(value: string): string {
 export const Header: React.FC<HeaderProps> = ({
   role,
   activeLink,
-  notificationCount = 0,
-  showNotifications = true,
-  onNotificationsClick,
   onSearch,
 }) => {
   const links = NAV_LINKS[role];
@@ -130,7 +123,6 @@ export const Header: React.FC<HeaderProps> = ({
   }, []);
 
   const initials = user ? getInitials(user.name) : '';
-  const hasNotifications = notificationCount > 0;
 
   return (
     <header className={SHELL_STYLES}>
@@ -217,37 +209,6 @@ export const Header: React.FC<HeaderProps> = ({
                 <Sun size={18} strokeWidth={2} aria-hidden="true" />
               ) : (
                 <Moon size={18} strokeWidth={2} aria-hidden="true" />
-              )}
-            </button>
-          )}
-
-          {showNotifications && (
-            <button
-              type="button"
-              onClick={onNotificationsClick}
-              className={ICON_BTN_STYLES}
-              aria-label={
-                hasNotifications
-                  ? `Notificaciones (${notificationCount} sin leer)`
-                  : 'Notificaciones'
-              }
-              title="Notificaciones"
-            >
-              <Bell size={18} strokeWidth={2} aria-hidden="true" />
-              {hasNotifications && (
-                <span className="absolute top-2 right-2 inline-flex">
-                  <span
-                    aria-hidden="true"
-                    className="absolute inline-flex w-2 h-2 rounded-full text-danger medsync-pulse-ring"
-                  />
-                  <span
-                    aria-hidden="true"
-                    className="relative inline-flex w-2 h-2 rounded-full bg-danger ring-2 ring-nav-surface medsync-pulse-dot"
-                  />
-                </span>
-              )}
-              {hasNotifications && (
-                <span className="sr-only">{notificationCount} notificaciones sin leer</span>
               )}
             </button>
           )}
