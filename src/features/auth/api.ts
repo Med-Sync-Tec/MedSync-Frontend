@@ -1,4 +1,4 @@
-import { signInWithEmailAndPassword, signOut } from 'firebase/auth';
+import { signInWithEmailAndPassword, signOut, EmailAuthProvider, reauthenticateWithCredential, updatePassword } from 'firebase/auth';
 import { z } from 'zod';
 import { auth } from '@lib/firebase/client';
 import { apiFetch } from '@lib/http/client';
@@ -46,4 +46,14 @@ export async function signInWithEmail(email: string, password: string): Promise<
 
 export async function signOutCurrentUser(): Promise<void> {
   await signOut(auth);
+}
+
+export async function updateUserPassword(currentPass: string, newPass: string): Promise<void> {
+  const user = auth.currentUser;
+  if (!user || !user.email) {
+    throw new Error('No hay sesión activa.');
+  }
+  const credential = EmailAuthProvider.credential(user.email, currentPass);
+  await reauthenticateWithCredential(user, credential);
+  await updatePassword(user, newPass);
 }

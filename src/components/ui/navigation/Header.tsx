@@ -1,9 +1,8 @@
 import React, { useContext, useEffect, useRef, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { useSearchStore } from '@features/search/store';
+import { GlobalSearch } from './GlobalSearch';
 import {
   Activity,
-  Bell,
   ChevronDown,
   LogOut,
   Menu,
@@ -33,12 +32,10 @@ const NAV_LINKS: Record<HeaderRole, NavLink[]> = {
   doctor: [
     { label: 'Inicio', href: '/doctor/dashboard' },
     { label: 'Pacientes', href: '/doctor/patients' },
-    { label: 'Noticias Guardadas', href: '/doctor/saved-news' },
   ],
   coo: [
     { label: 'Inicio', href: '/coo/dashboard' },
     { label: 'Por Medicamento', href: '/coo/medication-news' },
-    { label: 'Guardadas', href: '/coo/saved-news' },
     { label: 'Inventario', href: '/coo/inventory' },
     { label: 'Médicos', href: '/coo/doctors/new' },
   ],
@@ -47,10 +44,6 @@ const NAV_LINKS: Record<HeaderRole, NavLink[]> = {
 interface HeaderProps {
   role: HeaderRole;
   activeLink?: string;
-  notificationCount?: number;
-  showNotifications?: boolean;
-  onNotificationsClick?: () => void;
-  onSearch?: (value: string) => void;
 }
 
 const SHELL_STYLES =
@@ -65,8 +58,7 @@ const NAV_LINK_ACTIVE = 'text-nav-active';
 const ICON_BTN_STYLES =
   'relative inline-flex items-center justify-center w-10 h-10 rounded-lg text-nav-foreground-muted hover:text-nav-foreground hover:bg-nav-surface-hover transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring';
 
-const SEARCH_WRAPPER_STYLES =
-  'group relative hidden md:flex items-center h-9 w-full max-w-2xl rounded-lg border border-border-subtle bg-surface-subtle hover:bg-surface-muted focus-within:bg-surface focus-within:border-primary/40 focus-within:ring-2 focus-within:ring-primary/15 transition-colors';
+
 
 function getInitials(value: string): string {
   return value
@@ -81,10 +73,6 @@ function getInitials(value: string): string {
 export const Header: React.FC<HeaderProps> = ({
   role,
   activeLink,
-  notificationCount = 0,
-  showNotifications = true,
-  onNotificationsClick,
-  onSearch,
 }) => {
   const links = NAV_LINKS[role];
   const user = useAuthStore((s) => s.user);
@@ -98,14 +86,7 @@ export const Header: React.FC<HeaderProps> = ({
   const menuRef = useRef<HTMLDivElement>(null);
   const searchRef = useRef<HTMLInputElement>(null);
 
-  const setQuery = useSearchStore((s) => s.setQuery);
-  const clearQuery = useSearchStore((s) => s.clearQuery);
-  const query = useSearchStore((s) => s.query);
   const location = useLocation();
-
-  useEffect(() => {
-    clearQuery();
-  }, [location.pathname, clearQuery]);
 
   useEffect(() => {
     const onDocClick = (e: MouseEvent) => {
@@ -130,7 +111,6 @@ export const Header: React.FC<HeaderProps> = ({
   }, []);
 
   const initials = user ? getInitials(user.name) : '';
-  const hasNotifications = notificationCount > 0;
 
   return (
     <header className={SHELL_STYLES}>
@@ -170,39 +150,7 @@ export const Header: React.FC<HeaderProps> = ({
           })}
         </nav>
 
-        <label className={`${SEARCH_WRAPPER_STYLES} ml-auto lg:ml-4 flex-1`}>
-          <span className="pl-3 text-text-subtle flex items-center">
-            <Search size={16} strokeWidth={2} aria-hidden="true" />
-          </span>
-          <input
-            ref={searchRef}
-            type="search"
-            value={query}
-            placeholder="Buscar pacientes, consultas, artículos..."
-            onChange={(e) => {
-              setQuery(e.target.value);
-              onSearch?.(e.target.value);
-            }}
-            className="flex-1 min-w-0 bg-transparent border-0 text-sm text-text-primary placeholder-text-subtle px-2 focus:outline-none focus:ring-0"
-          />
-          <kbd
-            aria-hidden="true"
-            className="hidden sm:inline-flex items-center gap-0.5 mr-2 px-1.5 h-5 rounded border border-border-subtle bg-surface text-[10px] font-mono font-medium text-text-muted tracking-tight shadow-[inset_0_-1px_0_0_var(--color-border-strong)]"
-          >
-            {typeof navigator !== 'undefined' && navigator.platform.toLowerCase().includes('mac') ? (
-              <>
-                <span className="text-[12px] leading-none">⌘</span>
-                <span>K</span>
-              </>
-            ) : (
-              <>
-                <span>Ctrl</span>
-                <span className="text-text-subtle">+</span>
-                <span>K</span>
-              </>
-            )}
-          </kbd>
-        </label>
+        <GlobalSearch />
 
         <div className="ml-auto flex items-center gap-1 shrink-0">
           {toggleTheme && (
@@ -217,37 +165,6 @@ export const Header: React.FC<HeaderProps> = ({
                 <Sun size={18} strokeWidth={2} aria-hidden="true" />
               ) : (
                 <Moon size={18} strokeWidth={2} aria-hidden="true" />
-              )}
-            </button>
-          )}
-
-          {showNotifications && (
-            <button
-              type="button"
-              onClick={onNotificationsClick}
-              className={ICON_BTN_STYLES}
-              aria-label={
-                hasNotifications
-                  ? `Notificaciones (${notificationCount} sin leer)`
-                  : 'Notificaciones'
-              }
-              title="Notificaciones"
-            >
-              <Bell size={18} strokeWidth={2} aria-hidden="true" />
-              {hasNotifications && (
-                <span className="absolute top-2 right-2 inline-flex">
-                  <span
-                    aria-hidden="true"
-                    className="absolute inline-flex w-2 h-2 rounded-full text-danger medsync-pulse-ring"
-                  />
-                  <span
-                    aria-hidden="true"
-                    className="relative inline-flex w-2 h-2 rounded-full bg-danger ring-2 ring-nav-surface medsync-pulse-dot"
-                  />
-                </span>
-              )}
-              {hasNotifications && (
-                <span className="sr-only">{notificationCount} notificaciones sin leer</span>
               )}
             </button>
           )}
@@ -297,27 +214,17 @@ export const Header: React.FC<HeaderProps> = ({
                   </div>
                   <ul className="py-1">
                     <li>
-                      <button
-                        type="button"
-                        role="menuitem"
+                      <Link
+                        to={`/${role}/profile`}
                         onClick={() => setMenuOpen(false)}
                         className="w-full flex items-center gap-2 px-3 py-2 text-sm text-text-primary hover:bg-surface-muted transition-colors"
+                        role="menuitem"
                       >
                         <UserIcon size={16} strokeWidth={2} aria-hidden="true" />
                         Perfil
-                      </button>
+                      </Link>
                     </li>
-                    <li>
-                      <button
-                        type="button"
-                        role="menuitem"
-                        onClick={() => setMenuOpen(false)}
-                        className="w-full flex items-center gap-2 px-3 py-2 text-sm text-text-primary hover:bg-surface-muted transition-colors"
-                      >
-                        <Settings size={16} strokeWidth={2} aria-hidden="true" />
-                        Configuración
-                      </button>
-                    </li>
+
                   </ul>
                   <div className="border-t border-border-subtle py-1">
                     <button

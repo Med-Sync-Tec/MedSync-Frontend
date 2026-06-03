@@ -7,7 +7,6 @@ import { usePatients } from '@features/patients/queries';
 import { PatientListSkeleton } from '@features/patients/components/PatientListSkeleton';
 import { NewPatientModal } from '@features/patients/components/NewPatientModal';
 import type { Patient } from '@features/patients/schemas';
-import { useSearchStore } from '@features/search/store';
 
 function deriveStatus(patient: Patient): PatientCardStatus {
   return patient.activo ? 'estable' : 'alta';
@@ -15,29 +14,12 @@ function deriveStatus(patient: Patient): PatientCardStatus {
 
 export const PatientsListPage: React.FC = () => {
   const navigate = useNavigate();
-  const query = useSearchStore((s) => s.query);
-  const setQuery = useSearchStore((s) => s.setQuery);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [isNewOpen, setIsNewOpen] = useState(false);
 
   const { data, isLoading, isError, error, refetch, isFetching } = usePatients();
 
   const patients = useMemo<Patient[]>(() => data ?? [], [data]);
-
-  const filtered = useMemo(() => {
-    const normalize = (str?: string | null) => {
-      if (!str) return '';
-      return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
-    };
-
-    const q = normalize(query.trim());
-    if (!q) return patients;
-    return patients.filter(
-      (p) =>
-        normalize(p.nombre).includes(q) ||
-        normalize(p.expedienteExternoId).includes(q),
-    );
-  }, [patients, query]);
 
   const handleOpen = (id: string) => {
     setSelectedId(id);
@@ -64,22 +46,7 @@ export const PatientsListPage: React.FC = () => {
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
-          <label className="relative inline-flex items-center h-9 w-64 rounded-lg border border-border-subtle bg-surface focus-within:border-primary/40 focus-within:ring-2 focus-within:ring-primary/15 transition-colors">
-            <span className="pl-3 text-text-subtle flex items-center">
-              <Search size={14} strokeWidth={2} aria-hidden="true" />
-            </span>
-            <input
-              type="search"
-              placeholder="Buscar por nombre o expediente"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              disabled={isLoading || isError}
-              className="flex-1 min-w-0 bg-transparent border-0 text-sm text-text-primary placeholder-text-subtle px-2 focus:outline-none focus:ring-0"
-            />
-          </label>
-
-          <button
+        <div className="flex items-center gap-2">          <button
             type="button"
             onClick={() => setIsNewOpen(true)}
             className="inline-flex items-center gap-1.5 h-9 px-3 rounded-lg bg-primary text-white text-sm font-medium hover:bg-primary-hover transition-colors shadow-card focus:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
@@ -98,7 +65,7 @@ export const PatientsListPage: React.FC = () => {
           <span className="text-[11px] font-semibold uppercase tracking-[0.1em] text-text-muted">
             {isLoading
               ? 'Cargando…'
-              : `${filtered.length} ${filtered.length === 1 ? 'resultado' : 'resultados'}`}
+              : `${patients.length} ${patients.length === 1 ? 'resultado' : 'resultados'}`}
             {isFetching && !isLoading ? ' · actualizando' : ''}
           </span>
           <span className="text-[11px] text-text-subtle tracking-tight">
@@ -112,13 +79,9 @@ export const PatientsListPage: React.FC = () => {
           <ErrorState error={error} onRetry={() => refetch()} />
         ) : patients.length === 0 ? (
           <EmptyState />
-        ) : filtered.length === 0 ? (
-          <p className="py-10 text-center text-sm text-text-muted" aria-live="polite">
-            Sin coincidencias para &ldquo;{query}&rdquo;.
-          </p>
         ) : (
           <ul className="divide-y divide-border-subtle">
-            {filtered.map((p) => (
+            {patients.map((p) => (
               <li key={p.id}>
                 <PatientCard
                   name={p.nombre}

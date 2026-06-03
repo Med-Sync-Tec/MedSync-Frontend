@@ -5,26 +5,42 @@ import { Button } from '@ui/buttons/Button';
 import { Alert } from '@ui/feedback/Alert';
 import { ApiError } from '@lib/http/errors';
 import {
-  CreateDoctorSchema,
-  type CreateDoctorInput,
+  CreateUserSchema,
+  type CreateUserInput,
   type Specialty,
   type CreatedUser,
 } from '@features/admin/schemas';
-import { createDoctor, listActiveSpecialties } from '@features/admin/api';
+import { createUser, listActiveSpecialties } from '@features/admin/api';
 
-type FieldErrors = Partial<Record<keyof CreateDoctorInput, string>>;
+type RoleOption = 'DOCTOR' | 'COO';
 
-const EMPTY_FORM: CreateDoctorInput = {
+type FormState = {
+  rol: RoleOption;
+  nombre: string;
+  correo: string;
+  password: string;
+  especialidadId: string;
+};
+
+type FieldErrors = Partial<Record<keyof FormState, string>>;
+
+const EMPTY_FORM: FormState = {
+  rol: 'DOCTOR',
   nombre: '',
   correo: '',
   password: '',
   especialidadId: '',
 };
 
+const ROLE_LABELS: Record<RoleOption, string> = {
+  DOCTOR: 'Doctor',
+  COO: 'Director de Operaciones (COO)',
+};
+
 function describeApiError(err: unknown): string {
   if (err instanceof ApiError) {
     if (err.isConflict) return 'El correo ya está registrado.';
-    if (err.isForbidden) return 'Solo el COO puede crear médicos.';
+    if (err.isForbidden) return 'Solo el COO puede crear usuarios.';
     if (err.isUnauthorized) return 'Tu sesión expiró. Vuelve a iniciar sesión.';
     if (err.isValidation) {
       const first = err.fieldErrors[0];
@@ -38,7 +54,7 @@ function describeApiError(err: unknown): string {
 
 export const CreateDoctorPage: React.FC = () => {
   const navigate = useNavigate();
-  const [form, setForm] = useState<CreateDoctorInput>(EMPTY_FORM);
+  const [form, setForm] = useState<FormState>(EMPTY_FORM);
   const [errors, setErrors] = useState<FieldErrors>({});
   const [serverError, setServerError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -50,41 +66,38 @@ export const CreateDoctorPage: React.FC = () => {
 
   useEffect(() => {
     let cancelled = false;
-    setLoadingSpecialties(true);
     listActiveSpecialties()
-      .then((list) => {
-        if (cancelled) return;
-        setSpecialties(list);
-      })
-      .catch((err: unknown) => {
-        if (cancelled) return;
-        setSpecialtiesError(describeApiError(err));
-      })
-      .finally(() => {
-        if (cancelled) return;
-        setLoadingSpecialties(false);
-      });
-    return () => {
-      cancelled = true;
-    };
+      .then((list) => { if (!cancelled) setSpecialties(list); })
+      .catch((err: unknown) => { if (!cancelled) setSpecialtiesError(describeApiError(err)); })
+      .finally(() => { if (!cancelled) setLoadingSpecialties(false); });
+    return () => { cancelled = true; };
   }, []);
 
-  const updateField = <K extends keyof CreateDoctorInput>(field: K, value: CreateDoctorInput[K]) => {
+  const updateField = <K extends keyof FormState>(field: K, value: FormState[K]) => {
     setForm((prev) => ({ ...prev, [field]: value }));
     setErrors((prev) => ({ ...prev, [field]: undefined }));
+  };
+
+  const handleRolChange = (rol: RoleOption) => {
+    setForm((prev) => ({ ...prev, rol, especialidadId: '' }));
+    setErrors((prev) => ({ ...prev, rol: undefined, especialidadId: undefined }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setServerError('');
 
-    const parsed = CreateDoctorSchema.safeParse(form);
+    const candidate: CreateUserInput = form.rol === 'DOCTOR'
+      ? { rol: 'DOCTOR', nombre: form.nombre, correo: form.correo, password: form.password, especialidadId: form.especialidadId }
+      : { rol: 'COO', nombre: form.nombre, correo: form.correo, password: form.password };
+
+    const parsed = CreateUserSchema.safeParse(candidate);
     if (!parsed.success) {
       const fieldErrors: FieldErrors = {};
       for (const issue of parsed.error.issues) {
         const field = issue.path[0];
-        if (typeof field === 'string' && !fieldErrors[field as keyof CreateDoctorInput]) {
-          fieldErrors[field as keyof CreateDoctorInput] = issue.message;
+        if (typeof field === 'string' && !fieldErrors[field as keyof FormState]) {
+          fieldErrors[field as keyof FormState] = issue.message;
         }
       }
       setErrors(fieldErrors);
@@ -94,7 +107,7 @@ export const CreateDoctorPage: React.FC = () => {
     setErrors({});
     setIsLoading(true);
     try {
-      const result = await createDoctor(parsed.data);
+      const result = await createUser(parsed.data);
       setCreated(result);
       setForm(EMPTY_FORM);
     } catch (err: unknown) {
@@ -113,10 +126,14 @@ export const CreateDoctorPage: React.FC = () => {
               person_add
             </span>
           </div>
-          <h2 className="text-xl font-bold text-gray-900 dark:text-white">Médico creado</h2>
+          <h2 className="text-xl font-bold text-gray-900 dark:text-white">Usuario creado</h2>
           <p className="text-sm text-gray-500 dark:text-gray-400">
             <span className="font-medium text-gray-700 dark:text-gray-200">{created.nombre}</span> ya
-            puede iniciar sesión con el correo{' '}
+            puede iniciar sesión como{' '}
+            <span className="font-medium text-gray-700 dark:text-gray-200">
+              {ROLE_LABELS[created.role as RoleOption] ?? created.role}
+            </span>{' '}
+            con el correo{' '}
             <span className="font-medium text-gray-700 dark:text-gray-200">{created.correo}</span>.
           </p>
           {created.especialidadNombre && (
@@ -126,7 +143,7 @@ export const CreateDoctorPage: React.FC = () => {
           )}
           <div className="flex flex-col sm:flex-row gap-3 pt-2">
             <Button fullWidth variant="secondary" onClick={() => setCreated(null)}>
-              Crear otro médico
+              Crear otro usuario
             </Button>
             <Button fullWidth onClick={() => navigate('/coo/dashboard')}>
               Volver al panel
@@ -140,9 +157,9 @@ export const CreateDoctorPage: React.FC = () => {
   return (
     <main className="w-full max-w-xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
       <header className="space-y-1">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Crear médico</h1>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Crear usuario</h1>
         <p className="text-sm text-gray-500 dark:text-gray-400">
-          Da de alta un nuevo doctor en la plataforma. Recibirá la contraseña que definas aquí.
+          Da de alta un nuevo usuario en la plataforma. Recibirá la contraseña que definas aquí.
         </p>
       </header>
 
@@ -157,12 +174,36 @@ export const CreateDoctorPage: React.FC = () => {
         )}
 
         <form className="space-y-4" onSubmit={handleSubmit} noValidate>
+          {/* Role selector */}
+          <div className="space-y-1.5">
+            <span className="block text-sm font-semibold text-gray-700 dark:text-gray-300">Rol</span>
+            <div className="grid grid-cols-2 gap-2">
+              {(['DOCTOR', 'COO'] as RoleOption[]).map((rol) => (
+                <button
+                  key={rol}
+                  type="button"
+                  onClick={() => handleRolChange(rol)}
+                  className={`flex items-center gap-2 px-4 py-3 rounded-xl border text-sm font-medium transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 ${
+                    form.rol === rol
+                      ? 'border-primary bg-primary/5 text-primary'
+                      : 'border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600'
+                  }`}
+                >
+                  <span className="material-symbols-outlined text-[18px]">
+                    {rol === 'DOCTOR' ? 'stethoscope' : 'admin_panel_settings'}
+                  </span>
+                  {rol === 'DOCTOR' ? 'Doctor' : 'COO'}
+                </button>
+              ))}
+            </div>
+          </div>
+
           <Input
             label="Nombre completo"
-            id="doctor-nombre"
+            id="user-nombre"
             name="nombre"
             type="text"
-            placeholder="Dr. Juan Pérez"
+            placeholder={form.rol === 'DOCTOR' ? 'Dr. Juan Pérez' : 'Lic. María García'}
             value={form.nombre}
             onChange={(e) => updateField('nombre', e.target.value)}
             error={errors.nombre}
@@ -170,10 +211,10 @@ export const CreateDoctorPage: React.FC = () => {
           />
           <Input
             label="Correo electrónico"
-            id="doctor-correo"
+            id="user-correo"
             name="correo"
             type="email"
-            placeholder="doctor@medsync.local"
+            placeholder="usuario@medsync.local"
             value={form.correo}
             onChange={(e) => updateField('correo', e.target.value)}
             error={errors.correo}
@@ -181,7 +222,7 @@ export const CreateDoctorPage: React.FC = () => {
           />
           <PasswordInput
             label="Contraseña inicial"
-            id="doctor-password"
+            id="user-password"
             name="password"
             placeholder="Mínimo 6 caracteres"
             value={form.password}
@@ -190,39 +231,42 @@ export const CreateDoctorPage: React.FC = () => {
             autoComplete="new-password"
           />
 
-          <div className="space-y-1.5">
-            <label
-              htmlFor="doctor-especialidad"
-              className="block text-sm font-semibold text-gray-700 dark:text-gray-300"
-            >
-              Especialidad
-            </label>
-            <select
-              id="doctor-especialidad"
-              name="especialidadId"
-              value={form.especialidadId}
-              onChange={(e) => updateField('especialidadId', e.target.value)}
-              disabled={loadingSpecialties || specialties.length === 0}
-              className="block w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 px-4 py-2.5 text-sm text-gray-900 dark:text-white focus:border-primary focus:ring-2 focus:ring-primary/20 focus:bg-white dark:focus:bg-gray-900 transition-colors disabled:opacity-60"
-              aria-invalid={Boolean(errors.especialidadId)}
-            >
-              <option value="" disabled>
-                {loadingSpecialties ? 'Cargando especialidades...' : 'Selecciona una especialidad'}
-              </option>
-              {specialties.map((s) => (
-                <option key={s.id} value={s.id}>
-                  {s.nombre}
+          {/* Especialidad — only visible for DOCTOR */}
+          {form.rol === 'DOCTOR' && (
+            <div className="space-y-1.5">
+              <label
+                htmlFor="user-especialidad"
+                className="block text-sm font-semibold text-gray-700 dark:text-gray-300"
+              >
+                Especialidad
+              </label>
+              <select
+                id="user-especialidad"
+                name="especialidadId"
+                value={form.especialidadId}
+                onChange={(e) => updateField('especialidadId', e.target.value)}
+                disabled={loadingSpecialties || specialties.length === 0}
+                className="block w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 px-4 py-2.5 text-sm text-gray-900 dark:text-white focus:border-primary focus:ring-2 focus:ring-primary/20 focus:bg-white dark:focus:bg-gray-900 transition-colors disabled:opacity-60"
+                aria-invalid={Boolean(errors.especialidadId)}
+              >
+                <option value="" disabled>
+                  {loadingSpecialties ? 'Cargando especialidades...' : 'Selecciona una especialidad'}
                 </option>
-              ))}
-            </select>
-            <p
-              className={`text-xs font-medium mt-1 h-4 leading-none ${
-                errors.especialidadId ? 'text-red-500' : 'invisible select-none'
-              }`}
-            >
-              {errors.especialidadId ?? ''}
-            </p>
-          </div>
+                {specialties.map((s) => (
+                  <option key={s.id} value={s.id}>
+                    {s.nombre}
+                  </option>
+                ))}
+              </select>
+              <p
+                className={`text-xs font-medium mt-1 h-4 leading-none ${
+                  errors.especialidadId ? 'text-red-500' : 'invisible select-none'
+                }`}
+              >
+                {errors.especialidadId ?? ''}
+              </p>
+            </div>
+          )}
 
           <div className="flex flex-col sm:flex-row gap-3 pt-2">
             <Button
@@ -235,7 +279,7 @@ export const CreateDoctorPage: React.FC = () => {
               Cancelar
             </Button>
             <Button type="submit" fullWidth isLoading={isLoading}>
-              {isLoading ? 'Creando...' : 'Crear médico'}
+              {isLoading ? 'Creando...' : `Crear ${form.rol === 'DOCTOR' ? 'doctor' : 'COO'}`}
             </Button>
           </div>
         </form>

@@ -57,7 +57,7 @@ export const PasswordInput = forwardRef<HTMLInputElement, InputProps>(function P
           id={id}
           type={show ? 'text' : 'password'}
           aria-invalid={Boolean(error)}
-          className={`${FIELD_BASE} ${fieldState(Boolean(error))}`}
+          className={`${FIELD_BASE} pr-10 ${fieldState(Boolean(error))}`}
           {...props}
         />
         <button
