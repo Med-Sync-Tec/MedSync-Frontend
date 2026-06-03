@@ -5,7 +5,6 @@ import {
   ChevronLeft,
   ChevronRight,
   ChevronRight as ChevronRightIcon,
-  FileSearch,
   History,
   ListFilter,
   Plus,
@@ -114,9 +113,6 @@ export const ConsultationHistoryPage: React.FC = () => {
 
   const tabs: TabDef[] = [
     { id: 'historial', label: 'Historial', count: sortedConsultations.length },
-    { id: 'resumen', label: 'Resumen', disabled: true },
-    { id: 'documentos', label: 'Documentos', disabled: true },
-    { id: 'vitales', label: 'Signos vitales', disabled: true },
   ];
 
   if (!patientId) {
@@ -270,11 +266,7 @@ export const ConsultationHistoryPage: React.FC = () => {
                             {tab.count}
                           </span>
                         )}
-                        {tab.disabled && (
-                          <span className="text-[9px] uppercase tracking-wide text-text-subtle ml-0.5">
-                            Pronto
-                          </span>
-                        )}
+
                         {isActive && (
                           <span
                             aria-hidden="true"
@@ -329,9 +321,7 @@ export const ConsultationHistoryPage: React.FC = () => {
               )}
             </div>
 
-            {activeTab !== 'historial' && (
-              <PlaceholderPanel label={currentTabLabel(activeTab, tabs)} />
-            )}
+
           </section>
         </div>
       )}
@@ -435,17 +425,6 @@ const EmptyState: React.FC = () => (
   </div>
 );
 
-const PlaceholderPanel: React.FC<{ label: string }> = ({ label }) => (
-  <div className="flex flex-col items-center justify-center text-center py-16 rounded-2xl border border-dashed border-border-strong bg-surface-subtle">
-    <span className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-surface-muted text-text-subtle mb-3">
-      <FileSearch size={18} strokeWidth={2} aria-hidden="true" />
-    </span>
-    <h3 className="text-sm font-semibold text-text-primary tracking-tight">{label} — en camino</h3>
-    <p className="mt-1 text-xs text-text-muted max-w-xs">
-      Esta sección se habilitará cuando el backend exponga los endpoints correspondientes.
-    </p>
-  </div>
-);
 
 interface PageErrorProps {
   title: string;

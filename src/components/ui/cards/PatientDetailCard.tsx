@@ -1,11 +1,8 @@
 import React, { forwardRef, useMemo } from 'react';
 import {
   CalendarClock,
-  Download,
   Files,
   IdCard,
-  PhoneCall,
-  Share2,
   UserRound,
 } from 'lucide-react';
 import type { Expediente, Patient, PatientConsultaLite } from '@features/patients/types';
@@ -26,9 +23,6 @@ interface PatientDetailCardProps extends React.HTMLAttributes<HTMLElement> {
   consultas: PatientConsultaLite[];
   lastActivityAuthor?: string;
   lastActivityAt?: string;
-  onCall?: () => void;
-  onExport?: () => void;
-  onShare?: () => void;
 }
 
 const CARD_STYLES =
@@ -48,9 +42,6 @@ export const PatientDetailCard = forwardRef<HTMLElement, PatientDetailCardProps>
       consultas,
       lastActivityAuthor,
       lastActivityAt,
-      onCall,
-      onExport,
-      onShare,
       className = '',
       ...rest
     },
@@ -195,35 +186,6 @@ export const PatientDetailCard = forwardRef<HTMLElement, PatientDetailCardProps>
           </div>
         </section>
 
-        <div className="px-5 pt-4 pb-4 border-t border-border-subtle flex items-center gap-1">
-          <button
-            type="button"
-            onClick={onCall}
-            className="inline-flex items-center gap-1.5 h-8 px-2.5 rounded-md border border-border-subtle bg-surface text-[12px] font-medium text-text-primary hover:bg-surface-muted hover:border-border-strong transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
-            aria-label="Llamar al paciente"
-          >
-            <PhoneCall size={12} strokeWidth={2} aria-hidden="true" />
-            Llamar
-          </button>
-          <button
-            type="button"
-            onClick={onExport}
-            className="inline-flex items-center justify-center w-8 h-8 rounded-md border border-border-subtle bg-surface text-text-muted hover:bg-surface-muted hover:text-text-primary hover:border-border-strong transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
-            aria-label="Exportar expediente en PDF"
-            title="Exportar PDF"
-          >
-            <Download size={12} strokeWidth={2} aria-hidden="true" />
-          </button>
-          <button
-            type="button"
-            onClick={onShare}
-            className="inline-flex items-center justify-center w-8 h-8 rounded-md border border-border-subtle bg-surface text-text-muted hover:bg-surface-muted hover:text-text-primary hover:border-border-strong transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
-            aria-label="Compartir expediente"
-            title="Compartir"
-          >
-            <Share2 size={12} strokeWidth={2} aria-hidden="true" />
-          </button>
-        </div>
 
         <footer className="px-5 py-3 flex items-start gap-2 border-t border-border-subtle bg-surface-subtle">
           <span
