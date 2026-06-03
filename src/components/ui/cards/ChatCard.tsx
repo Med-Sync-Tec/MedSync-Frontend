@@ -2,6 +2,42 @@ import React from 'react';
 import type { MediBotMessage } from '@features/chat/hooks/useMediBot';
 import { ChatInput } from '../inputs/ChatInput';
 
+function renderBotText(text: string): React.ReactNode {
+  const blocks = text.split(/\n{2,}/);
+  return blocks.map((block, bi) => {
+    const lines = block.split('\n');
+    const isList = lines.every((l) => /^[-*]\s/.test(l.trim()) || l.trim() === '');
+    const isHeader = lines.length === 1 && /^###\s/.test(lines[0]);
+
+    if (isHeader) {
+      return (
+        <p key={bi} className="font-semibold text-xs mb-1">
+          {inlineFormat(lines[0].replace(/^###\s/, ''))}
+        </p>
+      );
+    }
+    if (isList) {
+      return (
+        <ul key={bi} className="list-disc list-inside space-y-0.5 mb-1">
+          {lines.filter((l) => l.trim()).map((l, li) => (
+            <li key={li}>{inlineFormat(l.replace(/^[-*]\s/, ''))}</li>
+          ))}
+        </ul>
+      );
+    }
+    return <p key={bi} className="mb-1">{lines.map((l, li) => <span key={li}>{inlineFormat(l)}{li < lines.length - 1 && <br />}</span>)}</p>;
+  });
+}
+
+function inlineFormat(text: string): React.ReactNode {
+  const parts = text.split(/(\*\*[^*]+\*\*)/g);
+  return parts.map((part, i) =>
+    /^\*\*[^*]+\*\*$/.test(part)
+      ? <strong key={i}>{part.slice(2, -2)}</strong>
+      : part
+  );
+}
+
 interface ChatCardProps {
   messages: MediBotMessage[];
   isLoading?: boolean;
@@ -54,7 +90,7 @@ export const ChatCard: React.FC<ChatCardProps> = ({
                   : 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-bl-sm'
               }`}
             >
-              {msg.text}
+              {msg.role === 'bot' ? renderBotText(msg.text) : msg.text}
             </div>
           </div>
         ))}
