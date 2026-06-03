@@ -7,11 +7,12 @@ import { ConsultationHistoryPage } from '@features/consultations/pages/Consultat
 import { NewSOAPEntryPage } from '@features/consultations/pages/NewSOAPEntryPage';
 import { DoctorDashboardPage } from '@features/doctor';
 import { PatientsListPage } from '@features/patients/pages/PatientsListPage';
-import { SavedNewsPage } from '@features/news/pages/SavedNewsPage';
+
 import { CooDashboardPage } from '@features/coo/pages/CooDashboardPage';
 import { MedicationNewsPage } from '@features/coo/pages/MedicationNewsPage';
 import { InventoryPage } from '@features/inventory/pages/InventoryPage';
 import { CreateDoctorPage } from '@features/admin';
+import { ProfilePage } from '@features/profile';
 import { NotFoundPage } from './NotFoundPage';
 import { RequireAuth } from './RequireAuth';
 import { RedirectIfAuth } from './RedirectIfAuth';
@@ -39,7 +40,8 @@ export const routes: RouteObject[] = [
     children: [
       { path: '/doctor/dashboard', element: <DoctorDashboardPage /> },
       { path: '/doctor/patients', element: <PatientsListPage /> },
-      { path: '/doctor/saved-news', element: <SavedNewsPage /> },
+      { path: '/doctor/profile', element: <ProfilePage /> },
+
       { path: '/patients/:patientId/history', element: <ConsultationHistoryPage /> },
       { path: '/patients/:patientId/consultas/new', element: <NewSOAPEntryPage /> },
     ],
@@ -53,7 +55,8 @@ export const routes: RouteObject[] = [
     children: [
       { path: '/coo/dashboard', element: <CooDashboardPage /> },
       { path: '/coo/medication-news', element: <MedicationNewsPage /> },
-      { path: '/coo/saved-news', element: <SavedNewsPage /> },
+      { path: '/coo/profile', element: <ProfilePage /> },
+
       { path: '/coo/inventory', element: <InventoryPage /> },
       { path: '/coo/doctors/new', element: <CreateDoctorPage /> },
     ],
