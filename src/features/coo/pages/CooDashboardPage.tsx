@@ -48,11 +48,6 @@ function formatTimeAgo(dateStr: string): string {
   return `Hace ${diffDays} días`;
 }
 
-const normalize = (str?: string | null) => {
-  if (!str) return '';
-  return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
-};
-
 export const CooDashboardPage: React.FC = () => {
   const [viewMode, setViewMode] = useState<ViewMode>('noticias');
   const [page, setPage] = useState(0);

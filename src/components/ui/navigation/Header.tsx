@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useRef, useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { GlobalSearch } from './GlobalSearch';
 import {
   Activity,
@@ -7,8 +7,6 @@ import {
   LogOut,
   Menu,
   Moon,
-  Search,
-  Settings,
   Sun,
   User as UserIcon,
   X,
@@ -85,8 +83,6 @@ export const Header: React.FC<HeaderProps> = ({
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const searchRef = useRef<HTMLInputElement>(null);
-
-  const location = useLocation();
 
   useEffect(() => {
     const onDocClick = (e: MouseEvent) => {
