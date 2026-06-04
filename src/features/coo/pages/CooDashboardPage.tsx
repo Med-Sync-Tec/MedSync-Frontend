@@ -385,6 +385,11 @@ export const CooDashboardPage: React.FC = () => {
                           saved={true}
                           onSave={(e?: React.MouseEvent) => { e?.stopPropagation(); handleUnsaveSaved(article); }}
                           url={article.url}
+                          extraActions={
+                            <span onClick={(e) => e.stopPropagation()}>
+                              <AnalyzeArticleButton articleId={article.id} articleTitle={article.titulo} />
+                            </span>
+                          }
                         />
                       </div>
                     );
