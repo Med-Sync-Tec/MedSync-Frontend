@@ -67,9 +67,8 @@ export const CreatePatientInputSchema = z.object({
   genero: z
     .string()
     .trim()
-    .max(20, 'Máximo 20 caracteres')
-    .optional()
-    .transform((v) => (v && v.length > 0 ? v : undefined)),
+    .min(1, 'Debes seleccionar un género')
+    .max(20, 'Máximo 20 caracteres'),
 });
 
 export const CONTEXTO_TIPOS = ['enfermedad', 'sintoma', 'tratamiento', 'medicamento'] as const;
