@@ -5,7 +5,8 @@ export const PatientSchema = z.object({
   expedienteExternoId: z.string(),
   nombre: z.string(),
   fechaNacimiento: z.string(),
-  genero: z.string(),
+  // Backend puede devolver null cuando no se especificó género
+  genero: z.string().nullish().transform((v) => v ?? ''),
   medicoId: z.string(),
   activo: z.boolean(),
   createdAt: z.string(),
@@ -22,8 +23,8 @@ export const ExpedienteSchema = z.object({
 export const PatientConsultaLiteSchema = z.object({
   id: z.string(),
   fecha: z.string(),
-  diagnostico: z.string(),
-  prescripcion: z.string(),
+  diagnostico: z.string().nullish().transform((v) => v ?? ''),
+  prescripcion: z.string().nullish().transform((v) => v ?? ''),
 });
 
 export const PatientDetailSchema = z.object({

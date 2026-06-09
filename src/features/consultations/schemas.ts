@@ -25,13 +25,14 @@ export const ConsultationSchema = ConsultationSummarySchema.extend({
 export const ConsultaSchema = z.object({
   id: z.string(),
   fecha: z.string(),
-  motivoConsulta: z.string(),
-  subjetivo: z.string(),
-  objetivo: z.string(),
-  evaluacion: z.string(),
-  plan: z.string(),
-  prescripcion: z.string(),
-  diagnostico: z.string(),
+  // El backend devuelve null en campos SOAP que no fueron llenados
+  motivoConsulta: z.string().nullish().transform((v) => v ?? ''),
+  subjetivo: z.string().nullish().transform((v) => v ?? ''),
+  objetivo: z.string().nullish().transform((v) => v ?? ''),
+  evaluacion: z.string().nullish().transform((v) => v ?? ''),
+  plan: z.string().nullish().transform((v) => v ?? ''),
+  prescripcion: z.string().nullish().transform((v) => v ?? ''),
+  diagnostico: z.string().nullish().transform((v) => v ?? ''),
   createdAt: z.string(),
 });
 
