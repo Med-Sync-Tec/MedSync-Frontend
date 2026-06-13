@@ -24,3 +24,10 @@ dist-ssr
 *.sw?
 
 .env
+coverage/
+
+# Cypress (artefactos de ejecución)
+cypress/videos/
+cypress/screenshots/
+cypress/downloads/
+.env.e2e

@@ -1,20 +1,19 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-vi.mock('@lib/http/client', () => ({
-  http: { post: vi.fn() },
-  apiFetch: vi.fn(),
+jest.mock('@lib/http/client', () => ({
+  http: { post: jest.fn() },
+  apiFetch: jest.fn(),
 }));
 
-vi.mock('@lib/firebase/client', () => ({
-  auth: { currentUser: { getIdToken: vi.fn().mockResolvedValue('test-token') } },
+jest.mock('@lib/firebase/client', () => ({
+  auth: { currentUser: { getIdToken: jest.fn().mockResolvedValue('test-token') } },
 }));
 
 import { http } from '@lib/http/client';
 import { sendDictation } from './api';
 
-const mockPost = vi.mocked(http.post);
+const mockPost = jest.mocked(http.post);
 
-beforeEach(() => vi.clearAllMocks());
+beforeEach(() => jest.clearAllMocks());
 
 describe('sendDictation', () => {
   it('calls POST /api/soap/dictation with FormData', async () => {
@@ -26,7 +25,7 @@ describe('sendDictation', () => {
     const blob = new Blob(['audio'], { type: 'audio/webm' });
     await sendDictation(blob);
 
-    expect(mockPost).toHaveBeenCalledOnce();
+    expect(mockPost).toHaveBeenCalledTimes(1);
     const [url, formData] = mockPost.mock.calls[0];
     expect(url).toBe('/api/soap/dictation');
     expect(formData).toBeInstanceOf(FormData);

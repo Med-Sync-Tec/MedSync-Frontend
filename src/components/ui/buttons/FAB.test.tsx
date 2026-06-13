@@ -1,0 +1,45 @@
+import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { FAB } from './FAB';
+
+describe('FAB', () => {
+  it('renders the label text', () => {
+    render(<FAB label="Pregúntale a MediBot" />);
+    expect(screen.getByText('Pregúntale a MediBot')).toBeInTheDocument();
+  });
+
+  it('renders the default smart_toy icon when no icon is given', () => {
+    render(<FAB label="MediBot" />);
+    expect(screen.getByText('smart_toy')).toBeInTheDocument();
+  });
+
+  it('renders a custom icon instead of the default', () => {
+    render(<FAB label="MediBot" icon={<span data-testid="custom-icon" />} />);
+    expect(screen.getByTestId('custom-icon')).toBeInTheDocument();
+    expect(screen.queryByText('smart_toy')).not.toBeInTheDocument();
+  });
+
+  it('renders a button with type="button"', () => {
+    render(<FAB label="MediBot" />);
+    expect(screen.getByRole('button')).toHaveAttribute('type', 'button');
+  });
+
+  it('calls onClick when the button is clicked', async () => {
+    const onClick = jest.fn();
+    render(<FAB label="MediBot" onClick={onClick} />);
+
+    await userEvent.click(screen.getByRole('button'));
+
+    expect(onClick).toHaveBeenCalledTimes(1);
+  });
+
+  it('forwards an aria-label to the button', () => {
+    render(<FAB label="MediBot" aria-label="Abrir chat" />);
+    expect(screen.getByRole('button', { name: 'Abrir chat' })).toBeInTheDocument();
+  });
+
+  it('appends a custom className to the wrapper', () => {
+    const { container } = render(<FAB label="MediBot" className="extra-class" />);
+    expect(container.firstChild).toHaveClass('extra-class');
+  });
+});

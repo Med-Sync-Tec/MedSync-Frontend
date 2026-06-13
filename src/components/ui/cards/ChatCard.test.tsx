@@ -1,4 +1,3 @@
-import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { ChatCard } from './ChatCard';
@@ -11,23 +10,23 @@ const messages: MediBotMessage[] = [
 
 describe('ChatCard', () => {
   it('renders user and bot messages', () => {
-    render(<ChatCard messages={messages} onSend={vi.fn()} />);
+    render(<ChatCard messages={messages} onSend={jest.fn()} />);
     expect(screen.getByText('Hola')).toBeInTheDocument();
     expect(screen.getByText('Hola, soy MediBot.')).toBeInTheDocument();
   });
 
   it('shows typing indicator when isLoading=true', () => {
-    render(<ChatCard messages={[]} onSend={vi.fn()} isLoading={true} />);
+    render(<ChatCard messages={[]} onSend={jest.fn()} isLoading={true} />);
     expect(screen.getByRole('status')).toBeInTheDocument();
   });
 
   it('does not show typing indicator when isLoading=false', () => {
-    render(<ChatCard messages={[]} onSend={vi.fn()} isLoading={false} />);
+    render(<ChatCard messages={[]} onSend={jest.fn()} isLoading={false} />);
     expect(screen.queryByRole('status')).not.toBeInTheDocument();
   });
 
   it('calls onSend when user submits a message', async () => {
-    const onSend = vi.fn();
+    const onSend = jest.fn();
     render(<ChatCard messages={[]} onSend={onSend} />);
 
     const input = screen.getByPlaceholderText(/MediBot/i);
@@ -38,8 +37,8 @@ describe('ChatCard', () => {
   });
 
   it('calls onClose when close button is clicked', async () => {
-    const onClose = vi.fn();
-    render(<ChatCard messages={[]} onSend={vi.fn()} onClose={onClose} />);
+    const onClose = jest.fn();
+    render(<ChatCard messages={[]} onSend={jest.fn()} onClose={onClose} />);
 
     await userEvent.click(screen.getByLabelText(/cerrar/i));
     expect(onClose).toHaveBeenCalled();
