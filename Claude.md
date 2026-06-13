@@ -22,11 +22,15 @@ MedSync es una aplicación clínica (proyecto del TEC de Monterrey — EQ3005B) 
 ## Comandos
 
 ```bash
-pnpm dev         # Servidor de desarrollo
-pnpm build       # tsc + vite build (ambos deben pasar)
-pnpm lint        # ESLint (debe quedar limpio antes de commit)
-pnpm storybook   # Design system en http://localhost:6006
+pnpm dev            # Servidor de desarrollo
+pnpm build          # tsc + vite build (ambos deben pasar)
+pnpm lint           # ESLint (debe quedar limpio antes de commit)
+pnpm test           # Jest + React Testing Library (jsdom)
+pnpm test:coverage  # Jest con cobertura (umbral mínimo: 80% global)
+pnpm storybook      # Design system en http://localhost:6006
 ```
+
+**Testing:** Jest 30 (`jest.config.cjs`) con babel-jest (`babel.jest.cjs`, exclusivo de Jest — Vite no lo lee). Los tests viven junto al código (`Foo.tsx` → `Foo.test.tsx`). `src/test/jest.env.cjs` define las env vars de prueba y polyfills (TextEncoder, fetch/undici, structuredClone) que jsdom no trae. En factories de `jest.mock()` solo se pueden referenciar variables con prefijo `mock`.
 
 **Variables de entorno:** copiar `.env.example` a `.env.local` y llenar los 4 valores de Firebase + `VITE_API_BASE_URL`. Si falta alguna, `src/config/env.ts` tira un error al arranque indicando qué falta.
 

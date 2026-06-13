@@ -1,16 +1,15 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-vi.mock('@lib/http/client', () => ({
-  apiFetch: vi.fn(),
+jest.mock('@lib/http/client', () => ({
+  apiFetch: jest.fn(),
 }));
 
 import { apiFetch } from '@lib/http/client';
 import { sendChatMessage } from './api';
 
-const mockApiFetch = vi.mocked(apiFetch);
+const mockApiFetch = jest.mocked(apiFetch);
 
 beforeEach(() => {
-  vi.clearAllMocks();
+  jest.clearAllMocks();
 });
 
 describe('sendChatMessage', () => {

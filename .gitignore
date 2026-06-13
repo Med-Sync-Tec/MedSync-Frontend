@@ -25,3 +25,10 @@ dist-ssr
 
 .env
 .env.test
+.env.e2e
+coverage/
+
+# Cypress (artefactos de ejecución)
+cypress/videos/
+cypress/screenshots/
+cypress/downloads/

@@ -1,17 +1,16 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 
-vi.mock('../api', () => ({
-  sendChatMessage: vi.fn(),
+jest.mock('../api', () => ({
+  sendChatMessage: jest.fn(),
 }));
 
 import { sendChatMessage } from '../api';
 import { useMediBot } from './useMediBot';
 
-const mockSend = vi.mocked(sendChatMessage);
+const mockSend = jest.mocked(sendChatMessage);
 
 beforeEach(() => {
-  vi.clearAllMocks();
+  jest.clearAllMocks();
 });
 
 describe('useMediBot', () => {
