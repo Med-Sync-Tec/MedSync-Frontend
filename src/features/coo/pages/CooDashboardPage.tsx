@@ -332,9 +332,9 @@ export const CooDashboardPage: React.FC = () => {
                           saved={savedIds.has(article.id)}
                           onSave={(e?: React.MouseEvent) => { e?.stopPropagation(); toggleSave(article.id); }}
                           extraActions={
-                            <span onClick={(e) => e.stopPropagation()}>
+                            <div role="presentation" onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()}>
                               <AnalyzeArticleButton articleId={article.id} articleTitle={article.titulo} />
-                            </span>
+                            </div>
                           }
                         />
                       </div>
@@ -392,9 +392,9 @@ export const CooDashboardPage: React.FC = () => {
                           saved={true}
                           onSave={(e?: React.MouseEvent) => { e?.stopPropagation(); handleUnsaveSaved(article); }}
                           extraActions={
-                            <span onClick={(e) => e.stopPropagation()}>
+                            <div role="presentation" onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()}>
                               <AnalyzeArticleButton articleId={article.id} articleTitle={article.titulo} />
-                            </span>
+                            </div>
                           }
                         />
                       </div>

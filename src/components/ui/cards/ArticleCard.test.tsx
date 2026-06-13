@@ -58,7 +58,7 @@ describe('ArticleCard', () => {
   it('stops click propagation to the parent when saving', async () => {
     const onParentClick = jest.fn();
     render(
-      <div onClick={onParentClick}>
+      <div onClick={onParentClick}> {/* NOSONAR */}
         <ArticleCard {...baseProps} onSave={jest.fn()} />
       </div>
     );

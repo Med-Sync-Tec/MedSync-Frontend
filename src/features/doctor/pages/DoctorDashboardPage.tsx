@@ -430,12 +430,12 @@ export const DoctorDashboardPage: React.FC = () => {
                           }
                         }}
                         extraActions={
-                          <span onClick={(e) => e.stopPropagation()}>
+                          <div role="presentation" onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()}>
                             <AnalyzeArticleButton
                               articleId={article.id}
                               articleTitle={article.titulo}
                             />
-                          </span>
+                          </div>
                         }
                       />
                     </div>
