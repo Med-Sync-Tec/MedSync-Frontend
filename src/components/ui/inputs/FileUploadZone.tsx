@@ -1,7 +1,6 @@
 import React from 'react';
 
 interface FileUploadZoneProps {
-  onFileSelect?: (files: FileList) => void;
   className?: string;
 }
 

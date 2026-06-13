@@ -49,7 +49,6 @@ const meta: Meta<typeof ArticleCard> = {
     source: 'NEJM • 2026',
     matchText: '32 Coincidencias',
     variant: 'full',
-    url: 'https://pubmed.ncbi.nlm.nih.gov/demo',
   },
   decorators: [
     (Story) => (
@@ -71,7 +70,7 @@ export const Saved: Story = {
 
 export const WithUrl: Story = {
   name: 'Con URL (enlace externo)',
-  args: { url: 'https://pubmed.ncbi.nlm.nih.gov/demo' },
+  args: {},
 };
 
 export const WithAlert: Story = {
@@ -125,7 +124,10 @@ const WithDrawerDemo = () => {
         Haz click en la tarjeta para abrir el drawer de detalle. El botón de guardar no propaga el click al drawer.
       </p>
       <div
+        role="button"
+        tabIndex={0}
         onClick={() => setSelected(SAMPLE_ARTICLE)}
+        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setSelected(SAMPLE_ARTICLE); }}
         className="cursor-pointer"
       >
         <ArticleCard
@@ -138,7 +140,6 @@ const WithDrawerDemo = () => {
           matchText="32 Coincidencias"
           saved={saved}
           onSave={(e) => { e?.stopPropagation(); setSaved((p) => !p); }}
-          url={SAMPLE_ARTICLE.url}
         />
       </div>
       <ArticleDetailDrawer

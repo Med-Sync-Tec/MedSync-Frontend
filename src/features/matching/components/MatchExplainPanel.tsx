@@ -44,8 +44,8 @@ export const MatchExplainPanel: React.FC<MatchExplainPanelProps> = ({
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
     };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
+    globalThis.addEventListener('keydown', onKey);
+    return () => globalThis.removeEventListener('keydown', onKey);
   }, [open, onClose]);
 
   if (!open || !article) return null;
@@ -69,7 +69,7 @@ export const MatchExplainPanel: React.FC<MatchExplainPanelProps> = ({
   const totalTags = article.tags.length;
 
   return (
-    <div className="fixed inset-0 z-50 flex" role="dialog" aria-modal="true" aria-label="Por qué coincide este artículo">
+    <dialog open className="fixed inset-0 z-50 flex p-0 border-0 bg-transparent max-w-none w-full h-full" aria-modal="true" aria-label="Por qué coincide este artículo">
       <button
         type="button"
         aria-label="Cerrar"
@@ -202,6 +202,6 @@ export const MatchExplainPanel: React.FC<MatchExplainPanelProps> = ({
           </footer>
         )}
       </aside>
-    </div>
+    </dialog>
   );
 };

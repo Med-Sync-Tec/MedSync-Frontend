@@ -20,7 +20,7 @@ type Story = StoryObj<typeof Alert>;
 
 export const Success: Story = {};
 
-export const Error: Story = {
+export const ErrorAlert: Story = {
   args: {
     type: 'error',
     message: 'Correo electrónico o contraseña incorrectos. Por favor, inténtalo de nuevo.',

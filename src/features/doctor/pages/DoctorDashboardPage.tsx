@@ -3,13 +3,12 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { StatCard } from '@ui/cards/StatCard';
 import { ArticleCard } from '@ui/cards/ArticleCard';
 import { ArticleDetailDrawer } from '@ui/cards/ArticleDetailDrawer';
-import { useSyncArticles, useMarkArticleAsRead, useSavedArticles, useUnsaveArticle } from '@features/news/queries';
+import { useSyncArticles, useMarkArticleAsRead, useSavedArticles, useUnsaveArticle, useSaveArticle } from '@features/news/queries';
 import type { Article } from '@features/news/types';
 import { AnalyzeArticleButton } from '@features/news/components/AnalyzeArticleButton';
 import { useDashboardData } from '@features/dashboard/queries';
 import type { DashboardData } from '@features/dashboard/types';
 import { useAuthStore } from '@features/auth/store';
-import { useSaveArticle } from '@features/news/queries';
 import { useEspecialidades } from '@features/matching/queries';
 import { specialtyVisualById } from '@features/matching/specialtyVisuals';
 import { RefreshCw, Bookmark } from 'lucide-react';
@@ -33,6 +32,12 @@ const VIEW_OPTIONS = [
   { value: 'guardadas' as ViewMode, label: 'Guardadas', icon: <Bookmark size={14} /> },
 ];
 
+function renderEmptyMessage(viewMode: ViewMode, savedCount: number): string {
+  if (viewMode === 'noticias') return 'No hay noticias disponibles en esta categoría.';
+  if (savedCount === 0) return 'Aún no has guardado ninguna noticia médica.';
+  return 'No hay artículos en esta categoría.';
+}
+
 export const DoctorDashboardPage: React.FC = () => {
   const [viewMode, setViewMode] = useState<ViewMode>('noticias');
   const [savedArticlesLocal, setSavedArticlesLocal] = useState<Set<string>>(new Set());
@@ -47,12 +52,11 @@ export const DoctorDashboardPage: React.FC = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (location.state && location.state.openArticle) {
+    if (location.state?.openArticle) {
       setSelectedArticle(location.state.openArticle);
       if (location.state.targetViewMode) {
         setViewMode(location.state.targetViewMode);
       }
-      // Clear state so it doesn't re-open on refresh
       navigate(location.pathname, { replace: true, state: {} });
     }
   }, [location.state, location.pathname, navigate]);
@@ -231,7 +235,7 @@ export const DoctorDashboardPage: React.FC = () => {
             <div className="relative z-10 pr-16">
               <span className="inline-flex items-center gap-1.5 text-xs font-semibold bg-white/15 text-blue-100 px-2.5 py-1 rounded-full mb-3">
                 <span className="material-symbols-outlined text-[14px]">local_hospital</span>
-                PANEL MÉDICO
+                {' '}PANEL MÉDICO
               </span>
               <h1 className="text-xl sm:text-2xl font-bold">{greeting}, {doctorName}</h1>
               <p className="text-blue-100 text-sm mt-1">
@@ -247,7 +251,7 @@ export const DoctorDashboardPage: React.FC = () => {
           {/* KPI Cards — switch based on viewMode */}
           {viewMode === 'noticias' ? (
             <div className="grid grid-cols-2 gap-3 sm:gap-4">
-              <div onClick={() => handleSelectCategory('novedades_48h')} className={`cursor-pointer transition-all ${!showAll && selectedCategory === 'novedades_48h' ? 'ring-2 ring-primary rounded-xl' : 'opacity-80 hover:opacity-100'}`}>
+              <div role="button" tabIndex={0} onClick={() => handleSelectCategory('novedades_48h')} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleSelectCategory('novedades_48h'); }} className={`cursor-pointer transition-all ${!showAll && selectedCategory === 'novedades_48h' ? 'ring-2 ring-primary rounded-xl' : 'opacity-80 hover:opacity-100'}`}>
                 <StatCard
                   label="Novedades 48h"
                   value={dashboardData?.novedades_48h?.length || 0}
@@ -256,7 +260,7 @@ export const DoctorDashboardPage: React.FC = () => {
                   iconColor="var(--color-info)"
                 />
               </div>
-              <div onClick={() => handleSelectCategory('por_especialidad')} className={`cursor-pointer transition-all ${!showAll && selectedCategory === 'por_especialidad' ? 'ring-2 ring-primary rounded-xl' : 'opacity-80 hover:opacity-100'}`}>
+              <div role="button" tabIndex={0} onClick={() => handleSelectCategory('por_especialidad')} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleSelectCategory('por_especialidad'); }} className={`cursor-pointer transition-all ${!showAll && selectedCategory === 'por_especialidad' ? 'ring-2 ring-primary rounded-xl' : 'opacity-80 hover:opacity-100'}`}>
                 <StatCard
                   label="Por Especialidad"
                   value={dashboardData?.por_especialidad?.length || 0}
@@ -265,7 +269,7 @@ export const DoctorDashboardPage: React.FC = () => {
                   iconColor="var(--color-success-strong)"
                 />
               </div>
-              <div onClick={() => handleSelectCategory('alta_evidencia')} className={`cursor-pointer transition-all ${!showAll && selectedCategory === 'alta_evidencia' ? 'ring-2 ring-primary rounded-xl' : 'opacity-80 hover:opacity-100'}`}>
+              <div role="button" tabIndex={0} onClick={() => handleSelectCategory('alta_evidencia')} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleSelectCategory('alta_evidencia'); }} className={`cursor-pointer transition-all ${!showAll && selectedCategory === 'alta_evidencia' ? 'ring-2 ring-primary rounded-xl' : 'opacity-80 hover:opacity-100'}`}>
                 <StatCard
                   label="Alta Evidencia"
                   value={dashboardData?.alta_evidencia?.length || 0}
@@ -274,7 +278,7 @@ export const DoctorDashboardPage: React.FC = () => {
                   iconColor="var(--color-caution)"
                 />
               </div>
-              <div onClick={() => handleSelectCategory('no_leidos')} className={`cursor-pointer transition-all ${!showAll && selectedCategory === 'no_leidos' ? 'ring-2 ring-primary rounded-xl' : 'opacity-80 hover:opacity-100'}`}>
+              <div role="button" tabIndex={0} onClick={() => handleSelectCategory('no_leidos')} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleSelectCategory('no_leidos'); }} className={`cursor-pointer transition-all ${!showAll && selectedCategory === 'no_leidos' ? 'ring-2 ring-primary rounded-xl' : 'opacity-80 hover:opacity-100'}`}>
                 <StatCard
                   label="No Leídos"
                   value={dashboardData?.no_leidos?.length || 0}
@@ -286,7 +290,7 @@ export const DoctorDashboardPage: React.FC = () => {
             </div>
           ) : (
             <div className="grid grid-cols-2 gap-3 sm:gap-4">
-              <div onClick={() => handleSavedFilterChange('all')} className={`cursor-pointer transition-all ${savedFilter === 'all' ? 'ring-2 ring-primary rounded-xl' : 'opacity-80 hover:opacity-100'}`}>
+              <div role="button" tabIndex={0} onClick={() => handleSavedFilterChange('all')} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleSavedFilterChange('all'); }} className={`cursor-pointer transition-all ${savedFilter === 'all' ? 'ring-2 ring-primary rounded-xl' : 'opacity-80 hover:opacity-100'}`}>
                 <StatCard
                   label="Total Guardados"
                   value={totalSaved}
@@ -295,7 +299,7 @@ export const DoctorDashboardPage: React.FC = () => {
                   iconColor="var(--color-info)"
                 />
               </div>
-              <div onClick={() => handleSavedFilterChange('alta_evidencia')} className={`cursor-pointer transition-all ${savedFilter === 'alta_evidencia' ? 'ring-2 ring-primary rounded-xl' : 'opacity-80 hover:opacity-100'}`}>
+              <div role="button" tabIndex={0} onClick={() => handleSavedFilterChange('alta_evidencia')} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleSavedFilterChange('alta_evidencia'); }} className={`cursor-pointer transition-all ${savedFilter === 'alta_evidencia' ? 'ring-2 ring-primary rounded-xl' : 'opacity-80 hover:opacity-100'}`}>
                 <StatCard
                   label="Alta Evidencia"
                   value={highEvidenceSaved.length}
@@ -304,7 +308,7 @@ export const DoctorDashboardPage: React.FC = () => {
                   iconColor="var(--color-caution)"
                 />
               </div>
-              <div onClick={() => handleSavedFilterChange('recientes')} className={`cursor-pointer transition-all ${savedFilter === 'recientes' ? 'ring-2 ring-primary rounded-xl' : 'opacity-80 hover:opacity-100'}`}>
+              <div role="button" tabIndex={0} onClick={() => handleSavedFilterChange('recientes')} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleSavedFilterChange('recientes'); }} className={`cursor-pointer transition-all ${savedFilter === 'recientes' ? 'ring-2 ring-primary rounded-xl' : 'opacity-80 hover:opacity-100'}`}>
                 <StatCard
                   label="Recientes (48h)"
                   value={recentSaved.length}
@@ -369,25 +373,22 @@ export const DoctorDashboardPage: React.FC = () => {
             </div>
           </div>
           <div className="flex flex-col gap-3">
-            {currentIsLoading ? (
-              [...Array(3)].map((_, i) => (
-                <div key={i} className="h-32 bg-surface-subtle animate-pulse rounded-2xl border border-border-strong" />
-              ))
-            ) : currentIsError ? (
+            {currentIsLoading && new Array(3).fill(null).map((_, i) => (
+              <div key={`skeleton-doctor-${i}`} className="h-32 bg-surface-subtle animate-pulse rounded-2xl border border-border-strong" />
+            ))}
+            {!currentIsLoading && currentIsError && (
               <div className="p-8 text-center bg-danger-subtle rounded-2xl border border-danger/20 text-danger text-sm">
                 {viewMode === 'noticias'
                   ? 'Error al cargar las noticias médicas. Por favor, intenta de nuevo más tarde.'
                   : 'Error al cargar tus noticias guardadas. Por favor, intenta de nuevo más tarde.'}
               </div>
-            ) : paginatedArticles.length === 0 ? (
+            )}
+            {!currentIsLoading && !currentIsError && paginatedArticles.length === 0 && (
               <div className="p-8 text-center bg-surface-subtle rounded-2xl border border-border-strong text-text-muted text-sm">
-                {viewMode === 'noticias'
-                  ? 'No hay noticias disponibles en esta categoría.'
-                  : allSavedArticles.length === 0
-                    ? 'Aún no has guardado ninguna noticia médica.'
-                    : 'No hay artículos en esta categoría.'}
+                {renderEmptyMessage(viewMode, allSavedArticles.length)}
               </div>
-            ) : (
+            )}
+            {!currentIsLoading && !currentIsError && paginatedArticles.length > 0 && (
               <>
                 {paginatedArticles.map((article: Article) => {
                   const mainTag = article.tags?.[0];
@@ -396,13 +397,17 @@ export const DoctorDashboardPage: React.FC = () => {
                     especialidadesById,
                   );
                   const category = mainTag?.valor || article.tipoPublicacion || 'General';
-                  const categoryType = (CATEGORY_MAP[mainTag?.tipo] || 'default') as any;
+                  const categoryType = (CATEGORY_MAP[mainTag?.tipo ?? ''] || 'default') as never;
                   const timeAgo = article.updatedAt ? formatTimeAgo(article.updatedAt) : 'Reciente';
+                  const isSaved = viewMode === 'guardadas' || savedArticlesLocal.has(article.id);
 
                   return (
                     <div
                       key={article.id}
+                      role="button"
+                      tabIndex={0}
                       onClick={() => handleOpenArticle(article)}
+                      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleOpenArticle(article); }}
                       className="cursor-pointer"
                     >
                       <ArticleCard
@@ -415,7 +420,7 @@ export const DoctorDashboardPage: React.FC = () => {
                         source={article.revista}
                         matchText="PubMed"
                         matchVariant="normal"
-                        saved={viewMode === 'guardadas' ? true : savedArticlesLocal.has(article.id)}
+                        saved={isSaved}
                         onSave={(e?: React.MouseEvent) => {
                           e?.stopPropagation();
                           if (viewMode === 'guardadas') {
@@ -424,7 +429,6 @@ export const DoctorDashboardPage: React.FC = () => {
                             toggleSave(article.id);
                           }
                         }}
-                        url={article.url}
                         extraActions={
                           <span onClick={(e) => e.stopPropagation()}>
                             <AnalyzeArticleButton

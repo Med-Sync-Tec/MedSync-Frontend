@@ -224,7 +224,7 @@ const FALLBACK_PALETTE: SpecialtyVisual[] = Object.values(SPECIALTY_BY_SLUG);
 function hashSlug(slug: string): number {
   let h = 2166136261;
   for (let i = 0; i < slug.length; i++) {
-    h ^= slug.charCodeAt(i);
+    h ^= slug.codePointAt(i) ?? 0;
     h = Math.imul(h, 16777619);
   }
   return Math.abs(h);

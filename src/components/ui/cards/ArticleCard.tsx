@@ -35,7 +35,6 @@ interface ArticleCardProps {
   matchVariant?: 'normal' | 'alert';
   saved?: boolean;
   onSave?: (e?: React.MouseEvent) => void;
-  url?: string;
   variant?: ArticleCardVariant;
   className?: string;
   /**

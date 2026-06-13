@@ -50,7 +50,7 @@ export async function signOutCurrentUser(): Promise<void> {
 
 export async function updateUserPassword(currentPass: string, newPass: string): Promise<void> {
   const user = auth.currentUser;
-  if (!user || !user.email) {
+  if (!user?.email) {
     throw new Error('No hay sesión activa.');
   }
   const credential = EmailAuthProvider.credential(user.email, currentPass);

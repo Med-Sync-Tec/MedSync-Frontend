@@ -193,7 +193,7 @@ export const LoginForm: React.FC = () => {
             >
               {remember && <Check size={11} strokeWidth={3} className="text-white" aria-hidden="true" />}
             </span>
-            Mantener sesión iniciada
+            {' '}Mantener sesión iniciada
           </label>
         </div>
 

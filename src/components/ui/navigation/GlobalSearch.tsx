@@ -40,7 +40,7 @@ export const GlobalSearch: React.FC = () => {
 
   useEffect(() => {
     const onDocClick = (e: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+      if (containerRef.current && e.target instanceof Node && !containerRef.current.contains(e.target)) {
         setIsOpen(false);
       }
     };
@@ -156,12 +156,13 @@ export const GlobalSearch: React.FC = () => {
 
       {showDropdown && (
         <div className="absolute top-[calc(100%+0.5rem)] left-0 w-full bg-surface border border-border-subtle rounded-xl shadow-popover z-50 overflow-hidden flex flex-col max-h-[400px]">
-          {isLoading ? (
+          {isLoading && (
             <div className="flex items-center gap-2 p-4 text-sm text-text-muted">
               <Loader2 size={16} className="animate-spin" />
               Buscando...
             </div>
-          ) : hasResults ? (
+          )}
+          {!isLoading && hasResults ? (
             <div className="overflow-y-auto py-2">
               {filteredPatients.length > 0 && (
                 <div className="px-3 pb-2">
@@ -248,7 +249,8 @@ export const GlobalSearch: React.FC = () => {
                 </div>
               )}
             </div>
-          ) : (
+          ) : null}
+          {!isLoading && !hasResults && (
             <div className="p-4 text-sm text-text-muted text-center flex flex-col items-center gap-2">
               <AlertCircle size={24} className="text-text-subtle" />
               No se encontraron resultados para "{query}"

@@ -38,5 +38,4 @@ export const CreatedUserSchema = z.object({
 
 export type Specialty = z.infer<typeof SpecialtySchema>;
 export type CreateUserInput = z.infer<typeof CreateUserSchema>;
-export type CreateDoctorInput = CreateUserInput;
 export type CreatedUser = z.infer<typeof CreatedUserSchema>;

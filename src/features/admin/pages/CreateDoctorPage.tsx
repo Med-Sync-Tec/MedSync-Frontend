@@ -279,7 +279,11 @@ export const CreateDoctorPage: React.FC = () => {
               Cancelar
             </Button>
             <Button type="submit" fullWidth isLoading={isLoading}>
-              {isLoading ? 'Creando...' : `Crear ${form.rol === 'DOCTOR' ? 'doctor' : 'COO'}`}
+              {(() => {
+                if (isLoading) return 'Creando...';
+                const rolLabel = form.rol === 'DOCTOR' ? 'doctor' : 'COO';
+                return `Crear ${rolLabel}`;
+              })()}
             </Button>
           </div>
         </form>

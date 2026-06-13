@@ -128,21 +128,23 @@ export const MatchingArticlesPanel: React.FC<MatchingArticlesPanelProps> = ({
       )}
 
       <div className="px-5 py-4">
-        {articlesQ.error ? (
+        {articlesQ.error && (
           <ErrorState
             message={resolveErrorMessage(articlesQ.error)}
             onRetry={() => articlesQ.refetch()}
           />
-        ) : articlesQ.isLoading ? (
-          <ListSkeleton />
-        ) : (articlesQ.data?.length ?? 0) === 0 ? (
+        )}
+        {!articlesQ.error && articlesQ.isLoading && <ListSkeleton />}
+        {!articlesQ.error && !articlesQ.isLoading && (articlesQ.data?.length ?? 0) === 0 && (
           <EmptyFeed
             hasContextos={contextos.length > 0}
             hasContextoError={hasContextoQueryError}
           />
-        ) : filteredArticles.length === 0 ? (
+        )}
+        {!articlesQ.error && !articlesQ.isLoading && (articlesQ.data?.length ?? 0) > 0 && filteredArticles.length === 0 && (
           <FilteredEmpty onClear={onClearFilter} />
-        ) : (
+        )}
+        {!articlesQ.error && !articlesQ.isLoading && filteredArticles.length > 0 && (
           <ul className="space-y-3">
             {filteredArticles.map((article) => {
               const visual = article.especialidadId

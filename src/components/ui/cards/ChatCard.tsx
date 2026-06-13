@@ -11,21 +11,21 @@ function renderBotText(text: string): React.ReactNode {
 
     if (isHeader) {
       return (
-        <p key={bi} className="font-semibold text-xs mb-1">
+        <p key={`block-${bi}`} className="font-semibold text-xs mb-1">
           {inlineFormat(lines[0].replace(/^###\s/, ''))}
         </p>
       );
     }
     if (isList) {
       return (
-        <ul key={bi} className="list-disc list-inside space-y-0.5 mb-1">
+        <ul key={`block-${bi}`} className="list-disc list-inside space-y-0.5 mb-1">
           {lines.filter((l) => l.trim()).map((l, li) => (
-            <li key={li}>{inlineFormat(l.replace(/^[-*]\s/, ''))}</li>
+            <li key={`item-${bi}-${li}`}>{inlineFormat(l.replace(/^[-*]\s/, ''))}</li>
           ))}
         </ul>
       );
     }
-    return <p key={bi} className="mb-1">{lines.map((l, li) => <span key={li}>{inlineFormat(l)}{li < lines.length - 1 && <br />}</span>)}</p>;
+    return <p key={`block-${bi}`} className="mb-1">{lines.map((l, li) => <span key={`line-${bi}-${li}`}>{inlineFormat(l)}{li < lines.length - 1 && <br />}</span>)}</p>;
   });
 }
 
@@ -33,7 +33,7 @@ function inlineFormat(text: string): React.ReactNode {
   const parts = text.split(/(\*\*[^*]+\*\*)/g);
   return parts.map((part, i) =>
     /^\*\*[^*]+\*\*$/.test(part)
-      ? <strong key={i}>{part.slice(2, -2)}</strong>
+      ? <strong key={`fmt-${i}`}>{part.slice(2, -2)}</strong>
       : part
   );
 }
@@ -96,13 +96,12 @@ export const ChatCard: React.FC<ChatCardProps> = ({
         ))}
         {isLoading && (
           <div className="flex justify-start">
-            <div
-              role="status"
+            <output
               aria-label="MediBot está escribiendo"
               className="bg-gray-100 dark:bg-gray-700 px-3 py-2 rounded-2xl rounded-bl-sm text-gray-500 dark:text-gray-400 text-sm"
             >
               ···
-            </div>
+            </output>
           </div>
         )}
       </div>

@@ -192,7 +192,7 @@ export const NewSOAPEntryPage: React.FC = () => {
               className="flex items-center gap-2 px-4 py-2 bg-surface border border-gray-200 dark:border-gray-700 rounded-xl text-sm font-bold text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-all shadow-sm"
             >
               <span className="material-symbols-outlined text-[20px]">history</span>
-              Historial
+              {' '}Historial
             </button>
           </div>
         </div>

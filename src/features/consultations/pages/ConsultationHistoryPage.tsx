@@ -237,6 +237,11 @@ export const ConsultationHistoryPage: React.FC = () => {
                 >
                   {tabs.map((tab) => {
                     const isActive = activeTab === tab.id;
+                    const tabColorClass = isActive
+                      ? 'text-text-primary'
+                      : tab.disabled
+                        ? 'text-text-subtle cursor-not-allowed'
+                        : 'text-text-muted hover:text-text-primary';
                     return (
                       <button
                         key={tab.id}
@@ -246,13 +251,7 @@ export const ConsultationHistoryPage: React.FC = () => {
                         aria-controls={`panel-${tab.id}`}
                         disabled={tab.disabled}
                         onClick={() => setActiveTab(tab.id)}
-                        className={`relative inline-flex items-center gap-1.5 h-10 px-3 text-[13px] font-medium tracking-tight transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring rounded-t-md ${
-                          isActive
-                            ? 'text-text-primary'
-                            : tab.disabled
-                              ? 'text-text-subtle cursor-not-allowed'
-                              : 'text-text-muted hover:text-text-primary'
-                        }`}
+                        className={`relative inline-flex items-center gap-1.5 h-10 px-3 text-[13px] font-medium tracking-tight transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring rounded-t-md ${tabColorClass}`}
                       >
                         {tab.label}
                         {typeof tab.count === 'number' && (
@@ -306,11 +305,9 @@ export const ConsultationHistoryPage: React.FC = () => {
             >
               {activeTab === 'historial' && (
                 <>
-                  {isLoading ? (
-                    <ConsultationTimelineSkeleton items={4} />
-                  ) : sortedConsultations.length === 0 ? (
-                    <EmptyState />
-                  ) : (
+                  {isLoading && <ConsultationTimelineSkeleton items={4} />}
+                  {!isLoading && sortedConsultations.length === 0 && <EmptyState />}
+                  {!isLoading && sortedConsultations.length > 0 && (
                     <Timeline
                       groups={grouped}
                       onViewSOAP={setSelectedConsultationId}

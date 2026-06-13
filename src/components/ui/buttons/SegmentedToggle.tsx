@@ -6,11 +6,11 @@ export interface SegmentOption<T extends string = string> {
   icon?: React.ReactNode;
 }
 
-interface SegmentedToggleProps<T extends string = string> {
+type SegmentedToggleProps<T extends string = string> = Readonly<{
   options: SegmentOption<T>[];
   value: T;
   onChange: (value: T) => void;
-}
+}>;
 
 /**
  * Animated segmented control (pill toggle).

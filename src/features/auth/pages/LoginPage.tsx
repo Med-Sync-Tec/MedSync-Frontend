@@ -129,7 +129,7 @@ export const LoginPage: React.FC = () => {
                 style={{ boxShadow: '0 0 0 4px rgba(108,92,252,.18)' }}
                 aria-hidden="true"
               />
-              Plataforma para profesionales de la salud
+              {' '}Plataforma para profesionales de la salud
             </div>
 
             <h1 className="text-[32px] font-bold leading-[1.1] tracking-[-0.025em] text-text-primary mb-2.5">
@@ -179,7 +179,7 @@ export const LoginPage: React.FC = () => {
           {/* Image layers */}
           {SLIDES.map((slide, idx) => (
             <div
-              key={`img-${idx}`}
+              key={slide.eyebrow}
               className="absolute inset-0 bg-cover bg-center transition-opacity duration-[900ms] mix-blend-luminosity"
               style={{
                 backgroundImage: `linear-gradient(135deg, rgba(40,30,120,.4), rgba(15,12,60,.5)), url('${slide.image}')`,
@@ -240,7 +240,7 @@ export const LoginPage: React.FC = () => {
           <div className="absolute left-0 right-0 bottom-0 z-10 px-10 pt-8 pb-9">
             {SLIDES.map((slide, idx) => (
               <div
-                key={`slide-${idx}`}
+                key={slide.eyebrow}
                 className={`transition-all duration-500 ${
                   currentSlide === idx ? 'block opacity-100' : 'hidden opacity-0'
                 }`}
@@ -259,9 +259,9 @@ export const LoginPage: React.FC = () => {
                 </p>
                 {slide.pills && (
                   <div className="flex flex-wrap gap-2.5 mb-7">
-                    {slide.pills.map((pill, pIdx) => (
+                    {slide.pills.map((pill) => (
                       <span
-                        key={pIdx}
+                        key={pill.label}
                         className="inline-flex items-center gap-2 px-3 py-2 rounded-[10px] text-[12.5px] font-medium text-white/[0.92] border border-white/[0.16] backdrop-blur-md"
                         style={{ background: 'rgba(255,255,255,.08)' }}
                       >
@@ -277,9 +277,9 @@ export const LoginPage: React.FC = () => {
             {/* Foot: dots + nav */}
             <div className="flex items-center justify-between gap-4 mt-3.5">
               <div className="flex gap-2 items-center" role="tablist">
-                {SLIDES.map((_, idx) => (
+                {SLIDES.map((slide, idx) => (
                   <button
-                    key={`dot-${idx}`}
+                    key={slide.eyebrow}
                     type="button"
                     role="tab"
                     aria-selected={currentSlide === idx}

@@ -2,7 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { AlertTriangle, Bookmark, BookmarkCheck, Link2, Pill, X } from 'lucide-react';
 import { ApiError } from '@lib/http/errors';
 import type { ContextoTipo, PacienteContexto } from '@features/patients/schemas';
-import { useEspecialidades } from '@features/matching/queries';
+import { useEspecialidades, useCooMatchingArticles } from '@features/matching/queries';
 import { matchKey } from '@features/matching/useMatchIntersection';
 import type { MatchingArticle } from '@features/matching/schemas';
 import { MatchingArticleCard } from '@features/matching/components/MatchingArticleCard';
@@ -11,7 +11,6 @@ import { TIPO_PALETTES } from '@features/matching/palette';
 import { specialtyVisualById } from '@features/matching/specialtyVisuals';
 import { AnalyzeArticleButton } from '@features/news/components/AnalyzeArticleButton';
 import { useSaveArticle, useUnsaveArticle } from '@features/news/queries';
-import { useCooMatchingArticles } from '@features/matching/queries';
 
 interface CooMatchingArticlesPanelProps {
   /** Synthetic medication contextos (from the catalog). */
@@ -147,15 +146,17 @@ export const CooMatchingArticlesPanel: React.FC<CooMatchingArticlesPanelProps> =
       )}
 
       <div className="px-5 py-4">
-        {articlesQ.error ? (
+        {articlesQ.error && (
           <ErrorState message={resolveErrorMessage(articlesQ.error)} onRetry={() => articlesQ.refetch()} />
-        ) : articlesQ.isLoading ? (
-          <ListSkeleton />
-        ) : (articlesQ.data?.length ?? 0) === 0 ? (
+        )}
+        {!articlesQ.error && articlesQ.isLoading && <ListSkeleton />}
+        {!articlesQ.error && !articlesQ.isLoading && (articlesQ.data?.length ?? 0) === 0 && (
           <EmptyFeed hasCatalog={contextos.length > 0} />
-        ) : filteredArticles.length === 0 ? (
+        )}
+        {!articlesQ.error && !articlesQ.isLoading && (articlesQ.data?.length ?? 0) > 0 && filteredArticles.length === 0 && (
           <FilteredEmpty onClear={onClearFilter} />
-        ) : (
+        )}
+        {!articlesQ.error && !articlesQ.isLoading && filteredArticles.length > 0 && (
           <ul className="space-y-3">
             {filteredArticles.map((article) => {
               const visual = article.especialidadId

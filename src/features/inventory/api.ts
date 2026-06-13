@@ -16,7 +16,8 @@ export async function fetchMedicamentos(params: FetchMedicamentosParams = {}): P
   if (params.nombre) query.set('nombre', params.nombre);
   if (params.estado && params.estado !== 'todos') query.set('estado', params.estado);
   const qs = query.toString();
-  const data = await apiFetch<unknown>(`/api/medicamentos${qs ? `?${qs}` : ''}`);
+  const path = qs ? `/api/medicamentos?${qs}` : '/api/medicamentos';
+  const data = await apiFetch<unknown>(path);
   return MedicamentosPageSchema.parse(data);
 }
 

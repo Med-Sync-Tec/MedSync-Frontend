@@ -50,7 +50,7 @@ export const Pagination: React.FC<PaginationProps> = ({
           <button
             key={page}
             type="button"
-            onClick={() => onPageChange(page as number)}
+            onClick={() => onPageChange(page)}
             className={`${btnBase} ${
               currentPage === page
                 ? 'bg-primary text-white shadow-md'

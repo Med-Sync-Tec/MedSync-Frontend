@@ -15,7 +15,7 @@ const UnauthorizedRedirect = () => {
 
   useEffect(() => {
     setUnauthorizedHandler(() => {
-      void logout().finally(() => navigate('/', { replace: true }));
+      logout().finally(() => navigate('/', { replace: true }));
     });
     return () => setUnauthorizedHandler(null);
   }, [logout, navigate]);

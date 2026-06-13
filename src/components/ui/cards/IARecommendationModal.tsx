@@ -42,7 +42,14 @@ export const IARecommendationModal: React.FC<IARecommendationModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
+      <div
+        role="button"
+        tabIndex={0}
+        className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+        onClick={onClose}
+        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onClose?.(); }}
+        aria-label="Cerrar"
+      />
       <div className={`relative bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border-2 ${config.borderStyles} w-full max-w-md mx-4 p-6`}>
         <div className="flex items-center gap-3 mb-4">
           <span className={`material-symbols-outlined text-2xl ${config.styles} ${status === 'loading' ? 'animate-spin' : ''}`}>

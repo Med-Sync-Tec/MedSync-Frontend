@@ -66,8 +66,8 @@ export const ArticleDetailDrawer: React.FC<ArticleDetailDrawerProps> = ({
   // Cerrar con Escape
   useEffect(() => {
     const fn = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
-    window.addEventListener('keydown', fn);
-    return () => window.removeEventListener('keydown', fn);
+    globalThis.addEventListener('keydown', fn);
+    return () => globalThis.removeEventListener('keydown', fn);
   }, [onClose]);
 
   // Bloquear scroll del body
@@ -86,7 +86,8 @@ export const ArticleDetailDrawer: React.FC<ArticleDetailDrawerProps> = ({
   
   // Confianza: Alta si el backend lo marcó como alta evidencia,
   // Media si tiene tags clínicos, Baja en otro caso
-  const confidenceScore = isHighEvidence ? 3 : (article.tags?.length ?? 0) > 0 ? 1 : 0;
+  const hasTags = (article.tags?.length ?? 0) > 0;
+  const confidenceScore = isHighEvidence ? 3 : hasTags ? 1 : 0;
   const confidence = getConfidence(confidenceScore);
 
   const formatDate = () => {
@@ -104,13 +105,13 @@ export const ArticleDetailDrawer: React.FC<ArticleDetailDrawerProps> = ({
       />
 
       {/* Panel flotante — margen en todos los lados, esquinas redondeadas */}
-      <div
-        role="dialog"
+      <dialog
+        open
         aria-modal="true"
         aria-label={article.titulo}
         className="fixed top-4 bottom-4 right-4 z-50 w-full max-w-[640px] flex flex-col
                    bg-white dark:bg-gray-900
-                   rounded-2xl shadow-2xl overflow-hidden"
+                   rounded-2xl shadow-2xl overflow-hidden p-0 border-0"
         style={{ animation: 'slideInPanel 0.26s cubic-bezier(0.22,1,0.36,1)' }}
       >
         {/* ── HEADER de especialidad ───────────────────────── */}
@@ -352,12 +353,12 @@ export const ArticleDetailDrawer: React.FC<ArticleDetailDrawerProps> = ({
                 className={`flex items-center justify-center gap-2 w-full py-2.5 rounded-xl text-white font-semibold text-sm transition-opacity hover:opacity-90 active:scale-[0.98] ${specialtyVisual.sidebar}`}
               >
                 <span className="material-symbols-outlined text-[18px]">open_in_new</span>
-                Ver artículo original en PubMed
+                {' '}Ver artículo original en PubMed
               </a>
             )}
           </div>
         )}
-      </div>
+      </dialog>
 
       <style>{`
         @keyframes slideInPanel {

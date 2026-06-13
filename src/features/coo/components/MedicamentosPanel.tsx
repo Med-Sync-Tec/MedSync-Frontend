@@ -59,13 +59,10 @@ export const MedicamentosPanel: React.FC<MedicamentosPanelProps> = ({
       </header>
 
       <div className="px-5 py-4">
-        {hasError ? (
-          <ErrorState onRetry={onRetry} />
-        ) : isLoading ? (
-          <SkeletonChips />
-        ) : total === 0 ? (
-          <EmptyState />
-        ) : (
+        {hasError && <ErrorState onRetry={onRetry} />}
+        {!hasError && isLoading && <SkeletonChips />}
+        {!hasError && !isLoading && total === 0 && <EmptyState />}
+        {!hasError && !isLoading && total > 0 && (
           <ul className="flex flex-wrap gap-1.5">
             {medicamentos.map((med) => {
               const key = matchKey('medicamento', med.nombre);
@@ -163,9 +160,9 @@ const EmptyState: React.FC = () => (
 
 const SkeletonChips: React.FC = () => (
   <div className="flex flex-wrap gap-1.5">
-    {[80, 110, 60, 95, 70].map((w, i) => (
+    {[80, 110, 60, 95, 70].map((w) => (
       <span
-        key={i}
+        key={w}
         aria-hidden="true"
         className="inline-block h-5 rounded-full bg-surface-muted animate-pulse"
         style={{ width: w }}

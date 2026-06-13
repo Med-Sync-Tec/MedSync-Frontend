@@ -31,17 +31,19 @@ export const DictationButton: React.FC<DictationButtonProps> = ({ onResult }) =>
             : 'bg-primary hover:bg-primary-hover text-white'
           }`}
       >
-        {isProcessing ? (
+        {isProcessing && (
           <>
             <Loader2 size={16} className="animate-spin" />
             Procesando dictado...
           </>
-        ) : isRecording ? (
+        )}
+        {!isProcessing && isRecording && (
           <>
             <MicOff size={16} />
             Grabando... (toca para detener)
           </>
-        ) : (
+        )}
+        {!isProcessing && !isRecording && (
           <>
             <Mic size={16} />
             Dictado IA

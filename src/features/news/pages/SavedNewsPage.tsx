@@ -156,7 +156,10 @@ export const SavedNewsPage: React.FC = () => {
           {/* KPI Cards — each one filters the list below */}
           <div className="grid grid-cols-2 gap-3 sm:gap-4">
             <div
+              role="button"
+              tabIndex={0}
               onClick={() => handleFilterChange('all')}
+              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleFilterChange('all'); }}
               className={`cursor-pointer transition-all ${activeFilter === 'all' ? 'ring-2 ring-primary rounded-xl' : 'opacity-80 hover:opacity-100'}`}
             >
               <StatCard
@@ -168,7 +171,10 @@ export const SavedNewsPage: React.FC = () => {
               />
             </div>
             <div
+              role="button"
+              tabIndex={0}
               onClick={() => handleFilterChange('alta_evidencia')}
+              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleFilterChange('alta_evidencia'); }}
               className={`cursor-pointer transition-all ${activeFilter === 'alta_evidencia' ? 'ring-2 ring-primary rounded-xl' : 'opacity-80 hover:opacity-100'}`}
             >
               <StatCard
@@ -180,7 +186,10 @@ export const SavedNewsPage: React.FC = () => {
               />
             </div>
             <div
+              role="button"
+              tabIndex={0}
               onClick={() => handleFilterChange('recientes')}
+              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleFilterChange('recientes'); }}
               className={`cursor-pointer transition-all ${activeFilter === 'recientes' ? 'ring-2 ring-primary rounded-xl' : 'opacity-80 hover:opacity-100'}`}
             >
               <StatCard
@@ -191,10 +200,7 @@ export const SavedNewsPage: React.FC = () => {
                 iconColor="var(--color-success-strong)"
               />
             </div>
-            <div
-              onClick={() => handleFilterChange('all')}
-              className="opacity-80 hover:opacity-100 cursor-default"
-            >
+            <div className="opacity-80">
               <StatCard
                 label="Colecciones"
                 value={1}
@@ -224,26 +230,27 @@ export const SavedNewsPage: React.FC = () => {
             )}
           </div>
           <div className="flex flex-col gap-3">
-            {isLoading ? (
-              [...Array(3)].map((_, i) => (
-                <div key={i} className="h-32 bg-surface-subtle animate-pulse rounded-2xl border border-border-strong" />
-              ))
-            ) : isError ? (
+            {isLoading && new Array(3).fill(null).map((_, i) => (
+              <div key={`skeleton-saved-news-${i}`} className="h-32 bg-surface-subtle animate-pulse rounded-2xl border border-border-strong" />
+            ))}
+            {!isLoading && isError && (
               <div className="p-8 text-center bg-danger-subtle rounded-2xl border border-danger/20 text-danger text-sm">
                 Error al cargar tus noticias guardadas. Por favor, intenta de nuevo más tarde.
               </div>
-            ) : paginatedArticles.length === 0 ? (
+            )}
+            {!isLoading && !isError && paginatedArticles.length === 0 && (
               <div className="p-8 text-center bg-surface-subtle rounded-2xl border border-border-strong text-text-muted text-sm">
                 {allArticles.length === 0
                   ? 'Aún no has guardado ninguna noticia médica.'
                   : 'No hay artículos en esta categoría.'}
               </div>
-            ) : (
+            )}
+            {!isLoading && !isError && paginatedArticles.length > 0 && (
               <>
                 {paginatedArticles.map((article: Article) => {
                   const mainTag = article.tags?.[0];
                   const category = mainTag?.valor || article.tipoPublicacion || 'General';
-                  const categoryType = (CATEGORY_MAP[mainTag?.tipo] || 'default') as any;
+                  const categoryType = (CATEGORY_MAP[mainTag?.tipo ?? ''] || 'default') as never;
                   const timeAgo = article.updatedAt ? formatTimeAgo(article.updatedAt) : 'Reciente';
                   const specialtyVisual = specialtyVisualById(
                     article.especialidadId,
@@ -253,7 +260,10 @@ export const SavedNewsPage: React.FC = () => {
                   return (
                     <div
                       key={article.id}
+                      role="button"
+                      tabIndex={0}
                       onClick={() => handleOpenArticle(article)}
+                      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleOpenArticle(article); }}
                       className="cursor-pointer"
                     >
                       <ArticleCard
@@ -268,7 +278,6 @@ export const SavedNewsPage: React.FC = () => {
                         matchVariant="normal"
                         saved={true}
                         onSave={(e?: React.MouseEvent) => { e?.stopPropagation(); toggleSave(article); }}
-                        url={article.url}
                       />
                     </div>
                   );

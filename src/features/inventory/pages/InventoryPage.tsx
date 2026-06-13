@@ -10,9 +10,8 @@ import {
   updateMedicamento,
   deleteMedicamento,
 } from '@features/inventory/api';
-import type { Medicamento, MedicamentoEstado, MedicamentosPage } from '@features/inventory/schemas';
+import type { Medicamento, MedicamentoEstado, MedicamentosPage, CreateMedicamentoInput, UpdateMedicamentoInput } from '@features/inventory/schemas';
 import { CreateMedicamentoSchema, UpdateMedicamentoSchema } from '@features/inventory/schemas';
-import type { CreateMedicamentoInput, UpdateMedicamentoInput } from '@features/inventory/schemas';
 
 const PAGE_SIZE = 10;
 
@@ -74,7 +73,7 @@ export const InventoryPage: React.FC = () => {
       page,
       size: PAGE_SIZE,
       nombre: debouncedBusqueda || undefined,
-      estado: filtro !== 'todos' ? filtro : undefined,
+      estado: filtro === 'todos' ? undefined : filtro,
     })
       .then(setPageData)
       .catch(() => setGlobalError('No se pudo cargar el inventario.'))
@@ -115,54 +114,62 @@ export const InventoryPage: React.FC = () => {
     setEditingId(null);
   };
 
+  const handleCreateSave = async () => {
+    const parsed = CreateMedicamentoSchema.safeParse(createForm);
+    if (!parsed.success) {
+      const errs: Record<string, string> = {};
+      for (const issue of parsed.error.issues) {
+        const field = String(issue.path[0]);
+        if (!errs[field]) errs[field] = issue.message;
+      }
+      setFormErrors(errs);
+      return;
+    }
+    setIsSaving(true);
+    try {
+      await createMedicamento(parsed.data);
+      closeModal();
+      setPage(0);
+      loadPage();
+    } catch {
+      setModalError('Ocurrió un error. Verifica los datos e intenta de nuevo.');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleEditSave = async (id: string) => {
+    const parsed = UpdateMedicamentoSchema.safeParse(updateForm);
+    if (!parsed.success) {
+      const errs: Record<string, string> = {};
+      for (const issue of parsed.error.issues) {
+        const field = String(issue.path[0]);
+        if (!errs[field]) errs[field] = issue.message;
+      }
+      setFormErrors(errs);
+      return;
+    }
+    setIsSaving(true);
+    try {
+      await updateMedicamento(id, parsed.data);
+      closeModal();
+      loadPage();
+    } catch {
+      setModalError('Ocurrió un error. Verifica los datos e intenta de nuevo.');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     setFormErrors({});
     setModalError('');
 
     if (modalMode === 'create') {
-      const parsed = CreateMedicamentoSchema.safeParse(createForm);
-      if (!parsed.success) {
-        const errs: Record<string, string> = {};
-        for (const issue of parsed.error.issues) {
-          const field = String(issue.path[0]);
-          if (!errs[field]) errs[field] = issue.message;
-        }
-        setFormErrors(errs);
-        return;
-      }
-      setIsSaving(true);
-      try {
-        await createMedicamento(parsed.data);
-        closeModal();
-        setPage(0);
-        loadPage();
-      } catch {
-        setModalError('Ocurrió un error. Verifica los datos e intenta de nuevo.');
-      } finally {
-        setIsSaving(false);
-      }
+      await handleCreateSave();
     } else if (editingId) {
-      const parsed = UpdateMedicamentoSchema.safeParse(updateForm);
-      if (!parsed.success) {
-        const errs: Record<string, string> = {};
-        for (const issue of parsed.error.issues) {
-          const field = String(issue.path[0]);
-          if (!errs[field]) errs[field] = issue.message;
-        }
-        setFormErrors(errs);
-        return;
-      }
-      setIsSaving(true);
-      try {
-        await updateMedicamento(editingId, parsed.data);
-        closeModal();
-        loadPage();
-      } catch {
-        setModalError('Ocurrió un error. Verifica los datos e intenta de nuevo.');
-      } finally {
-        setIsSaving(false);
-      }
+      await handleEditSave(editingId);
     }
   };
 
@@ -173,7 +180,7 @@ export const InventoryPage: React.FC = () => {
       await deleteMedicamento(deleteTarget.id);
       setDeleteTarget(null);
       const isLastItemOnPage =
-        pageData && pageData.content.length === 1 && page > 0;
+        pageData?.content.length === 1 && page > 0;
       if (isLastItemOnPage) {
         setPage((p) => p - 1);
       } else {

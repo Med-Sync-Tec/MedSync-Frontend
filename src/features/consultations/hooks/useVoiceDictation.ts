@@ -24,7 +24,7 @@ export function useVoiceDictation(
     setError(null);
     try {
       if (typeof MediaRecorder === 'undefined') {
-        throw new Error('MediaRecorder not supported');
+        throw new TypeError('MediaRecorder not supported');
       }
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       streamRef.current = stream;
@@ -64,7 +64,7 @@ export function useVoiceDictation(
   };
 
   const stop = () => {
-    if (recorderRef.current && recorderRef.current.state === 'recording') {
+    if (recorderRef.current?.state === 'recording') {
       recorderRef.current.stop();
     }
   };

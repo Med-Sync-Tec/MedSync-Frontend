@@ -13,7 +13,5 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
-  args: {
-    onFileSelect: (files) => console.log('Files selected', files),
-  },
+  args: {},
 };

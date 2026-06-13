@@ -88,7 +88,7 @@ export const PatientDetailCard = forwardRef<HTMLElement, PatientDetailCardProps>
                 {patient.nombre}
               </h2>
               <p className="mt-0.5 text-xs text-text-muted tracking-tight">
-                <span>{age !== null ? `${age} años` : 'Edad n/d'}</span>
+                <span>{age === null ? 'Edad n/d' : `${age} años`}</span>
                 <span aria-hidden="true" className="mx-1.5 text-text-subtle">·</span>
                 <span>{patient.genero}</span>
                 <span aria-hidden="true" className="mx-1.5 text-text-subtle">·</span>
@@ -180,7 +180,7 @@ export const PatientDetailCard = forwardRef<HTMLElement, PatientDetailCardProps>
                 {ultima ? formatDateShort(ultima.fecha) : '—'}
               </p>
               <p className="mt-0.5 text-[11px] text-text-subtle tracking-tight">
-                {diasDesdeUltima !== null ? formatRelative(diasDesdeUltima) : 'Sin consultas'}
+                {diasDesdeUltima === null ? 'Sin consultas' : formatRelative(diasDesdeUltima)}
               </p>
             </div>
           </div>

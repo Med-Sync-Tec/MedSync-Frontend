@@ -48,6 +48,12 @@ function formatTimeAgo(dateStr: string): string {
   return `Hace ${diffDays} días`;
 }
 
+function renderCooEmptyMessage(viewMode: ViewMode, savedCount: number): string {
+  if (viewMode === 'noticias') return 'No hay noticias disponibles. Sincroniza con PubMed para traer artículos.';
+  if (savedCount === 0) return 'Aún no has guardado ninguna noticia médica.';
+  return 'No hay artículos en esta categoría.';
+}
+
 export const CooDashboardPage: React.FC = () => {
   const [viewMode, setViewMode] = useState<ViewMode>('noticias');
   const [page, setPage] = useState(0);
@@ -60,7 +66,7 @@ export const CooDashboardPage: React.FC = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (location.state && location.state.openArticle) {
+    if (location.state?.openArticle) {
       setSelectedArticle(location.state.openArticle);
       if (location.state.targetViewMode) {
         setViewMode(location.state.targetViewMode);
@@ -168,7 +174,7 @@ export const CooDashboardPage: React.FC = () => {
             <div className="relative z-10 pr-16">
               <span className="inline-flex items-center gap-1.5 text-xs font-semibold bg-white/15 text-blue-100 px-2.5 py-1 rounded-full mb-3">
                 <span className="material-symbols-outlined text-[14px]">business_center</span>
-                PANEL OPERACIONES
+                {' '}PANEL OPERACIONES
               </span>
               <h1 className="text-xl sm:text-2xl font-bold">Panel de Operaciones</h1>
               <p className="text-blue-100 text-sm mt-1">
@@ -214,7 +220,7 @@ export const CooDashboardPage: React.FC = () => {
             </div>
           ) : (
             <div className="grid grid-cols-2 gap-3 sm:gap-4">
-              <div onClick={() => handleSavedFilterChange('all')} className={`cursor-pointer transition-all ${savedFilter === 'all' ? 'ring-2 ring-primary rounded-xl' : 'opacity-80 hover:opacity-100'}`}>
+              <div role="button" tabIndex={0} onClick={() => handleSavedFilterChange('all')} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleSavedFilterChange('all'); }} className={`cursor-pointer transition-all ${savedFilter === 'all' ? 'ring-2 ring-primary rounded-xl' : 'opacity-80 hover:opacity-100'}`}>
                 <StatCard
                   label="Total Guardados"
                   value={totalSaved}
@@ -223,7 +229,7 @@ export const CooDashboardPage: React.FC = () => {
                   iconColor="var(--color-info)"
                 />
               </div>
-              <div onClick={() => handleSavedFilterChange('alta_evidencia')} className={`cursor-pointer transition-all ${savedFilter === 'alta_evidencia' ? 'ring-2 ring-primary rounded-xl' : 'opacity-80 hover:opacity-100'}`}>
+              <div role="button" tabIndex={0} onClick={() => handleSavedFilterChange('alta_evidencia')} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleSavedFilterChange('alta_evidencia'); }} className={`cursor-pointer transition-all ${savedFilter === 'alta_evidencia' ? 'ring-2 ring-primary rounded-xl' : 'opacity-80 hover:opacity-100'}`}>
                 <StatCard
                   label="Alta Evidencia"
                   value={highEvidenceSaved.length}
@@ -232,7 +238,7 @@ export const CooDashboardPage: React.FC = () => {
                   iconColor="var(--color-caution)"
                 />
               </div>
-              <div onClick={() => handleSavedFilterChange('recientes')} className={`cursor-pointer transition-all ${savedFilter === 'recientes' ? 'ring-2 ring-primary rounded-xl' : 'opacity-80 hover:opacity-100'}`}>
+              <div role="button" tabIndex={0} onClick={() => handleSavedFilterChange('recientes')} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleSavedFilterChange('recientes'); }} className={`cursor-pointer transition-all ${savedFilter === 'recientes' ? 'ring-2 ring-primary rounded-xl' : 'opacity-80 hover:opacity-100'}`}>
                 <StatCard
                   label="Recientes (48h)"
                   value={recentSaved.length}
@@ -290,19 +296,20 @@ export const CooDashboardPage: React.FC = () => {
           <div className="flex flex-col gap-3">
             {viewMode === 'noticias' ? (
               <>
-                {isLoading ? (
-                  [...Array(3)].map((_, i) => (
-                    <div key={i} className="h-32 bg-surface-subtle animate-pulse rounded-2xl border border-border-strong" />
-                  ))
-                ) : isError ? (
+                {isLoading && new Array(3).fill(null).map((_, i) => (
+                  <div key={`skeleton-news-${i}`} className="h-32 bg-surface-subtle animate-pulse rounded-2xl border border-border-strong" />
+                ))}
+                {!isLoading && isError && (
                   <div className="p-8 text-center bg-danger-subtle rounded-2xl border border-danger/20 text-danger text-sm">
                     Error al cargar las noticias. Intenta de nuevo más tarde.
                   </div>
-                ) : articles.length === 0 ? (
+                )}
+                {!isLoading && !isError && articles.length === 0 && (
                   <div className="p-8 text-center bg-surface-subtle rounded-2xl border border-border-strong text-text-muted text-sm">
                     No hay noticias disponibles. Sincroniza con PubMed para traer artículos.
                   </div>
-                ) : (
+                )}
+                {!isLoading && !isError && articles.length > 0 && (
                   articles.map((article) => {
                     const mainTag = article.tags?.[0];
                     const specialtyVisual = specialtyVisualById(article.especialidadId, especialidadesById);
@@ -311,7 +318,7 @@ export const CooDashboardPage: React.FC = () => {
                     const timeAgo = article.updatedAt ? formatTimeAgo(article.updatedAt) : 'Reciente';
 
                     return (
-                      <div key={article.id} onClick={() => handleOpenArticle(article)} className="cursor-pointer">
+                      <div key={article.id} role="button" tabIndex={0} onClick={() => handleOpenArticle(article)} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleOpenArticle(article); }} className="cursor-pointer">
                         <ArticleCard
                           category={category}
                           categoryType={categoryType}
@@ -324,7 +331,6 @@ export const CooDashboardPage: React.FC = () => {
                           matchVariant="normal"
                           saved={savedIds.has(article.id)}
                           onSave={(e?: React.MouseEvent) => { e?.stopPropagation(); toggleSave(article.id); }}
-                          url={article.url}
                           extraActions={
                             <span onClick={(e) => e.stopPropagation()}>
                               <AnalyzeArticleButton articleId={article.id} articleTitle={article.titulo} />
@@ -348,21 +354,22 @@ export const CooDashboardPage: React.FC = () => {
               </>
             ) : (
               <>
-                {isLoadingSaved ? (
-                  [...Array(3)].map((_, i) => (
-                    <div key={i} className="h-32 bg-surface-subtle animate-pulse rounded-2xl border border-border-strong" />
-                  ))
-                ) : isErrorSaved ? (
+                {isLoadingSaved && new Array(3).fill(null).map((_, i) => (
+                  <div key={`skeleton-saved-${i}`} className="h-32 bg-surface-subtle animate-pulse rounded-2xl border border-border-strong" />
+                ))}
+                {!isLoadingSaved && isErrorSaved && (
                   <div className="p-8 text-center bg-danger-subtle rounded-2xl border border-danger/20 text-danger text-sm">
                     Error al cargar tus noticias guardadas. Intenta de nuevo más tarde.
                   </div>
-                ) : paginatedSavedArticles.length === 0 ? (
+                )}
+                {!isLoadingSaved && !isErrorSaved && paginatedSavedArticles.length === 0 && (
                   <div className="p-8 text-center bg-surface-subtle rounded-2xl border border-border-strong text-text-muted text-sm">
                     {allSavedArticles.length === 0
                       ? 'Aún no has guardado ninguna noticia médica.'
                       : 'No hay artículos en esta categoría.'}
                   </div>
-                ) : (
+                )}
+                {!isLoadingSaved && !isErrorSaved && paginatedSavedArticles.length > 0 && (
                   paginatedSavedArticles.map((article) => {
                     const mainTag = article.tags?.[0];
                     const specialtyVisual = specialtyVisualById(article.especialidadId, especialidadesById);
@@ -371,7 +378,7 @@ export const CooDashboardPage: React.FC = () => {
                     const timeAgo = article.updatedAt ? formatTimeAgo(article.updatedAt) : 'Reciente';
 
                     return (
-                      <div key={article.id} onClick={() => handleOpenArticle(article)} className="cursor-pointer">
+                      <div key={article.id} role="button" tabIndex={0} onClick={() => handleOpenArticle(article)} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleOpenArticle(article); }} className="cursor-pointer">
                         <ArticleCard
                           category={category}
                           categoryType={categoryType}
@@ -384,7 +391,6 @@ export const CooDashboardPage: React.FC = () => {
                           matchVariant="normal"
                           saved={true}
                           onSave={(e?: React.MouseEvent) => { e?.stopPropagation(); handleUnsaveSaved(article); }}
-                          url={article.url}
                           extraActions={
                             <span onClick={(e) => e.stopPropagation()}>
                               <AnalyzeArticleButton articleId={article.id} articleTitle={article.titulo} />

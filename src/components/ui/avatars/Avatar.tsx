@@ -34,7 +34,7 @@ function getInitials(name: string): string {
 
 function getColor(name: string): string {
   let hash = 0;
-  for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
+  for (let i = 0; i < name.length; i++) hash = (name.codePointAt(i) ?? 0) + ((hash << 5) - hash);
   return colorPool[Math.abs(hash) % colorPool.length];
 }
 
