@@ -35,15 +35,15 @@ describe('Header', () => {
   beforeAll(() => {
     // jsdom does not implement matchMedia, which ThemeProvider uses to detect
     // the OS color scheme preference.
-    window.matchMedia = jest.fn(() => ({
+    globalThis.matchMedia = jest.fn(() => ({
       matches: false,
       addEventListener: jest.fn(),
       removeEventListener: jest.fn(),
-    })) as unknown as typeof window.matchMedia;
+    })) as unknown as typeof globalThis.matchMedia;
   });
 
   beforeEach(() => {
-    window.localStorage.clear();
+    globalThis.localStorage.clear();
     document.documentElement.classList.remove('dark');
     useAuthStore.setState({ user: doctorUser, isAuthenticated: true });
     jest.mocked(signOutCurrentUser).mockClear();

@@ -200,11 +200,11 @@ const EmptyFeed: React.FC<EmptyFeedProps> = ({ hasContextos, hasContextoError })
       {hasContextos ? 'Aún no hay coincidencias' : 'Sin coincidencias todavía'}
     </h4>
     <p className="mt-1 text-xs text-text-muted max-w-sm">
-      {hasContextoError
-        ? 'No pudimos cargar el contexto del paciente — al recargar buscaremos coincidencias.'
-        : hasContextos
-          ? 'Aún no hay artículos analizados con tags que coincidan con este contexto.'
-          : 'Agrega contexto clínico al paciente o analiza una consulta con IA para descubrir artículos relevantes.'}
+      {(() => {
+        if (hasContextoError) return 'No pudimos cargar el contexto del paciente — al recargar buscaremos coincidencias.';
+        if (hasContextos) return 'Aún no hay artículos analizados con tags que coincidan con este contexto.';
+        return 'Agrega contexto clínico al paciente o analiza una consulta con IA para descubrir artículos relevantes.';
+      })()}
     </p>
   </div>
 );

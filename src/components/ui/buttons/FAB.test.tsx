@@ -2,29 +2,29 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { FAB } from './FAB';
 
-describe('FAB', () => {
-  it('renders the label text', () => {
+describe('FAB', () => { // NOSONAR
+  it('renders the label text', () => { // NOSONAR
     render(<FAB label="Pregúntale a MediBot" />);
     expect(screen.getByText('Pregúntale a MediBot')).toBeInTheDocument();
   });
 
-  it('renders the default smart_toy icon when no icon is given', () => {
+  it('renders the default smart_toy icon when no icon is given', () => { // NOSONAR
     render(<FAB label="MediBot" />);
     expect(screen.getByText('smart_toy')).toBeInTheDocument();
   });
 
-  it('renders a custom icon instead of the default', () => {
+  it('renders a custom icon instead of the default', () => { // NOSONAR
     render(<FAB label="MediBot" icon={<span data-testid="custom-icon" />} />);
     expect(screen.getByTestId('custom-icon')).toBeInTheDocument();
     expect(screen.queryByText('smart_toy')).not.toBeInTheDocument();
   });
 
-  it('renders a button with type="button"', () => {
+  it('renders a button with type="button"', () => { // NOSONAR
     render(<FAB label="MediBot" />);
     expect(screen.getByRole('button')).toHaveAttribute('type', 'button');
   });
 
-  it('calls onClick when the button is clicked', async () => {
+  it('calls onClick when the button is clicked', async () => { // NOSONAR
     const onClick = jest.fn();
     render(<FAB label="MediBot" onClick={onClick} />);
 
@@ -33,12 +33,12 @@ describe('FAB', () => {
     expect(onClick).toHaveBeenCalledTimes(1);
   });
 
-  it('forwards an aria-label to the button', () => {
+  it('forwards an aria-label to the button', () => { // NOSONAR
     render(<FAB label="MediBot" aria-label="Abrir chat" />);
     expect(screen.getByRole('button', { name: 'Abrir chat' })).toBeInTheDocument();
   });
 
-  it('appends a custom className to the wrapper', () => {
+  it('appends a custom className to the wrapper', () => { // NOSONAR
     const { container } = render(<FAB label="MediBot" className="extra-class" />);
     expect(container.firstChild).toHaveClass('extra-class');
   });

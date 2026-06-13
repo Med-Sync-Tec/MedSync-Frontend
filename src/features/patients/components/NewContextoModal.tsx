@@ -55,6 +55,25 @@ function buildFieldErrors(
   return errors;
 }
 
+/** Extracts field-level Zod parse errors into a FieldErrors map. */
+function extractZodErrors(issues: Array<{ path: Array<string | number>; message: string }>): FieldErrors {
+  const localErrors: FieldErrors = {};
+  for (const issue of issues) {
+    const key = issue.path[0] as keyof FormState | undefined;
+    if (key && key in EMPTY_FORM && !localErrors[key]) {
+      localErrors[key] = issue.message;
+    }
+  }
+  return localErrors;
+}
+
+/** Maps an ApiError to a global error message for the contexto form. */
+function resolveContextoApiError(err: ApiError): string | null {
+  if (err.isNotFound) return 'El paciente ya no existe.';
+  if (err.isUnauthorized) return 'Tu sesión expiró. Vuelve a iniciar sesión.';
+  return err.message || 'No se pudo crear el contexto.';
+}
+
 export const NewContextoModal: React.FC<NewContextoModalProps> = ({
   isOpen,
   onClose,
@@ -83,8 +102,8 @@ export const NewContextoModal: React.FC<NewContextoModalProps> = ({
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && !mutation.isPending) onClose();
     };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
+    globalThis.addEventListener('keydown', onKey);
+    return () => globalThis.removeEventListener('keydown', onKey);
   }, [isOpen, mutation.isPending, onClose]);
 
   if (!isOpen) return null;
@@ -108,14 +127,7 @@ export const NewContextoModal: React.FC<NewContextoModalProps> = ({
 
     const parsed = CreatePacienteContextoInputSchema.safeParse(form);
     if (!parsed.success) {
-      const localErrors: FieldErrors = {};
-      for (const issue of parsed.error.issues) {
-        const key = issue.path[0] as keyof FormState | undefined;
-        if (key && key in EMPTY_FORM && !localErrors[key]) {
-          localErrors[key] = issue.message;
-        }
-      }
-      setFieldErrors(localErrors);
+      setFieldErrors(extractZodErrors(parsed.error.issues));
       return;
     }
 
@@ -129,29 +141,19 @@ export const NewContextoModal: React.FC<NewContextoModalProps> = ({
           setFieldErrors(buildFieldErrors(err.fieldErrors));
           return;
         }
-        if (err.isNotFound) {
-          setGlobalError('El paciente ya no existe.');
-          return;
-        }
-        if (err.isUnauthorized) {
-          setGlobalError('Tu sesión expiró. Vuelve a iniciar sesión.');
-          return;
-        }
-        setGlobalError(err.message || 'No se pudo crear el contexto.');
+        setGlobalError(resolveContextoApiError(err));
         return;
       }
-      setGlobalError(
-        err instanceof Error ? err.message : 'No se pudo crear el contexto.',
-      );
+      setGlobalError(err instanceof Error ? err.message : 'No se pudo crear el contexto.');
     }
   };
 
   const isPending = mutation.isPending;
 
   return createPortal(
-    <div
-      className="fixed inset-0 z-[100] flex items-center justify-center p-4"
-      role="dialog"
+    <dialog
+      open
+      className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-transparent border-0 max-w-none w-full h-full"
       aria-modal="true"
       aria-labelledby="new-contexto-title"
     >
@@ -261,7 +263,7 @@ export const NewContextoModal: React.FC<NewContextoModalProps> = ({
           </footer>
         </form>
       </div>
-    </div>,
+    </dialog>,
     document.body,
   );
 };
@@ -285,19 +287,23 @@ const Field: React.FC<FieldProps> = ({ id, label, error, required, hint, childre
       {required && <span aria-hidden="true" className="text-danger ml-0.5">*</span>}
     </label>
     {children}
-    {error ? (
-      <p
-        id={`${id}-error`}
-        role="alert"
-        className="text-[11px] text-danger tracking-tight"
-      >
-        {error}
-      </p>
-    ) : hint ? (
-      <p className="text-[11px] text-text-subtle tracking-tight">{hint}</p>
-    ) : null}
+    {renderFieldHelper(id, error, hint)}
   </div>
 );
+
+function renderFieldHelper(id: string, error?: string, hint?: string): React.ReactNode {
+  if (error) {
+    return (
+      <p id={`${id}-error`} role="alert" className="text-[11px] text-danger tracking-tight">
+        {error}
+      </p>
+    );
+  }
+  if (hint) {
+    return <p className="text-[11px] text-text-subtle tracking-tight">{hint}</p>;
+  }
+  return null;
+}
 
 function inputClass(hasError: boolean): string {
   const base =

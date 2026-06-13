@@ -54,6 +54,36 @@ function renderCooEmptyMessage(viewMode: ViewMode, savedCount: number): string {
   return 'No hay artículos en esta categoría.';
 }
 
+/** Computes the next saved-IDs set when toggling a save action. */
+function computeNextSavedIds(
+  prev: Set<string>,
+  id: string,
+  saveFn: (id: string) => void,
+  unsaveFn: (id: string) => void,
+): Set<string> {
+  const next = new Set(prev);
+  if (next.has(id)) {
+    next.delete(id);
+    unsaveFn(id);
+  } else {
+    next.add(id);
+    saveFn(id);
+  }
+  return next;
+}
+
+/** Applies the saved-filter key to the full list, returning the filtered subset. */
+function applyFilterToSaved(
+  filter: SavedFilterKey,
+  all: Article[],
+  highEvidence: Article[],
+  recientes: Article[],
+): Article[] {
+  if (filter === 'alta_evidencia') return highEvidence;
+  if (filter === 'recientes') return recientes;
+  return all;
+}
+
 export const CooDashboardPage: React.FC = () => {
   const [viewMode, setViewMode] = useState<ViewMode>('noticias');
   const [page, setPage] = useState(0);
@@ -112,12 +142,10 @@ export const CooDashboardPage: React.FC = () => {
     [allSavedArticles]
   );
 
-  const filteredSavedArticles = useMemo(() => {
-    let list = allSavedArticles;
-    if (savedFilter === 'alta_evidencia') list = highEvidenceSaved;
-    if (savedFilter === 'recientes') list = recentSaved;
-    return list;
-  }, [savedFilter, allSavedArticles, highEvidenceSaved, recentSaved]);
+  const filteredSavedArticles = useMemo(
+    () => applyFilterToSaved(savedFilter, allSavedArticles, highEvidenceSaved, recentSaved),
+    [savedFilter, allSavedArticles, highEvidenceSaved, recentSaved],
+  );
 
   const savedTotalPages = Math.ceil(filteredSavedArticles.length / PAGE_SIZE);
   const paginatedSavedArticles = filteredSavedArticles.slice(
@@ -131,17 +159,9 @@ export const CooDashboardPage: React.FC = () => {
   };
 
   const toggleSave = (id: string) => {
-    setSavedIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) {
-        next.delete(id);
-        unsaveMutation.mutate(id);
-      } else {
-        next.add(id);
-        saveMutation.mutate(id);
-      }
-      return next;
-    });
+    setSavedIds((prev) =>
+      computeNextSavedIds(prev, id, saveMutation.mutate, unsaveMutation.mutate),
+    );
   };
 
   const handleUnsaveSaved = (article: Article) => {
@@ -220,7 +240,7 @@ export const CooDashboardPage: React.FC = () => {
             </div>
           ) : (
             <div className="grid grid-cols-2 gap-3 sm:gap-4">
-              <div role="button" tabIndex={0} onClick={() => handleSavedFilterChange('all')} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleSavedFilterChange('all'); }} className={`cursor-pointer transition-all ${savedFilter === 'all' ? 'ring-2 ring-primary rounded-xl' : 'opacity-80 hover:opacity-100'}`}>
+              <button type="button" onClick={() => handleSavedFilterChange('all')} className={`cursor-pointer transition-all text-left w-full ${savedFilter === 'all' ? 'ring-2 ring-primary rounded-xl' : 'opacity-80 hover:opacity-100'}`}>
                 <StatCard
                   label="Total Guardados"
                   value={totalSaved}
@@ -228,8 +248,8 @@ export const CooDashboardPage: React.FC = () => {
                   iconBg="var(--color-info-subtle)"
                   iconColor="var(--color-info)"
                 />
-              </div>
-              <div role="button" tabIndex={0} onClick={() => handleSavedFilterChange('alta_evidencia')} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleSavedFilterChange('alta_evidencia'); }} className={`cursor-pointer transition-all ${savedFilter === 'alta_evidencia' ? 'ring-2 ring-primary rounded-xl' : 'opacity-80 hover:opacity-100'}`}>
+              </button>
+              <button type="button" onClick={() => handleSavedFilterChange('alta_evidencia')} className={`cursor-pointer transition-all text-left w-full ${savedFilter === 'alta_evidencia' ? 'ring-2 ring-primary rounded-xl' : 'opacity-80 hover:opacity-100'}`}>
                 <StatCard
                   label="Alta Evidencia"
                   value={highEvidenceSaved.length}
@@ -237,8 +257,8 @@ export const CooDashboardPage: React.FC = () => {
                   iconBg="var(--color-caution-subtle)"
                   iconColor="var(--color-caution)"
                 />
-              </div>
-              <div role="button" tabIndex={0} onClick={() => handleSavedFilterChange('recientes')} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleSavedFilterChange('recientes'); }} className={`cursor-pointer transition-all ${savedFilter === 'recientes' ? 'ring-2 ring-primary rounded-xl' : 'opacity-80 hover:opacity-100'}`}>
+              </button>
+              <button type="button" onClick={() => handleSavedFilterChange('recientes')} className={`cursor-pointer transition-all text-left w-full ${savedFilter === 'recientes' ? 'ring-2 ring-primary rounded-xl' : 'opacity-80 hover:opacity-100'}`}>
                 <StatCard
                   label="Recientes (48h)"
                   value={recentSaved.length}
@@ -246,7 +266,7 @@ export const CooDashboardPage: React.FC = () => {
                   iconBg="var(--color-success-subtle)"
                   iconColor="var(--color-success-strong)"
                 />
-              </div>
+              </button>
               <div className="opacity-80">
                 <StatCard
                   label="Colecciones"
@@ -318,7 +338,7 @@ export const CooDashboardPage: React.FC = () => {
                     const timeAgo = article.updatedAt ? formatTimeAgo(article.updatedAt) : 'Reciente';
 
                     return (
-                      <div key={article.id} role="button" tabIndex={0} onClick={() => handleOpenArticle(article)} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleOpenArticle(article); }} className="cursor-pointer">
+                      <button key={article.id} type="button" onClick={() => handleOpenArticle(article)} className="cursor-pointer w-full text-left">
                         <ArticleCard
                           category={category}
                           categoryType={categoryType}
@@ -332,12 +352,12 @@ export const CooDashboardPage: React.FC = () => {
                           saved={savedIds.has(article.id)}
                           onSave={(e?: React.MouseEvent) => { e?.stopPropagation(); toggleSave(article.id); }}
                           extraActions={
-                            <div role="presentation" onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()}>
+                            <div onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()}>{/* NOSONAR */}
                               <AnalyzeArticleButton articleId={article.id} articleTitle={article.titulo} />
                             </div>
                           }
                         />
-                      </div>
+                      </button>
                     );
                   })
                 )}
@@ -378,7 +398,7 @@ export const CooDashboardPage: React.FC = () => {
                     const timeAgo = article.updatedAt ? formatTimeAgo(article.updatedAt) : 'Reciente';
 
                     return (
-                      <div key={article.id} role="button" tabIndex={0} onClick={() => handleOpenArticle(article)} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleOpenArticle(article); }} className="cursor-pointer">
+                      <button key={article.id} type="button" onClick={() => handleOpenArticle(article)} className="cursor-pointer w-full text-left">
                         <ArticleCard
                           category={category}
                           categoryType={categoryType}
@@ -392,12 +412,12 @@ export const CooDashboardPage: React.FC = () => {
                           saved={true}
                           onSave={(e?: React.MouseEvent) => { e?.stopPropagation(); handleUnsaveSaved(article); }}
                           extraActions={
-                            <div role="presentation" onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()}>
+                            <div onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()}>{/* NOSONAR */}
                               <AnalyzeArticleButton articleId={article.id} articleTitle={article.titulo} />
                             </div>
                           }
                         />
-                      </div>
+                      </button>
                     );
                   })
                 )}

@@ -21,6 +21,9 @@ export const PatientsListPage: React.FC = () => {
 
   const patients = useMemo<Patient[]>(() => data ?? [], [data]);
 
+  const patientCountLabel = patients.length === 1 ? 'paciente registrado' : 'pacientes registrados';
+  const resultsCountLabel = patients.length === 1 ? 'resultado' : 'resultados';
+
   const handleOpen = (id: string) => {
     setSelectedId(id);
     navigate(`/patients/${id}/history`);
@@ -40,9 +43,7 @@ export const PatientsListPage: React.FC = () => {
           <p className="text-sm text-text-muted" aria-live="polite">
             {isLoading
               ? 'Cargando pacientes…'
-              : `${patients.length} ${
-                  patients.length === 1 ? 'paciente registrado' : 'pacientes registrados'
-                } en tu cartera`}
+              : `${patients.length} ${patientCountLabel} en tu cartera`}
           </p>
         </div>
 
@@ -65,7 +66,7 @@ export const PatientsListPage: React.FC = () => {
           <span className="text-[11px] font-semibold uppercase tracking-[0.1em] text-text-muted">
             {isLoading
               ? 'Cargando…'
-              : `${patients.length} ${patients.length === 1 ? 'resultado' : 'resultados'}`}
+              : `${patients.length} ${resultsCountLabel}`}
             {isFetching && !isLoading ? ' · actualizando' : ''}
           </span>
           <span className="text-[11px] text-text-subtle tracking-tight">
@@ -73,13 +74,10 @@ export const PatientsListPage: React.FC = () => {
           </span>
         </div>
 
-        {isLoading ? (
-          <PatientListSkeleton rows={6} />
-        ) : isError ? (
-          <ErrorState error={error} onRetry={() => refetch()} />
-        ) : patients.length === 0 ? (
-          <EmptyState />
-        ) : (
+        {isLoading && <PatientListSkeleton rows={6} />}
+        {!isLoading && isError && <ErrorState error={error} onRetry={() => refetch()} />}
+        {!isLoading && !isError && patients.length === 0 && <EmptyState />}
+        {!isLoading && !isError && patients.length > 0 && (
           <ul className="divide-y divide-border-subtle">
             {patients.map((p) => (
               <li key={p.id}>
@@ -130,12 +128,10 @@ interface ErrorStateProps {
 }
 
 const ErrorState: React.FC<ErrorStateProps> = ({ error, onRetry }) => {
-  const message =
-    error instanceof ApiError
-      ? error.message
-      : error instanceof Error
-        ? error.message
-        : 'No pudimos cargar la lista de pacientes.';
+  const isKnownError = error instanceof ApiError || error instanceof Error;
+  const message = isKnownError
+    ? (error as Error).message
+    : 'No pudimos cargar la lista de pacientes.';
 
   return (
     <div

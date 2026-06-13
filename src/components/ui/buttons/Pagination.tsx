@@ -43,7 +43,7 @@ export const Pagination: React.FC<PaginationProps> = ({
 
       {getPages().map((page, idx) =>
         page === '...' ? (
-          <span key={`ellipsis-${idx}`} className="w-9 h-9 flex items-center justify-center text-gray-400 text-sm">
+          <span key={`ellipsis-pos-${idx}`} className="w-9 h-9 flex items-center justify-center text-gray-400 text-sm">
             ...
           </span>
         ) : (

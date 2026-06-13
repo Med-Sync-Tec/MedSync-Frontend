@@ -135,7 +135,7 @@ beforeEach(() => {
 
   mockUseDashboardData.mockReturnValue(queryResult({ data: emptyDashboard }));
   mockUseSavedArticles.mockReturnValue(queryResult({ data: { items: [], total: 0, page: 0, size: 200 } }));
-  mockUseEspecialidades.mockReturnValue({ byId: new Map() } as never);
+  mockUseEspecialidades.mockReturnValue({ byId: new Map() });
   mockUseSyncArticles.mockReturnValue(mutationResult({ mutate: syncMutate }));
   mockUseMarkArticleAsRead.mockReturnValue(mutationResult({ mutate: markAsReadMutate }));
   mockUseSaveArticle.mockReturnValue(mutationResult({ mutate: saveMutate }));

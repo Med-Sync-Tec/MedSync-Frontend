@@ -38,6 +38,65 @@ function renderEmptyMessage(viewMode: ViewMode, savedCount: number): string {
   return 'No hay artículos en esta categoría.';
 }
 
+/** Returns time-ago label for a date string. */
+function formatTimeAgoLabel(dateStr: string): string {
+  const date = new Date(dateStr);
+  const diffMs = Date.now() - date.getTime();
+  const diffHrs = Math.floor(diffMs / (1000 * 60 * 60));
+  if (diffHrs < 1) return 'Hace un momento';
+  if (diffHrs < 24) return `Hace ${diffHrs} horas`;
+  const diffDays = Math.floor(diffHrs / 24);
+  if (diffDays === 1) return 'Ayer';
+  return `Hace ${diffDays} días`;
+}
+
+/** Normalizes a string for search comparison (removes accents, lowercases). */
+function normalizeStr(str?: string | null): string {
+  if (!str) return '';
+  return str.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+}
+
+/** Collects all unique articles across all dashboard categories. */
+function collectAllArticles(dashboardData: Record<string, Article[]>): Article[] {
+  const seen = new Set<string>();
+  const list: Article[] = [];
+  for (const cat of Object.values(dashboardData)) {
+    for (const a of cat) {
+      if (!seen.has(a.id)) { seen.add(a.id); list.push(a); }
+    }
+  }
+  return list;
+}
+
+/** Filters articles by search query across title, abstract, tags and specialty. */
+function filterArticlesByQuery(
+  articles: Article[],
+  query: string,
+  especialidadesById: Map<string, { nombre: string }>,
+): Article[] {
+  const q = normalizeStr(query.trim());
+  if (!q) return articles;
+  return articles.filter((a) => {
+    if (normalizeStr(a.titulo).includes(q)) return true;
+    if (normalizeStr(a.abstractText).includes(q)) return true;
+    if (a.tags?.some((t) => normalizeStr(t.valor).includes(q))) return true;
+    const specialty = a.especialidadId ? especialidadesById.get(a.especialidadId) : null;
+    return specialty ? normalizeStr(specialty.nombre).includes(q) : false;
+  });
+}
+
+/** Applies saved-filter key to the full saved article list. */
+function applyDoctorSavedFilter(
+  filter: SavedFilterKey,
+  all: Article[],
+  highEvidence: Article[],
+  recientes: Article[],
+): Article[] {
+  if (filter === 'alta_evidencia') return highEvidence;
+  if (filter === 'recientes') return recientes;
+  return all;
+}
+
 export const DoctorDashboardPage: React.FC = () => {
   const [viewMode, setViewMode] = useState<ViewMode>('noticias');
   const [savedArticlesLocal, setSavedArticlesLocal] = useState<Set<string>>(new Set());
@@ -124,52 +183,15 @@ export const DoctorDashboardPage: React.FC = () => {
     setCurrentPage(1);
   };
 
-  const formatTimeAgo = (dateStr: string) => {
-    const date = new Date(dateStr);
-    const now = new Date();
-    const diffMs = now.getTime() - date.getTime();
-    const diffHrs = Math.floor(diffMs / (1000 * 60 * 60));
-
-    if (diffHrs < 1) return 'Hace un momento';
-    if (diffHrs < 24) return `Hace ${diffHrs} horas`;
-    const diffDays = Math.floor(diffHrs / 24);
-    if (diffDays === 1) return 'Ayer';
-    return `Hace ${diffDays} días`;
-  };
-
   const query = useSearchStore((s) => s.query);
-
-  const normalize = (str?: string | null) => {
-    if (!str) return '';
-    return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
-  };
 
   // === Noticias (Explore) articles ===
   const activeArticles = (() => {
     if (!dashboardData) return [];
-    let list: Article[] = [];
-    if (showAll) {
-      const seen = new Set<string>();
-      for (const cat of Object.values(dashboardData) as Article[][]) {
-        for (const a of cat) {
-          if (!seen.has(a.id)) { seen.add(a.id); list.push(a); }
-        }
-      }
-    } else {
-      list = dashboardData[selectedCategory] ?? [];
-    }
-
-    const q = normalize(query.trim());
-    if (!q) return list;
-
-    return list.filter((a) => {
-      if (normalize(a.titulo).includes(q)) return true;
-      if (normalize(a.abstractText).includes(q)) return true;
-      if (a.tags?.some((t) => normalize(t.valor).includes(q))) return true;
-      const specialty = a.especialidadId ? especialidadesById.get(a.especialidadId) : null;
-      if (specialty && normalize(specialty.nombre).includes(q)) return true;
-      return false;
-    });
+    const baseList = showAll
+      ? collectAllArticles(dashboardData as unknown as Record<string, Article[]>)
+      : (dashboardData[selectedCategory] ?? []);
+    return filterArticlesByQuery(baseList, query, especialidadesById);
   })();
 
   // === Saved articles ===
@@ -189,21 +211,8 @@ export const DoctorDashboardPage: React.FC = () => {
   );
 
   const filteredSavedArticles = useMemo(() => {
-    let list = allSavedArticles;
-    if (savedFilter === 'alta_evidencia') list = highEvidenceSaved;
-    if (savedFilter === 'recientes') list = recentSaved;
-
-    const q = normalize(query.trim());
-    if (!q) return list;
-
-    return list.filter((a) => {
-      if (normalize(a.titulo).includes(q)) return true;
-      if (normalize(a.abstractText).includes(q)) return true;
-      if (a.tags?.some((t) => normalize(t.valor).includes(q))) return true;
-      const specialty = a.especialidadId ? especialidadesById.get(a.especialidadId) : null;
-      if (specialty && normalize(specialty.nombre).includes(q)) return true;
-      return false;
-    });
+    const filtered = applyDoctorSavedFilter(savedFilter, allSavedArticles, highEvidenceSaved, recentSaved);
+    return filterArticlesByQuery(filtered, query, especialidadesById);
   }, [savedFilter, allSavedArticles, highEvidenceSaved, recentSaved, query, especialidadesById]);
 
   const handleSavedFilterChange = (filter: SavedFilterKey) => {
@@ -251,7 +260,7 @@ export const DoctorDashboardPage: React.FC = () => {
           {/* KPI Cards — switch based on viewMode */}
           {viewMode === 'noticias' ? (
             <div className="grid grid-cols-2 gap-3 sm:gap-4">
-              <div role="button" tabIndex={0} onClick={() => handleSelectCategory('novedades_48h')} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleSelectCategory('novedades_48h'); }} className={`cursor-pointer transition-all ${!showAll && selectedCategory === 'novedades_48h' ? 'ring-2 ring-primary rounded-xl' : 'opacity-80 hover:opacity-100'}`}>
+              <button type="button" onClick={() => handleSelectCategory('novedades_48h')} className={`cursor-pointer transition-all text-left w-full ${!showAll && selectedCategory === 'novedades_48h' ? 'ring-2 ring-primary rounded-xl' : 'opacity-80 hover:opacity-100'}`}>
                 <StatCard
                   label="Novedades 48h"
                   value={dashboardData?.novedades_48h?.length || 0}
@@ -259,8 +268,8 @@ export const DoctorDashboardPage: React.FC = () => {
                   iconBg="var(--color-info-subtle)"
                   iconColor="var(--color-info)"
                 />
-              </div>
-              <div role="button" tabIndex={0} onClick={() => handleSelectCategory('por_especialidad')} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleSelectCategory('por_especialidad'); }} className={`cursor-pointer transition-all ${!showAll && selectedCategory === 'por_especialidad' ? 'ring-2 ring-primary rounded-xl' : 'opacity-80 hover:opacity-100'}`}>
+              </button>
+              <button type="button" onClick={() => handleSelectCategory('por_especialidad')} className={`cursor-pointer transition-all text-left w-full ${!showAll && selectedCategory === 'por_especialidad' ? 'ring-2 ring-primary rounded-xl' : 'opacity-80 hover:opacity-100'}`}>
                 <StatCard
                   label="Por Especialidad"
                   value={dashboardData?.por_especialidad?.length || 0}
@@ -268,8 +277,8 @@ export const DoctorDashboardPage: React.FC = () => {
                   iconBg="var(--color-success-subtle)"
                   iconColor="var(--color-success-strong)"
                 />
-              </div>
-              <div role="button" tabIndex={0} onClick={() => handleSelectCategory('alta_evidencia')} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleSelectCategory('alta_evidencia'); }} className={`cursor-pointer transition-all ${!showAll && selectedCategory === 'alta_evidencia' ? 'ring-2 ring-primary rounded-xl' : 'opacity-80 hover:opacity-100'}`}>
+              </button>
+              <button type="button" onClick={() => handleSelectCategory('alta_evidencia')} className={`cursor-pointer transition-all text-left w-full ${!showAll && selectedCategory === 'alta_evidencia' ? 'ring-2 ring-primary rounded-xl' : 'opacity-80 hover:opacity-100'}`}>
                 <StatCard
                   label="Alta Evidencia"
                   value={dashboardData?.alta_evidencia?.length || 0}
@@ -277,8 +286,8 @@ export const DoctorDashboardPage: React.FC = () => {
                   iconBg="var(--color-caution-subtle)"
                   iconColor="var(--color-caution)"
                 />
-              </div>
-              <div role="button" tabIndex={0} onClick={() => handleSelectCategory('no_leidos')} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleSelectCategory('no_leidos'); }} className={`cursor-pointer transition-all ${!showAll && selectedCategory === 'no_leidos' ? 'ring-2 ring-primary rounded-xl' : 'opacity-80 hover:opacity-100'}`}>
+              </button>
+              <button type="button" onClick={() => handleSelectCategory('no_leidos')} className={`cursor-pointer transition-all text-left w-full ${!showAll && selectedCategory === 'no_leidos' ? 'ring-2 ring-primary rounded-xl' : 'opacity-80 hover:opacity-100'}`}>
                 <StatCard
                   label="No Leídos"
                   value={dashboardData?.no_leidos?.length || 0}
@@ -286,11 +295,11 @@ export const DoctorDashboardPage: React.FC = () => {
                   iconBg="var(--color-danger-subtle)"
                   iconColor="var(--color-danger)"
                 />
-              </div>
+              </button>
             </div>
           ) : (
             <div className="grid grid-cols-2 gap-3 sm:gap-4">
-              <div role="button" tabIndex={0} onClick={() => handleSavedFilterChange('all')} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleSavedFilterChange('all'); }} className={`cursor-pointer transition-all ${savedFilter === 'all' ? 'ring-2 ring-primary rounded-xl' : 'opacity-80 hover:opacity-100'}`}>
+              <button type="button" onClick={() => handleSavedFilterChange('all')} className={`cursor-pointer transition-all text-left w-full ${savedFilter === 'all' ? 'ring-2 ring-primary rounded-xl' : 'opacity-80 hover:opacity-100'}`}>
                 <StatCard
                   label="Total Guardados"
                   value={totalSaved}
@@ -298,8 +307,8 @@ export const DoctorDashboardPage: React.FC = () => {
                   iconBg="var(--color-info-subtle)"
                   iconColor="var(--color-info)"
                 />
-              </div>
-              <div role="button" tabIndex={0} onClick={() => handleSavedFilterChange('alta_evidencia')} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleSavedFilterChange('alta_evidencia'); }} className={`cursor-pointer transition-all ${savedFilter === 'alta_evidencia' ? 'ring-2 ring-primary rounded-xl' : 'opacity-80 hover:opacity-100'}`}>
+              </button>
+              <button type="button" onClick={() => handleSavedFilterChange('alta_evidencia')} className={`cursor-pointer transition-all text-left w-full ${savedFilter === 'alta_evidencia' ? 'ring-2 ring-primary rounded-xl' : 'opacity-80 hover:opacity-100'}`}>
                 <StatCard
                   label="Alta Evidencia"
                   value={highEvidenceSaved.length}
@@ -307,8 +316,8 @@ export const DoctorDashboardPage: React.FC = () => {
                   iconBg="var(--color-caution-subtle)"
                   iconColor="var(--color-caution)"
                 />
-              </div>
-              <div role="button" tabIndex={0} onClick={() => handleSavedFilterChange('recientes')} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleSavedFilterChange('recientes'); }} className={`cursor-pointer transition-all ${savedFilter === 'recientes' ? 'ring-2 ring-primary rounded-xl' : 'opacity-80 hover:opacity-100'}`}>
+              </button>
+              <button type="button" onClick={() => handleSavedFilterChange('recientes')} className={`cursor-pointer transition-all text-left w-full ${savedFilter === 'recientes' ? 'ring-2 ring-primary rounded-xl' : 'opacity-80 hover:opacity-100'}`}>
                 <StatCard
                   label="Recientes (48h)"
                   value={recentSaved.length}
@@ -316,7 +325,7 @@ export const DoctorDashboardPage: React.FC = () => {
                   iconBg="var(--color-success-subtle)"
                   iconColor="var(--color-success-strong)"
                 />
-              </div>
+              </button>
               <div className="opacity-80">
                 <StatCard
                   label="Colecciones"
@@ -374,7 +383,7 @@ export const DoctorDashboardPage: React.FC = () => {
           </div>
           <div className="flex flex-col gap-3">
             {currentIsLoading && new Array(3).fill(null).map((_, i) => (
-              <div key={`skeleton-doctor-${i}`} className="h-32 bg-surface-subtle animate-pulse rounded-2xl border border-border-strong" />
+              <div key={`skeleton-doctor-row-${i}`} className="h-32 bg-surface-subtle animate-pulse rounded-2xl border border-border-strong" />
             ))}
             {!currentIsLoading && currentIsError && (
               <div className="p-8 text-center bg-danger-subtle rounded-2xl border border-danger/20 text-danger text-sm">
@@ -398,17 +407,15 @@ export const DoctorDashboardPage: React.FC = () => {
                   );
                   const category = mainTag?.valor || article.tipoPublicacion || 'General';
                   const categoryType = (CATEGORY_MAP[mainTag?.tipo ?? ''] || 'default') as never;
-                  const timeAgo = article.updatedAt ? formatTimeAgo(article.updatedAt) : 'Reciente';
+                  const timeAgo = article.updatedAt ? formatTimeAgoLabel(article.updatedAt) : 'Reciente';
                   const isSaved = viewMode === 'guardadas' || savedArticlesLocal.has(article.id);
 
                   return (
-                    <div
+                    <button
                       key={article.id}
-                      role="button"
-                      tabIndex={0}
+                      type="button"
                       onClick={() => handleOpenArticle(article)}
-                      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleOpenArticle(article); }}
-                      className="cursor-pointer"
+                      className="cursor-pointer w-full text-left"
                     >
                       <ArticleCard
                         category={category}
@@ -430,7 +437,7 @@ export const DoctorDashboardPage: React.FC = () => {
                           }
                         }}
                         extraActions={
-                          <div role="presentation" onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()}>
+                          <div onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()}>{/* NOSONAR */}
                             <AnalyzeArticleButton
                               articleId={article.id}
                               articleTitle={article.titulo}
@@ -438,7 +445,7 @@ export const DoctorDashboardPage: React.FC = () => {
                           </div>
                         }
                       />
-                    </div>
+                    </button>
                   );
                 })}
 

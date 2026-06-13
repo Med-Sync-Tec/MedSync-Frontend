@@ -282,6 +282,10 @@ describe('CooDashboardPage', () => {
     });
   });
 
+  async function switchToSaved(user: ReturnType<typeof userEvent.setup>) {
+    await user.click(screen.getByRole('radio', { name: /Guardadas/ }));
+  }
+
   describe('saved view', () => {
     const SAVED_HIGH = makeArticle({
       id: 's1',
@@ -295,10 +299,6 @@ describe('CooDashboardPage', () => {
       tipoPublicacion: 'Review',
       createdAt: hoursAgo(1),
     });
-
-    async function switchToSaved(user: ReturnType<typeof userEvent.setup>) {
-      await user.click(screen.getByRole('radio', { name: /Guardadas/ }));
-    }
 
     it('shows the saved KPI cards with filter counts', async () => {
       const user = userEvent.setup();

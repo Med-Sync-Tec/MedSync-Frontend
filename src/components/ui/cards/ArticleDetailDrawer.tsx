@@ -87,7 +87,8 @@ export const ArticleDetailDrawer: React.FC<ArticleDetailDrawerProps> = ({
   // Confianza: Alta si el backend lo marcó como alta evidencia,
   // Media si tiene tags clínicos, Baja en otro caso
   const hasTags = (article.tags?.length ?? 0) > 0;
-  const confidenceScore = isHighEvidence ? 3 : hasTags ? 1 : 0;
+  const scoreWhenNotHighEvidence = hasTags ? 1 : 0;
+  const confidenceScore = isHighEvidence ? 3 : scoreWhenNotHighEvidence;
   const confidence = getConfidence(confidenceScore);
 
   const formatDate = () => {

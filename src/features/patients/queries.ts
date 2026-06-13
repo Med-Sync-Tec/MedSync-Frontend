@@ -90,7 +90,7 @@ export function useCreatePacienteContexto(patientId: string) {
         patientKeys.contextos(patientId),
         (prev) => (prev ? [created, ...prev] : [created]),
       );
-      void qc.invalidateQueries({ queryKey: matchingKeys.articles(patientId) });
+      qc.invalidateQueries({ queryKey: matchingKeys.articles(patientId) }).catch(() => {});
     },
   });
 }
@@ -112,7 +112,7 @@ export function useBulkAddPacienteContextos(patientId: string) {
       // Newly-accepted contextos may unlock previously-non-matching articles;
       // refetch the matching feed so the patient detail panel lights up
       // without a page reload.
-      void qc.invalidateQueries({ queryKey: matchingKeys.articles(patientId) });
+      qc.invalidateQueries({ queryKey: matchingKeys.articles(patientId) }).catch(() => {});
     },
   });
 }
@@ -140,8 +140,8 @@ export function useDeletePacienteContexto(patientId: string) {
       }
     },
     onSettled: () => {
-      void qc.invalidateQueries({ queryKey: patientKeys.contextos(patientId) });
-      void qc.invalidateQueries({ queryKey: matchingKeys.articles(patientId) });
+      qc.invalidateQueries({ queryKey: patientKeys.contextos(patientId) }).catch(() => {});
+      qc.invalidateQueries({ queryKey: matchingKeys.articles(patientId) }).catch(() => {});
     },
   });
 }
@@ -193,9 +193,9 @@ export function usePatientDetail(id: string | undefined): PatientDetailResult {
     null;
 
   const refetch = () => {
-    void patientQ.refetch();
-    void expedienteQ.refetch();
-    void consultasQ.refetch();
+    patientQ.refetch().catch(() => {});
+    expedienteQ.refetch().catch(() => {});
+    consultasQ.refetch().catch(() => {});
   };
 
   if (!enabled) {

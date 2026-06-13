@@ -14,7 +14,7 @@ type Listener = (event: unknown) => void;
 let recorders: FakeMediaRecorder[] = [];
 
 class FakeMediaRecorder {
-  static isTypeSupported = jest.fn().mockReturnValue(true);
+  static readonly isTypeSupported = jest.fn().mockReturnValue(true);
 
   state: 'inactive' | 'recording' = 'inactive';
   readonly stream: unknown;

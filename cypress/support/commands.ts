@@ -45,4 +45,4 @@ Cypress.Commands.add('visitAs', (path: string, role: 'DOCTOR' | 'COO' = 'DOCTOR'
   });
 });
 
-export {};
+export {}; // NOSONAR

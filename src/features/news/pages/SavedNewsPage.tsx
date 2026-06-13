@@ -68,7 +68,7 @@ export const SavedNewsPage: React.FC = () => {
   );
   const recentArticles = useMemo(
     () => allArticles.filter(a => {
-      const diffHrs = (new Date().getTime() - new Date(a.createdAt).getTime()) / (1000 * 60 * 60);
+      const diffHrs = (Date.now() - new Date(a.createdAt).getTime()) / (1000 * 60 * 60);
       return diffHrs < 48;
     }),
     [allArticles]
@@ -155,12 +155,10 @@ export const SavedNewsPage: React.FC = () => {
 
           {/* KPI Cards — each one filters the list below */}
           <div className="grid grid-cols-2 gap-3 sm:gap-4">
-            <div
-              role="button"
-              tabIndex={0}
+            <button
+              type="button"
               onClick={() => handleFilterChange('all')}
-              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleFilterChange('all'); }}
-              className={`cursor-pointer transition-all ${activeFilter === 'all' ? 'ring-2 ring-primary rounded-xl' : 'opacity-80 hover:opacity-100'}`}
+              className={`cursor-pointer transition-all text-left w-full ${activeFilter === 'all' ? 'ring-2 ring-primary rounded-xl' : 'opacity-80 hover:opacity-100'}`}
             >
               <StatCard
                 label="Total Guardados"
@@ -169,13 +167,11 @@ export const SavedNewsPage: React.FC = () => {
                 iconBg="var(--color-info-subtle)"
                 iconColor="var(--color-info)"
               />
-            </div>
-            <div
-              role="button"
-              tabIndex={0}
+            </button>
+            <button
+              type="button"
               onClick={() => handleFilterChange('alta_evidencia')}
-              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleFilterChange('alta_evidencia'); }}
-              className={`cursor-pointer transition-all ${activeFilter === 'alta_evidencia' ? 'ring-2 ring-primary rounded-xl' : 'opacity-80 hover:opacity-100'}`}
+              className={`cursor-pointer transition-all text-left w-full ${activeFilter === 'alta_evidencia' ? 'ring-2 ring-primary rounded-xl' : 'opacity-80 hover:opacity-100'}`}
             >
               <StatCard
                 label="Alta Evidencia"
@@ -184,13 +180,11 @@ export const SavedNewsPage: React.FC = () => {
                 iconBg="var(--color-caution-subtle)"
                 iconColor="var(--color-caution)"
               />
-            </div>
-            <div
-              role="button"
-              tabIndex={0}
+            </button>
+            <button
+              type="button"
               onClick={() => handleFilterChange('recientes')}
-              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleFilterChange('recientes'); }}
-              className={`cursor-pointer transition-all ${activeFilter === 'recientes' ? 'ring-2 ring-primary rounded-xl' : 'opacity-80 hover:opacity-100'}`}
+              className={`cursor-pointer transition-all text-left w-full ${activeFilter === 'recientes' ? 'ring-2 ring-primary rounded-xl' : 'opacity-80 hover:opacity-100'}`}
             >
               <StatCard
                 label="Recientes (48h)"
@@ -199,7 +193,7 @@ export const SavedNewsPage: React.FC = () => {
                 iconBg="var(--color-success-subtle)"
                 iconColor="var(--color-success-strong)"
               />
-            </div>
+            </button>
             <div className="opacity-80">
               <StatCard
                 label="Colecciones"
@@ -231,7 +225,7 @@ export const SavedNewsPage: React.FC = () => {
           </div>
           <div className="flex flex-col gap-3">
             {isLoading && new Array(3).fill(null).map((_, i) => (
-              <div key={`skeleton-saved-news-${i}`} className="h-32 bg-surface-subtle animate-pulse rounded-2xl border border-border-strong" />
+              <div key={`skeleton-saved-news-item-${i}`} className="h-32 bg-surface-subtle animate-pulse rounded-2xl border border-border-strong" />
             ))}
             {!isLoading && isError && (
               <div className="p-8 text-center bg-danger-subtle rounded-2xl border border-danger/20 text-danger text-sm">
@@ -258,13 +252,11 @@ export const SavedNewsPage: React.FC = () => {
                   );
 
                   return (
-                    <div
+                    <button
                       key={article.id}
-                      role="button"
-                      tabIndex={0}
+                      type="button"
                       onClick={() => handleOpenArticle(article)}
-                      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleOpenArticle(article); }}
-                      className="cursor-pointer"
+                      className="cursor-pointer w-full text-left"
                     >
                       <ArticleCard
                         category={category}
@@ -279,7 +271,7 @@ export const SavedNewsPage: React.FC = () => {
                         saved={true}
                         onSave={(e?: React.MouseEvent) => { e?.stopPropagation(); toggleSave(article); }}
                       />
-                    </div>
+                    </button>
                   );
                 })}
 

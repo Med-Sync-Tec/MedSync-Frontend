@@ -174,7 +174,7 @@ describe('ArticleDetailDrawer', () => {
     const onClose = jest.fn();
     renderDrawer({ onClose });
 
-    fireEvent.keyDown(window, { key: 'Escape' });
+    fireEvent.keyDown(globalThis, { key: 'Escape' });
 
     expect(onClose).toHaveBeenCalledTimes(1);
   });

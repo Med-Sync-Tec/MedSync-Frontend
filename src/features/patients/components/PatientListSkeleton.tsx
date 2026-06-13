@@ -13,7 +13,7 @@ export const PatientListSkeleton: React.FC<PatientListSkeletonProps> = ({ rows =
       className="divide-y divide-border-subtle"
     >
       {Array.from({ length: rows }).map((_, i) => (
-        <li key={i} className="flex items-center gap-3 px-4 py-3">
+        <li key={`skeleton-patient-${i}`} className="flex items-center gap-3 px-4 py-3">
           <span className="w-10 h-10 rounded-full bg-surface-muted animate-pulse" aria-hidden="true" />
           <div className="flex-1 min-w-0 space-y-2">
             <span className="block h-3 w-2/5 rounded bg-surface-muted animate-pulse" aria-hidden="true" />

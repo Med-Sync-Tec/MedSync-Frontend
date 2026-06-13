@@ -50,6 +50,35 @@ function buildFieldErrors(
   return errors;
 }
 
+/** Extracts field-level Zod parse errors into a FieldErrors map. */
+function extractPatientZodErrors(issues: Array<{ path: Array<string | number>; message: string }>): FieldErrors {
+  const localErrors: FieldErrors = {};
+  for (const issue of issues) {
+    const key = issue.path[0] as keyof FormState | undefined;
+    if (key && key in EMPTY_FORM && !localErrors[key]) {
+      localErrors[key] = issue.message;
+    }
+  }
+  return localErrors;
+}
+
+/** Maps an ApiError to field errors or a global error message for the patient form. */
+function handlePatientApiError(
+  err: ApiError,
+  setFieldErrors: (e: FieldErrors) => void,
+  setGlobalError: (msg: string) => void,
+): void {
+  if (err.isValidation && err.fieldErrors.length > 0) {
+    setFieldErrors(buildFieldErrors(err.fieldErrors));
+    return;
+  }
+  if (err.isConflict) {
+    setFieldErrors({ expedienteExternoId: 'Ya existe un paciente con este expediente' });
+    return;
+  }
+  setGlobalError(err.message || 'No se pudo crear el paciente.');
+}
+
 export const NewPatientModal: React.FC<NewPatientModalProps> = ({
   isOpen,
   onClose,
@@ -77,8 +106,8 @@ export const NewPatientModal: React.FC<NewPatientModalProps> = ({
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && !mutation.isPending) onClose();
     };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
+    globalThis.addEventListener('keydown', onKey);
+    return () => globalThis.removeEventListener('keydown', onKey);
   }, [isOpen, mutation.isPending, onClose]);
 
   const today = useMemo(() => {
@@ -110,14 +139,7 @@ export const NewPatientModal: React.FC<NewPatientModalProps> = ({
 
     const parsed = CreatePatientInputSchema.safeParse(form);
     if (!parsed.success) {
-      const localErrors: FieldErrors = {};
-      for (const issue of parsed.error.issues) {
-        const key = issue.path[0] as keyof FormState | undefined;
-        if (key && key in EMPTY_FORM && !localErrors[key]) {
-          localErrors[key] = issue.message;
-        }
-      }
-      setFieldErrors(localErrors);
+      setFieldErrors(extractPatientZodErrors(parsed.error.issues));
       return;
     }
 
@@ -126,31 +148,19 @@ export const NewPatientModal: React.FC<NewPatientModalProps> = ({
       onCreated?.(created);
     } catch (err) {
       if (err instanceof ApiError) {
-        if (err.isValidation && err.fieldErrors.length > 0) {
-          setFieldErrors(buildFieldErrors(err.fieldErrors));
-          return;
-        }
-        if (err.isConflict) {
-          setFieldErrors({
-            expedienteExternoId: 'Ya existe un paciente con este expediente',
-          });
-          return;
-        }
-        setGlobalError(err.message || 'No se pudo crear el paciente.');
+        handlePatientApiError(err, setFieldErrors, setGlobalError);
         return;
       }
-      setGlobalError(
-        err instanceof Error ? err.message : 'No se pudo crear el paciente.',
-      );
+      setGlobalError(err instanceof Error ? err.message : 'No se pudo crear el paciente.');
     }
   };
 
   const isPending = mutation.isPending;
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
-      role="dialog"
+    <dialog
+      open
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-transparent border-0 max-w-none w-full h-full"
       aria-modal="true"
       aria-labelledby="new-patient-title"
     >
@@ -304,7 +314,7 @@ export const NewPatientModal: React.FC<NewPatientModalProps> = ({
           </footer>
         </form>
       </div>
-    </div>
+    </dialog>
   );
 };
 
@@ -327,19 +337,23 @@ const Field: React.FC<FieldProps> = ({ id, label, error, required, hint, childre
       {required && <span aria-hidden="true" className="text-danger ml-0.5">*</span>}
     </label>
     {children}
-    {error ? (
-      <p
-        id={`${id}-error`}
-        role="alert"
-        className="text-[11px] text-danger tracking-tight"
-      >
-        {error}
-      </p>
-    ) : hint ? (
-      <p className="text-[11px] text-text-subtle tracking-tight">{hint}</p>
-    ) : null}
+    {renderPatientFieldHelper(id, error, hint)}
   </div>
 );
+
+function renderPatientFieldHelper(id: string, error?: string, hint?: string): React.ReactNode {
+  if (error) {
+    return (
+      <p id={`${id}-error`} role="alert" className="text-[11px] text-danger tracking-tight">
+        {error}
+      </p>
+    );
+  }
+  if (hint) {
+    return <p className="text-[11px] text-text-subtle tracking-tight">{hint}</p>;
+  }
+  return null;
+}
 
 function inputClass(hasError: boolean): string {
   const base =

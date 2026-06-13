@@ -178,7 +178,7 @@ describe('updateUserPassword', () => {
 
   it('does not update the password when reauthentication fails', async () => {
     mutableAuth.currentUser = { email: 'ana@clinica.com' };
-    mockCredential.mockReturnValue({} as never);
+    mockCredential.mockReturnValue({});
     mockReauthenticate.mockRejectedValue(new Error('auth/invalid-credential'));
 
     await expect(updateUserPassword('wrong', 'newPass')).rejects.toThrow(

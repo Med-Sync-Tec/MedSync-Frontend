@@ -238,7 +238,7 @@ describe('InventoryPage', () => {
       render(<InventoryPage />);
       await screen.findByText('Amoxicilina 500mg');
 
-      await user.click(screen.getAllByRole('button', { name: 'Editar' })[0]!);
+      await user.click(screen.getAllByRole('button', { name: 'Editar' })[0]);
 
       expect(screen.getByRole('heading', { name: 'Editar medicamento' })).toBeInTheDocument();
       expect(screen.getByLabelText('Nombre')).toHaveValue('Amoxicilina 500mg');
@@ -252,7 +252,7 @@ describe('InventoryPage', () => {
       render(<InventoryPage />);
       await screen.findByText('Amoxicilina 500mg');
 
-      await user.click(screen.getAllByRole('button', { name: 'Editar' })[0]!);
+      await user.click(screen.getAllByRole('button', { name: 'Editar' })[0]);
       await user.selectOptions(screen.getByLabelText('Estado'), 'obsoleto');
       await user.click(screen.getByRole('button', { name: 'Guardar' }));
 
@@ -273,7 +273,7 @@ describe('InventoryPage', () => {
       render(<InventoryPage />);
       await screen.findByText('Amoxicilina 500mg');
 
-      await user.click(screen.getAllByRole('button', { name: 'Editar' })[0]!);
+      await user.click(screen.getAllByRole('button', { name: 'Editar' })[0]);
       await user.clear(screen.getByLabelText('Nombre'));
       await user.click(screen.getByRole('button', { name: 'Guardar' }));
 
@@ -287,7 +287,7 @@ describe('InventoryPage', () => {
       render(<InventoryPage />);
       await screen.findByText('Amoxicilina 500mg');
 
-      await user.click(screen.getAllByRole('button', { name: 'Editar' })[0]!);
+      await user.click(screen.getAllByRole('button', { name: 'Editar' })[0]);
       await user.click(screen.getByRole('button', { name: 'Guardar' }));
 
       expect(
@@ -303,7 +303,7 @@ describe('InventoryPage', () => {
       render(<InventoryPage />);
       await screen.findByText('Amoxicilina 500mg');
 
-      await user.click(screen.getAllByRole('button', { name: 'Eliminar' })[0]!);
+      await user.click(screen.getAllByRole('button', { name: 'Eliminar' })[0]);
 
       const modal = findModal('Eliminar medicamento');
       expect(modal.getByText(/¿Seguro que quieres eliminar/)).toBeInTheDocument();
@@ -321,7 +321,7 @@ describe('InventoryPage', () => {
       render(<InventoryPage />);
       await screen.findByText('Amoxicilina 500mg');
 
-      await user.click(screen.getAllByRole('button', { name: 'Eliminar' })[0]!);
+      await user.click(screen.getAllByRole('button', { name: 'Eliminar' })[0]);
       const modal = findModal('Eliminar medicamento');
       await user.click(modal.getByRole('button', { name: 'Cancelar' }));
 
@@ -335,7 +335,7 @@ describe('InventoryPage', () => {
       render(<InventoryPage />);
       await screen.findByText('Amoxicilina 500mg');
 
-      await user.click(screen.getAllByRole('button', { name: 'Eliminar' })[0]!);
+      await user.click(screen.getAllByRole('button', { name: 'Eliminar' })[0]);
       const modal = findModal('Eliminar medicamento');
       await user.click(modal.getByRole('button', { name: 'Eliminar' }));
 
@@ -358,7 +358,7 @@ describe('InventoryPage', () => {
       await user.click(screen.getByRole('button', { name: '2' }));
       await screen.findByText('Último Medicamento');
 
-      await user.click(screen.getAllByRole('button', { name: 'Eliminar' })[0]!);
+      await user.click(screen.getAllByRole('button', { name: 'Eliminar' })[0]);
       const modal = findModal('Eliminar medicamento');
       await user.click(modal.getByRole('button', { name: 'Eliminar' }));
 

@@ -123,12 +123,10 @@ const WithDrawerDemo = () => {
       <p className="text-sm text-text-muted mb-4">
         Haz click en la tarjeta para abrir el drawer de detalle. El botón de guardar no propaga el click al drawer.
       </p>
-      <div
-        role="button"
-        tabIndex={0}
+      <button
+        type="button"
         onClick={() => setSelected(SAMPLE_ARTICLE)}
-        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setSelected(SAMPLE_ARTICLE); }}
-        className="cursor-pointer"
+        className="cursor-pointer w-full text-left"
       >
         <ArticleCard
           category="Cardiología"
@@ -141,7 +139,7 @@ const WithDrawerDemo = () => {
           saved={saved}
           onSave={(e) => { e?.stopPropagation(); setSaved((p) => !p); }}
         />
-      </div>
+      </button>
       <ArticleDetailDrawer
         article={selected}
         onClose={() => setSelected(null)}

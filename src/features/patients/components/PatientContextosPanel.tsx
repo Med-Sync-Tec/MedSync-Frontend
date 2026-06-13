@@ -100,13 +100,10 @@ export const PatientContextosPanel: React.FC<PatientContextosPanelProps> = ({
       </header>
 
       <div className="px-5 py-4">
-        {error ? (
-          <ErrorState message={resolveErrorMessage(error)} onRetry={() => refetch()} />
-        ) : isLoading ? (
-          <SkeletonChips />
-        ) : total === 0 ? (
-          <EmptyState />
-        ) : (
+        {error && <ErrorState message={resolveErrorMessage(error)} onRetry={() => refetch()} />}
+        {!error && isLoading && <SkeletonChips />}
+        {!error && !isLoading && total === 0 && <EmptyState />}
+        {!error && !isLoading && total > 0 && (
           <div className="space-y-3">
             {TIPO_ORDER.filter((tipo) => grouped[tipo].length > 0).map((tipo) => (
               <div key={tipo}>
@@ -184,6 +181,11 @@ const ContextoChip: React.FC<ContextoChipProps> = ({
     ? 'ring-2 ring-offset-1 ring-offset-surface ring-text-primary/60'
     : '';
   const filterable = Boolean(onToggleFilter && hasMatches);
+  const matchLabel = matchCount === 1 ? 'artículo relevante' : 'artículos relevantes';
+  const matchTooltip = hasMatches ? `Aparece en ${matchCount} ${matchLabel}.` : contexto.valor;
+  const filterAriaLabel = selected
+    ? `Quitar filtro: ${contexto.valor}`
+    : `Filtrar artículos por: ${contexto.valor}`;
 
   return (
     <span
@@ -204,28 +206,16 @@ const ContextoChip: React.FC<ContextoChipProps> = ({
           type="button"
           onClick={onToggleFilter}
           aria-pressed={selected}
-          aria-label={
-            selected
-              ? `Quitar filtro: ${contexto.valor}`
-              : `Filtrar artículos por: ${contexto.valor}`
-          }
+          aria-label={filterAriaLabel}
           className="max-w-[180px] truncate focus:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring rounded-sm"
-          title={`Aparece en ${matchCount} ${
-            matchCount === 1 ? 'artículo relevante' : 'artículos relevantes'
-          }.`}
+          title={`Aparece en ${matchCount} ${matchLabel}.`}
         >
           {contexto.valor}
         </button>
       ) : (
         <span
           className="max-w-[180px] truncate"
-          title={
-            hasMatches
-              ? `Aparece en ${matchCount} ${
-                  matchCount === 1 ? 'artículo relevante' : 'artículos relevantes'
-                }.`
-              : contexto.valor
-          }
+          title={matchTooltip}
         >
           {contexto.valor}
         </span>
@@ -268,7 +258,7 @@ const SkeletonChips: React.FC = () => (
   <div className="flex flex-wrap gap-1.5">
     {[80, 110, 60, 95].map((w, i) => (
       <span
-        key={i}
+        key={`skeleton-chip-${i}-w${w}`}
         aria-hidden="true"
         className="inline-block h-5 rounded-full bg-surface-muted animate-pulse"
         style={{ width: w }}

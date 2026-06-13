@@ -8,24 +8,26 @@ function renderBotText(text: string): React.ReactNode {
     const lines = block.split('\n');
     const isList = lines.every((l) => /^[-*]\s/.test(l.trim()) || l.trim() === '');
     const isHeader = lines.length === 1 && /^###\s/.test(lines[0]);
+    // Use block index with a type prefix for stable-enough keys in bot-rendered text
+    const blockKey = `block-${bi}-${block.slice(0, 8)}`;
 
     if (isHeader) {
       return (
-        <p key={`block-${bi}`} className="font-semibold text-xs mb-1">
+        <p key={blockKey} className="font-semibold text-xs mb-1">
           {inlineFormat(lines[0].replace(/^###\s/, ''))}
         </p>
       );
     }
     if (isList) {
       return (
-        <ul key={`block-${bi}`} className="list-disc list-inside space-y-0.5 mb-1">
+        <ul key={blockKey} className="list-disc list-inside space-y-0.5 mb-1">
           {lines.filter((l) => l.trim()).map((l, li) => (
-            <li key={`item-${bi}-${li}`}>{inlineFormat(l.replace(/^[-*]\s/, ''))}</li>
+            <li key={`item-${bi}-${li}-${l.slice(0, 8)}`}>{inlineFormat(l.replace(/^[-*]\s/, ''))}</li>
           ))}
         </ul>
       );
     }
-    return <p key={`block-${bi}`} className="mb-1">{lines.map((l, li) => <span key={`line-${bi}-${li}`}>{inlineFormat(l)}{li < lines.length - 1 && <br />}</span>)}</p>;
+    return <p key={blockKey} className="mb-1">{lines.map((l, li) => <span key={`line-${bi}-${li}-${l.slice(0, 8)}`}>{inlineFormat(l)}{li < lines.length - 1 && <br />}</span>)}</p>;
   });
 }
 

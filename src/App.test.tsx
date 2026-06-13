@@ -22,10 +22,10 @@ import { signOutCurrentUser } from '@features/auth/api';
 import App from './App';
 
 beforeEach(() => {
-  window.localStorage.clear();
-  window.localStorage.setItem(THEME_STORAGE_KEY, 'light');
+  globalThis.localStorage.clear();
+  globalThis.localStorage.setItem(THEME_STORAGE_KEY, 'light');
   useAuthStore.setState({ user: null, isAuthenticated: false });
-  window.history.pushState({}, '', '/');
+  globalThis.history.pushState({}, '', '/');
 });
 
 describe('App', () => {
@@ -55,7 +55,7 @@ describe('App', () => {
       .catch(() => undefined);
 
     await waitFor(() => expect(jest.mocked(signOutCurrentUser)).toHaveBeenCalled());
-    expect(window.location.pathname).toBe('/');
+    expect(globalThis.location.pathname).toBe('/');
     queryClient.clear();
   });
 });

@@ -180,7 +180,7 @@ describe('MatchExplainPanel', () => {
   it('closes on Escape', () => {
     renderPanel();
 
-    fireEvent.keyDown(window, { key: 'Escape' });
+    fireEvent.keyDown(globalThis, { key: 'Escape' });
 
     expect(onClose).toHaveBeenCalledTimes(1);
   });
@@ -188,7 +188,7 @@ describe('MatchExplainPanel', () => {
   it('ignores other keys', () => {
     renderPanel();
 
-    fireEvent.keyDown(window, { key: 'Enter' });
+    fireEvent.keyDown(globalThis, { key: 'Enter' });
 
     expect(onClose).not.toHaveBeenCalled();
   });

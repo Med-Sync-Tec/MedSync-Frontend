@@ -52,11 +52,11 @@ export const ArticleAnalysisModal: React.FC<ArticleAnalysisModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div
-      role="dialog"
+    <dialog
+      open
       aria-modal="true"
       aria-labelledby="analyze-modal-title"
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-transparent border-0 max-w-none w-full h-full"
     >
       <div
         className="absolute inset-0 bg-slate-900/50 backdrop-blur-sm"
@@ -209,6 +209,6 @@ export const ArticleAnalysisModal: React.FC<ArticleAnalysisModalProps> = ({
           )}
         </footer>
       </div>
-    </div>
+    </dialog>
   );
 };

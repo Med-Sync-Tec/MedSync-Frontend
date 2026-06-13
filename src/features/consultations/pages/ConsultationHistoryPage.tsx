@@ -237,11 +237,10 @@ export const ConsultationHistoryPage: React.FC = () => {
                 >
                   {tabs.map((tab) => {
                     const isActive = activeTab === tab.id;
-                    const tabColorClass = isActive
-                      ? 'text-text-primary'
-                      : tab.disabled
-                        ? 'text-text-subtle cursor-not-allowed'
-                        : 'text-text-muted hover:text-text-primary';
+                    const inactiveColorClass = tab.disabled
+                      ? 'text-text-subtle cursor-not-allowed'
+                      : 'text-text-muted hover:text-text-primary';
+                    const tabColorClass = isActive ? 'text-text-primary' : inactiveColorClass;
                     return (
                       <button
                         key={tab.id}
