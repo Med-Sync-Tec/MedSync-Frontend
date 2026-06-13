@@ -11,7 +11,7 @@ interface ThemeProviderProps {
 }
 
 export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
-  const [theme, setThemeState] = useState<Theme>(getInitialTheme);
+  const [theme, setTheme] = useState<Theme>(getInitialTheme);
 
   useEffect(() => {
     const root = document.documentElement;
@@ -19,13 +19,9 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
     globalThis.localStorage.setItem(THEME_STORAGE_KEY, theme);
   }, [theme]);
 
-  const setTheme = useCallback((next: Theme) => {
-    setThemeState(next);
-  }, []);
-
   const toggle = useCallback(() => {
-    setThemeState((prev) => (prev === 'dark' ? 'light' : 'dark'));
-  }, []);
+    setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
+  }, [setTheme]);
 
   const contextValue = useMemo(() => ({ theme, setTheme, toggle }), [theme, setTheme, toggle]);
 

@@ -35,11 +35,11 @@ describe('Header', () => {
   beforeAll(() => {
     // jsdom does not implement matchMedia, which ThemeProvider uses to detect
     // the OS color scheme preference.
-    globalThis.matchMedia = jest.fn(() => ({
+    globalThis.matchMedia = jest.fn(() => ({ // NOSONAR
       matches: false,
       addEventListener: jest.fn(),
       removeEventListener: jest.fn(),
-    })) as unknown as typeof globalThis.matchMedia; // NOSONAR
+    })) as unknown as typeof globalThis.matchMedia;
   });
 
   beforeEach(() => {
