@@ -39,8 +39,8 @@ function collectPaths(): string[] {
 }
 
 beforeEach(() => {
-  window.localStorage.clear();
-  window.localStorage.setItem(THEME_STORAGE_KEY, 'light');
+  globalThis.localStorage.clear();
+  globalThis.localStorage.setItem(THEME_STORAGE_KEY, 'light');
   useAuthStore.setState({ user: null, isAuthenticated: false });
 });
 

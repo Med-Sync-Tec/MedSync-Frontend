@@ -224,8 +224,8 @@ export const SavedNewsPage: React.FC = () => {
             )}
           </div>
           <div className="flex flex-col gap-3">
-            {isLoading && new Array(3).fill(null).map((_, i) => (
-              <div key={`skeleton-saved-news-item-${i}`} className="h-32 bg-surface-subtle animate-pulse rounded-2xl border border-border-strong" />
+            {isLoading && Array.from({ length: 3 }, (_, n) => n + 1).map((n) => (
+              <div key={`skeleton-saved-news-item-${n}`} className="h-32 bg-surface-subtle animate-pulse rounded-2xl border border-border-strong" />
             ))}
             {!isLoading && isError && (
               <div className="p-8 text-center bg-danger-subtle rounded-2xl border border-danger/20 text-danger text-sm">

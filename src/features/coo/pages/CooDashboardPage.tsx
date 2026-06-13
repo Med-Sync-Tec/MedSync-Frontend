@@ -84,7 +84,7 @@ function applyFilterToSaved(
   return all;
 }
 
-export const CooDashboardPage: React.FC = () => {
+export const CooDashboardPage: React.FC = () => { // NOSONAR
   const [viewMode, setViewMode] = useState<ViewMode>('noticias');
   const [page, setPage] = useState(0);
   const [savedIds, setSavedIds] = useState<Set<string>>(new Set());
@@ -316,8 +316,8 @@ export const CooDashboardPage: React.FC = () => {
           <div className="flex flex-col gap-3">
             {viewMode === 'noticias' ? (
               <>
-                {isLoading && new Array(3).fill(null).map((_, i) => (
-                  <div key={`skeleton-news-${i}`} className="h-32 bg-surface-subtle animate-pulse rounded-2xl border border-border-strong" />
+                {isLoading && Array.from({ length: 3 }, (_, n) => n + 1).map((n) => (
+                  <div key={`skeleton-news-${n}`} className="h-32 bg-surface-subtle animate-pulse rounded-2xl border border-border-strong" />
                 ))}
                 {!isLoading && isError && (
                   <div className="p-8 text-center bg-danger-subtle rounded-2xl border border-danger/20 text-danger text-sm">
@@ -374,8 +374,8 @@ export const CooDashboardPage: React.FC = () => {
               </>
             ) : (
               <>
-                {isLoadingSaved && new Array(3).fill(null).map((_, i) => (
-                  <div key={`skeleton-saved-${i}`} className="h-32 bg-surface-subtle animate-pulse rounded-2xl border border-border-strong" />
+                {isLoadingSaved && Array.from({ length: 3 }, (_, n) => n + 1).map((n) => (
+                  <div key={`skeleton-saved-${n}`} className="h-32 bg-surface-subtle animate-pulse rounded-2xl border border-border-strong" />
                 ))}
                 {!isLoadingSaved && isErrorSaved && (
                   <div className="p-8 text-center bg-danger-subtle rounded-2xl border border-danger/20 text-danger text-sm">

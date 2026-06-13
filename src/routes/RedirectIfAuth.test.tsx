@@ -40,7 +40,7 @@ function renderLogin() {
 }
 
 beforeEach(() => {
-  window.localStorage.clear();
+  globalThis.localStorage.clear();
   useAuthStore.setState({ user: null, isAuthenticated: false });
 });
 

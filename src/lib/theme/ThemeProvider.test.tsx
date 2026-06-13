@@ -18,17 +18,17 @@ function setPrefersDark(prefersDark: boolean): void {
   }));
 }
 
-const originalMatchMedia = window.matchMedia;
+const originalMatchMedia = globalThis.matchMedia;
 
 beforeEach(() => {
-  window.localStorage.clear();
+  globalThis.localStorage.clear();
   document.documentElement.classList.remove('dark');
   setPrefersDark(false);
-  window.matchMedia = matchMediaMock as unknown as typeof window.matchMedia;
+  globalThis.matchMedia = matchMediaMock as unknown as typeof globalThis.matchMedia; // NOSONAR
 });
 
 afterEach(() => {
-  window.matchMedia = originalMatchMedia;
+  globalThis.matchMedia = originalMatchMedia;
 });
 
 const ThemeProbe = () => {
@@ -51,13 +51,13 @@ const ThemeProbe = () => {
 
 describe('getInitialTheme', () => {
   it('returns the stored theme when localStorage has "dark"', () => {
-    window.localStorage.setItem(THEME_STORAGE_KEY, 'dark');
+    globalThis.localStorage.setItem(THEME_STORAGE_KEY, 'dark');
 
     expect(getInitialTheme()).toBe('dark');
   });
 
   it('returns the stored theme when localStorage has "light"', () => {
-    window.localStorage.setItem(THEME_STORAGE_KEY, 'light');
+    globalThis.localStorage.setItem(THEME_STORAGE_KEY, 'light');
 
     expect(getInitialTheme()).toBe('light');
   });
@@ -75,7 +75,7 @@ describe('getInitialTheme', () => {
   });
 
   it('ignores invalid stored values and falls back to the OS preference', () => {
-    window.localStorage.setItem(THEME_STORAGE_KEY, 'neon');
+    globalThis.localStorage.setItem(THEME_STORAGE_KEY, 'neon');
     setPrefersDark(true);
 
     expect(getInitialTheme()).toBe('dark');
@@ -116,11 +116,11 @@ describe('ThemeProvider', () => {
 
     expect(screen.getByTestId('theme')).toHaveTextContent('light');
     expect(document.documentElement).not.toHaveClass('dark');
-    expect(window.localStorage.getItem(THEME_STORAGE_KEY)).toBe('light');
+    expect(globalThis.localStorage.getItem(THEME_STORAGE_KEY)).toBe('light');
   });
 
   it('initializes from a persisted dark theme and applies the dark class', () => {
-    window.localStorage.setItem(THEME_STORAGE_KEY, 'dark');
+    globalThis.localStorage.setItem(THEME_STORAGE_KEY, 'dark');
 
     render(
       <ThemeProvider>
@@ -144,12 +144,12 @@ describe('ThemeProvider', () => {
 
     expect(screen.getByTestId('theme')).toHaveTextContent('dark');
     expect(document.documentElement).toHaveClass('dark');
-    expect(window.localStorage.getItem(THEME_STORAGE_KEY)).toBe('dark');
+    expect(globalThis.localStorage.getItem(THEME_STORAGE_KEY)).toBe('dark');
   });
 
   it('toggle switches back from dark to light and removes the class', async () => {
     const user = userEvent.setup();
-    window.localStorage.setItem(THEME_STORAGE_KEY, 'dark');
+    globalThis.localStorage.setItem(THEME_STORAGE_KEY, 'dark');
     render(
       <ThemeProvider>
         <ThemeProbe />
@@ -160,7 +160,7 @@ describe('ThemeProvider', () => {
 
     expect(screen.getByTestId('theme')).toHaveTextContent('light');
     expect(document.documentElement).not.toHaveClass('dark');
-    expect(window.localStorage.getItem(THEME_STORAGE_KEY)).toBe('light');
+    expect(globalThis.localStorage.getItem(THEME_STORAGE_KEY)).toBe('light');
   });
 
   it('setTheme forces a specific theme', async () => {

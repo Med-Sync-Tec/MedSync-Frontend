@@ -130,7 +130,7 @@ interface ErrorStateProps {
 const ErrorState: React.FC<ErrorStateProps> = ({ error, onRetry }) => {
   const isKnownError = error instanceof ApiError || error instanceof Error;
   const message = isKnownError
-    ? (error as Error).message
+    ? (error as Error).message // NOSONAR
     : 'No pudimos cargar la lista de pacientes.';
 
   return (

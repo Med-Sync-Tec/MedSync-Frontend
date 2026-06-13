@@ -42,7 +42,7 @@ function renderAt(initialPath: string) {
 }
 
 beforeEach(() => {
-  window.localStorage.clear();
+  globalThis.localStorage.clear();
   useAuthStore.setState({ user: null, isAuthenticated: false });
 });
 

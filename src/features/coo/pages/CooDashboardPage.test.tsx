@@ -139,6 +139,10 @@ beforeEach(() => {
   mockGetMatchingPatients.mockResolvedValue([]);
 });
 
+async function switchToSaved(user: ReturnType<typeof userEvent.setup>) {
+  await user.click(screen.getByRole('radio', { name: /Guardadas/ }));
+}
+
 describe('CooDashboardPage', () => {
   describe('news view', () => {
     it('renders the welcome panel and view toggle', async () => {
@@ -281,10 +285,6 @@ describe('CooDashboardPage', () => {
       await waitFor(() => expect(mockGetRecentArticles).toHaveBeenCalledWith(1, 10));
     });
   });
-
-  async function switchToSaved(user: ReturnType<typeof userEvent.setup>) {
-    await user.click(screen.getByRole('radio', { name: /Guardadas/ }));
-  }
 
   describe('saved view', () => {
     const SAVED_HIGH = makeArticle({

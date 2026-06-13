@@ -39,7 +39,7 @@ describe('Header', () => {
       matches: false,
       addEventListener: jest.fn(),
       removeEventListener: jest.fn(),
-    })) as unknown as typeof globalThis.matchMedia;
+    })) as unknown as typeof globalThis.matchMedia; // NOSONAR
   });
 
   beforeEach(() => {

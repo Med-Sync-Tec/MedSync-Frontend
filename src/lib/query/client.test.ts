@@ -7,6 +7,14 @@ afterEach(() => {
   queryClient.clear();
 });
 
+function getRetryFn() {
+  const retry = createQueryClient().getDefaultOptions().queries?.retry;
+  if (typeof retry !== 'function') {
+    throw new TypeError('expected retry to be a function');
+  }
+  return retry;
+}
+
 describe('createQueryClient', () => {
   it('configures a 30 second staleTime and refetchOnWindowFocus', () => {
     const client = createQueryClient();
@@ -17,13 +25,6 @@ describe('createQueryClient', () => {
   });
 
   describe('default retry function', () => {
-    function getRetryFn() {
-      const retry = createQueryClient().getDefaultOptions().queries?.retry;
-      if (typeof retry !== 'function') {
-        throw new Error('expected retry to be a function');
-      }
-      return retry;
-    }
 
     it('does not retry on 401 unauthorized errors', () => {
       const retry = getRetryFn();

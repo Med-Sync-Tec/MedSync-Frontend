@@ -29,6 +29,12 @@ export const Pagination: React.FC<PaginationProps> = ({
   const btnBase =
     'w-9 h-9 flex items-center justify-center rounded-lg text-sm font-semibold transition-all focus:outline-none focus:ring-2 focus:ring-primary/30';
 
+  const pagesRaw = getPages();
+  const pageItems = pagesRaw.map((p, i) => ({
+    page: p,
+    key: p === '...' ? `ellipsis-after-${pagesRaw[i - 1] ?? 0}` : String(p),
+  }));
+
   return (
     <nav className={`flex items-center gap-1 ${className}`} aria-label="Paginación">
       <button
@@ -41,14 +47,14 @@ export const Pagination: React.FC<PaginationProps> = ({
         <span className="material-symbols-outlined text-lg">chevron_left</span>
       </button>
 
-      {getPages().map((page, idx) =>
+      {pageItems.map(({ page, key }) =>
         page === '...' ? (
-          <span key={`ellipsis-pos-${idx}`} className="w-9 h-9 flex items-center justify-center text-gray-400 text-sm">
+          <span key={key} className="w-9 h-9 flex items-center justify-center text-gray-400 text-sm">
             ...
           </span>
         ) : (
           <button
-            key={page}
+            key={key}
             type="button"
             onClick={() => onPageChange(page)}
             className={`${btnBase} ${

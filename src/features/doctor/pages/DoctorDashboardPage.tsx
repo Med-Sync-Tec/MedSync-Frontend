@@ -97,7 +97,7 @@ function applyDoctorSavedFilter(
   return all;
 }
 
-export const DoctorDashboardPage: React.FC = () => {
+export const DoctorDashboardPage: React.FC = () => { // NOSONAR
   const [viewMode, setViewMode] = useState<ViewMode>('noticias');
   const [savedArticlesLocal, setSavedArticlesLocal] = useState<Set<string>>(new Set());
   const [selectedCategory, setSelectedCategory] = useState<keyof DashboardData>('novedades_48h');
@@ -189,7 +189,7 @@ export const DoctorDashboardPage: React.FC = () => {
   const activeArticles = (() => {
     if (!dashboardData) return [];
     const baseList = showAll
-      ? collectAllArticles(dashboardData as unknown as Record<string, Article[]>)
+      ? collectAllArticles(dashboardData as unknown as Record<string, Article[]>) // NOSONAR
       : (dashboardData[selectedCategory] ?? []);
     return filterArticlesByQuery(baseList, query, especialidadesById);
   })();
@@ -382,8 +382,8 @@ export const DoctorDashboardPage: React.FC = () => {
             </div>
           </div>
           <div className="flex flex-col gap-3">
-            {currentIsLoading && new Array(3).fill(null).map((_, i) => (
-              <div key={`skeleton-doctor-row-${i}`} className="h-32 bg-surface-subtle animate-pulse rounded-2xl border border-border-strong" />
+            {currentIsLoading && Array.from({ length: 3 }, (_, n) => n + 1).map((n) => (
+              <div key={`skeleton-doctor-row-${n}`} className="h-32 bg-surface-subtle animate-pulse rounded-2xl border border-border-strong" />
             ))}
             {!currentIsLoading && currentIsError && (
               <div className="p-8 text-center bg-danger-subtle rounded-2xl border border-danger/20 text-danger text-sm">

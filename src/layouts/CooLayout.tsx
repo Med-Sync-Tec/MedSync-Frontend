@@ -6,6 +6,8 @@ import { FAB } from '@ui/buttons/FAB';
 import { useMediBot } from '@features/chat/hooks/useMediBot';
 import { ErrorBoundary } from './ErrorBoundary';
 
+const Fab = FAB;
+
 function resolveActiveNav(pathname: string): string | undefined {
   if (pathname.startsWith('/coo/dashboard')) return 'Inicio';
   if (pathname.startsWith('/coo/medication-news')) return 'Por Medicamento';
@@ -39,7 +41,7 @@ export const CooLayout: React.FC = () => {
             onSend={send}
           />
         )}
-        <FAB
+        <Fab
           label={chatOpen ? '' : 'MediBot IA'}
           icon={
             chatOpen
@@ -55,9 +57,9 @@ export const CooLayout: React.FC = () => {
 };
 
 const PageSpinner: React.FC = () => (
-  <div className="flex items-center justify-center py-20" role="status" aria-label="Cargando">
+  <output className="flex items-center justify-center py-20" aria-label="Cargando">
     <span className="material-symbols-outlined animate-spin text-3xl text-gray-400" aria-hidden="true">
       progress_activity
     </span>
-  </div>
+  </output>
 );

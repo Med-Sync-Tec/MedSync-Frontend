@@ -33,9 +33,9 @@ function renderBotText(text: string): React.ReactNode {
 
 function inlineFormat(text: string): React.ReactNode {
   const parts = text.split(/(\*\*[^*]+\*\*)/g);
-  return parts.map((part, i) =>
+  return parts.map((part) =>
     /^\*\*[^*]+\*\*$/.test(part)
-      ? <strong key={`fmt-${i}`}>{part.slice(2, -2)}</strong>
+      ? <strong key={part}>{part.slice(2, -2)}</strong>
       : part
   );
 }
