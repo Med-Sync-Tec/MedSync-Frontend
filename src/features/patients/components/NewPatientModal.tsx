@@ -254,6 +254,7 @@ export const NewPatientModal: React.FC<NewPatientModalProps> = ({
                 id="np-genero"
                 label={FIELD_LABELS.genero}
                 error={fieldErrors.genero}
+                required
               >
                 <select
                   id="np-genero"
@@ -262,7 +263,7 @@ export const NewPatientModal: React.FC<NewPatientModalProps> = ({
                   disabled={isPending}
                   className={inputClass(Boolean(fieldErrors.genero))}
                 >
-                  <option value="">Sin especificar</option>
+                  <option value="" disabled>Seleccionar género</option>
                   {GENDER_OPTIONS.map((g) => (
                     <option key={g} value={g}>
                       {g}

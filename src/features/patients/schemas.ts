@@ -5,7 +5,8 @@ export const PatientSchema = z.object({
   expedienteExternoId: z.string(),
   nombre: z.string(),
   fechaNacimiento: z.string(),
-  genero: z.string(),
+  // Backend puede devolver null cuando no se especificó género
+  genero: z.string().nullish().transform((v) => v ?? ''),
   medicoId: z.string(),
   activo: z.boolean(),
   createdAt: z.string(),
@@ -22,8 +23,8 @@ export const ExpedienteSchema = z.object({
 export const PatientConsultaLiteSchema = z.object({
   id: z.string(),
   fecha: z.string(),
-  diagnostico: z.string(),
-  prescripcion: z.string(),
+  diagnostico: z.string().nullish().transform((v) => v ?? ''),
+  prescripcion: z.string().nullish().transform((v) => v ?? ''),
 });
 
 export const PatientDetailSchema = z.object({
@@ -66,9 +67,8 @@ export const CreatePatientInputSchema = z.object({
   genero: z
     .string()
     .trim()
-    .max(20, 'Máximo 20 caracteres')
-    .optional()
-    .transform((v) => (v && v.length > 0 ? v : undefined)),
+    .min(1, 'Debes seleccionar un género')
+    .max(20, 'Máximo 20 caracteres'),
 });
 
 export const CONTEXTO_TIPOS = ['enfermedad', 'sintoma', 'tratamiento', 'medicamento'] as const;

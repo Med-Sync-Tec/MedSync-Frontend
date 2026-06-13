@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { AlertTriangle, Plus, Search, Users } from 'lucide-react';
+import { AlertTriangle, Plus, Users } from 'lucide-react';
 import { PatientCard, type PatientCardStatus } from '@ui/cards/PatientCard';
 import { ApiError } from '@lib/http/errors';
 import { usePatients } from '@features/patients/queries';

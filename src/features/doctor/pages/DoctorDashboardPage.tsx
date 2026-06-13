@@ -426,14 +426,12 @@ export const DoctorDashboardPage: React.FC = () => {
                         }}
                         url={article.url}
                         extraActions={
-                          viewMode === 'noticias' ? (
-                            <span onClick={(e) => e.stopPropagation()}>
-                              <AnalyzeArticleButton
-                                articleId={article.id}
-                                articleTitle={article.titulo}
-                              />
-                            </span>
-                          ) : undefined
+                          <span onClick={(e) => e.stopPropagation()}>
+                            <AnalyzeArticleButton
+                              articleId={article.id}
+                              articleTitle={article.titulo}
+                            />
+                          </span>
                         }
                       />
                     </div>
@@ -460,6 +458,26 @@ export const DoctorDashboardPage: React.FC = () => {
         article={selectedArticle}
         onClose={() => setSelectedArticle(null)}
         isHighEvidence={selectedArticle ? altaEvidenciaIds.has(selectedArticle.id) : false}
+        saved={selectedArticle
+          ? viewMode === 'guardadas' || savedArticlesLocal.has(selectedArticle.id)
+          : false
+        }
+        onSave={selectedArticle ? (e?: React.MouseEvent) => {
+          e?.stopPropagation();
+          if (viewMode === 'guardadas') {
+            handleUnsaveSaved(selectedArticle);
+            setSelectedArticle(null);
+          } else {
+            toggleSave(selectedArticle.id);
+          }
+        } : undefined}
+        analyzeButton={selectedArticle ? (
+          <AnalyzeArticleButton
+            articleId={selectedArticle.id}
+            articleTitle={selectedArticle.titulo}
+            className="inline-flex items-center justify-center gap-1.5 w-full py-2 rounded-xl border border-primary/30 bg-primary-subtle text-primary text-sm font-semibold hover:bg-primary/15 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
+          />
+        ) : undefined}
       />
     </>
   );

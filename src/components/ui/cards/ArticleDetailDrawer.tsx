@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { Bookmark, BookmarkCheck } from 'lucide-react';
 import type { Article } from '@features/news/types';
 import { useEspecialidades, useMatchingPatients } from '@features/matching/queries';
 import { specialtyVisualById } from '@features/matching/specialtyVisuals';
@@ -10,6 +11,12 @@ interface ArticleDetailDrawerProps {
   onClose: () => void;
   /** Si true, el artículo pertenece a la categoría 'Alta Evidencia' del backend */
   isHighEvidence?: boolean;
+  /** Si el artículo está guardado por el usuario actual */
+  saved?: boolean;
+  /** Callback para guardar/desguardar el artículo */
+  onSave?: (e?: React.MouseEvent) => void;
+  /** Slot para renderizar el botón "Analizar con IA" (viene del padre para respetar la regla ui→features) */
+  analyzeButton?: React.ReactNode;
 }
 
 const CATEGORY_MAP: Record<string, string> = {
@@ -42,7 +49,14 @@ function getConfidence(score: number): { label: string; color: string; bg: strin
   return             { label: 'Bajo',  color: '#ef4444', bg: 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800', icon: 'signal_cellular_alt_1_bar' };
 }
 
-export const ArticleDetailDrawer: React.FC<ArticleDetailDrawerProps> = ({ article, onClose, isHighEvidence = false }) => {
+export const ArticleDetailDrawer: React.FC<ArticleDetailDrawerProps> = ({
+  article,
+  onClose,
+  isHighEvidence = false,
+  saved = false,
+  onSave,
+  analyzeButton,
+}) => {
   const { byId: especialidadesById } = useEspecialidades();
   const user = useAuthStore((s) => s.user);
   const isDoctor = user?.role === 'DOCTOR';
@@ -301,18 +315,46 @@ export const ArticleDetailDrawer: React.FC<ArticleDetailDrawerProps> = ({ articl
           <div className="h-8" />
         </div>
 
-        {/* ── FOOTER con botón PubMed ──────────────────────────────────── */}
-        {article.url && (
-          <div className="flex-shrink-0 px-5 py-3.5 border-t border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900">
-            <a
-              href={article.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={`flex items-center justify-center gap-2 w-full py-2.5 rounded-xl text-white font-semibold text-sm transition-opacity hover:opacity-90 active:scale-[0.98] ${specialtyVisual.sidebar}`}
-            >
-              <span className="material-symbols-outlined text-[18px]">open_in_new</span>
-              Ver artículo original en PubMed
-            </a>
+        {/* ── FOOTER: guardar + analizar + PubMed ─────────────────────── */}
+        {(onSave || analyzeButton || article.url) && (
+          <div className="flex-shrink-0 px-5 py-3.5 border-t border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 space-y-2">
+            {/* Fila de acciones */}
+            {(onSave || analyzeButton) && (
+              <div className="flex items-center gap-2">
+                {onSave && (
+                  <button
+                    type="button"
+                    onClick={onSave}
+                    className={`inline-flex items-center justify-center gap-1.5 flex-1 py-2 rounded-xl text-sm font-semibold border transition-colors focus:outline-none ${
+                      saved
+                        ? 'bg-primary/10 text-primary border-primary/30 hover:bg-primary/20'
+                        : 'bg-surface border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800'
+                    }`}
+                  >
+                    {saved
+                      ? <BookmarkCheck size={15} aria-hidden="true" />
+                      : <Bookmark size={15} aria-hidden="true" />
+                    }
+                    {saved ? 'Guardado' : 'Guardar'}
+                  </button>
+                )}
+                {analyzeButton && (
+                  <div className="flex-1">{analyzeButton}</div>
+                )}
+              </div>
+            )}
+            {/* Enlace a PubMed */}
+            {article.url && (
+              <a
+                href={article.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={`flex items-center justify-center gap-2 w-full py-2.5 rounded-xl text-white font-semibold text-sm transition-opacity hover:opacity-90 active:scale-[0.98] ${specialtyVisual.sidebar}`}
+              >
+                <span className="material-symbols-outlined text-[18px]">open_in_new</span>
+                Ver artículo original en PubMed
+              </a>
+            )}
           </div>
         )}
       </div>

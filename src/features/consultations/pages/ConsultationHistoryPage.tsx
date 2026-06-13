@@ -350,10 +350,6 @@ function resolveErrorMessage(error: unknown): string {
   return 'No pudimos cargar el historial del paciente.';
 }
 
-function currentTabLabel(id: TabId, tabs: TabDef[]): string {
-  return tabs.find((t) => t.id === id)?.label ?? '';
-}
-
 interface TimelineProps {
   groups: Array<[string, Consulta[]]>;
   onViewSOAP: (id: string) => void;
